@@ -1,5 +1,5 @@
 <!-- ══════════════════════════════════════════════════════════════════
-     docs/index.html — AlphaShield V7.2 · Zero-Build · AES-GCM Gated
+     docs/index.html — AlphaShield V7.2 · Master Password Gated
      ══════════════════════════════════════════════════════════════════ -->
 <!DOCTYPE html>
 <html lang="th" class="dark">
@@ -127,8 +127,6 @@
   #auth-overlay.hidden-gate { opacity: 0; visibility: hidden; pointer-events: none; }
   #app-shell { transition: opacity .7s cubic-bezier(.16,1,.3,1), filter .7s cubic-bezier(.16,1,.3,1); }
   #app-shell.blurred { opacity: 0; filter: blur(24px); pointer-events: none; user-select: none; }
-  #otp-input { letter-spacing: .42em; }
-  #otp-input::placeholder { letter-spacing: .18em; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
@@ -160,22 +158,23 @@
       </h2>
       <p class="mb-7 max-w-xs text-sm leading-relaxed text-muted">
         ข้อมูลพอร์ตถูกเข้ารหัสด้วย AES-GCM 256-bit<br />
-        กรอกรหัสผ่านประจำวันที่ได้รับทาง LINE
+        กรอก <span class="font-medium text-foreground/80">Master Password</span> เพื่อปลดล็อก
       </p>
     </div>
 
     <form id="auth-form" autocomplete="off" novalidate>
       <label for="otp-input" class="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
-        Password / Access Key
+        Master Password
       </label>
 
       <div class="relative">
         <i data-lucide="key-round" class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"></i>
         <input
-          id="otp-input" type="password" inputmode="text" maxlength="20"
-          spellcheck="false" autocapitalize="characters" autocomplete="one-time-code"
-          placeholder="••••••••"
-          class="w-full rounded-2xl border border-white/10 bg-white/[0.03] py-4 pl-11 pr-12 text-center text-lg font-semibold text-foreground outline-none transition placeholder:text-white/20 focus:border-emerald/50 focus:bg-white/[0.05] focus:ring-2 focus:ring-emerald/20" />
+          id="otp-input" type="password" maxlength="128"
+          spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="current-password"
+          placeholder="Enter master password"
+          class="w-full rounded-2xl border border-white/10 bg-white/[0.03] py-4 pl-11 pr-12 text-center text-lg font-semibold text-foreground outline-none transition placeholder:text-white/20 focus:border-emerald/50 focus:bg-white/[0.05] focus:ring-2 focus:ring-emerald/20"
+          style="letter-spacing:.12em" />
         <button id="toggle-visibility" type="button" aria-label="สลับการแสดงรหัส"
                 class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted transition hover:text-foreground">
           <i data-lucide="eye" class="h-4 w-4"></i>
@@ -190,7 +189,7 @@
       <label class="mt-4 flex cursor-pointer items-center gap-2.5 text-xs text-muted">
         <input id="remember-toggle" type="checkbox" checked
                class="h-4 w-4 rounded border-white/20 bg-white/5 accent-emerald" />
-        จดจำการเข้าสู่ระบบในเบราว์เซอร์นี้ (หมดอายุตามรอบข้อมูล)
+        Remember me — จดจำรหัสในเบราว์เซอร์นี้
       </label>
 
       <button id="unlock-btn" type="submit"
@@ -325,9 +324,9 @@
 /* ══════════════════════════════════════════════════════════════
    0. CONFIG & STATE
    ══════════════════════════════════════════════════════════════ */
-const ENC_URL       = "./data.enc";
-const SESSION_KEY   = "alphashield.session.v1";
-const STORE_FLAG    = "alphashield.persist.v1";
+const ENC_URL   = "./data.enc";
+const AUTH_KEY  = "alphashield.master.v2";   // localStorage (Remember me)
+const SESS_KEY  = "alphashield.master.sess"; // sessionStorage (ไม่ติ๊ก remember)
 
 const state = { data: null, filter: "all", bundle: null, unlocked: false };
 
@@ -360,37 +359,48 @@ function timeICT(iso) {
   return `${p(d.getHours())}:${p(d.getMinutes())} ICT`;
 }
 
-const b64ToBytes = (b64) => {
-  const bin = atob(String(b64).replace(/\s/g, ""));
+/* base64 → Uint8Array */
+function b64ToBytes(b64) {
+  const bin = atob(String(b64).replace(/[^A-Za-z0-9+/=]/g, ""));
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
-};
+}
 
 /* ══════════════════════════════════════════════════════════════
-   2. CRYPTO GATE — PBKDF2 + AES-GCM (WebCrypto)
+   2. CRYPTO — PBKDF2-SHA256(100k, 32B) + AES-GCM(12B IV, 128-bit tag)
    ══════════════════════════════════════════════════════════════ */
-async function fetchBundle() {
-  if (state.bundle) return state.bundle;
+async function fetchBundle(force = false) {
+  if (state.bundle && !force) return state.bundle;
   const res = await fetch(`${ENC_URL}?t=${Date.now()}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`ไม่พบไฟล์ข้อมูลเข้ารหัส (HTTP ${res.status})`);
-  const b = await res.json();
-  if (!b || !b.ciphertext || !b.salt || !b.iv) throw new Error("รูปแบบไฟล์เข้ารหัสไม่ถูกต้อง");
+  if (!res.ok) throw new Error(`NETWORK: ไม่พบไฟล์ข้อมูลเข้ารหัส (HTTP ${res.status})`);
+
+  let b;
+  try { b = await res.json(); }
+  catch (_) { throw new Error("NETWORK: ไฟล์ data.enc ไม่ใช่ JSON ที่ถูกต้อง"); }
+
+  if (!b || !b.salt || !b.iv || !b.ciphertext)
+    throw new Error("NETWORK: โครงสร้าง data.enc ไม่ครบ (salt/iv/ciphertext)");
+
   state.bundle = b;
   return b;
 }
 
-function normalizeKey(raw) {
-  // ยอมรับทั้ง "ABCD-2345" และ "abcd2345"
-  return String(raw || "").trim().toUpperCase().replace(/[\s-]/g, "");
-}
-
-async function deriveKey(passphrase, salt, iterations) {
+async function deriveKey(password, saltBytes, iterations) {
   const baseKey = await crypto.subtle.importKey(
-    "raw", new TextEncoder().encode(passphrase), "PBKDF2", false, ["deriveKey"]
+    "raw",
+    new TextEncoder().encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveKey"]
   );
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt, iterations: iterations || 210000, hash: "SHA-256" },
+    {
+      name: "PBKDF2",
+      salt: saltBytes,
+      iterations: Number(iterations) || 100000,
+      hash: "SHA-256"
+    },
     baseKey,
     { name: "AES-GCM", length: 256 },
     false,
@@ -398,47 +408,47 @@ async function deriveKey(passphrase, salt, iterations) {
   );
 }
 
-async function decryptPayload(passphrase) {
-  const b = await fetchBundle();
-  const key = await deriveKey(passphrase, b64ToBytes(b.salt), b.iterations);
-  // AES-GCM จะ throw ทันทีถ้า auth tag ไม่ผ่าน → ไม่มีข้อมูลรั่วแม้บางส่วน
-  const plain = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: b64ToBytes(b.iv) }, key, b64ToBytes(b.ciphertext)
-  );
-  const json = JSON.parse(new TextDecoder().decode(plain));
-  if (!json || !Array.isArray(json.assets)) throw new Error("โครงสร้างข้อมูลไม่ถูกต้อง");
+const normalizePwd = (raw) => String(raw ?? "").trim();
+
+async function decryptPayload(password) {
+  const b     = await fetchBundle();
+  const salt  = b64ToBytes(b.salt);
+  const iv    = b64ToBytes(b.iv);
+  const data  = b64ToBytes(b.ciphertext);
+  const key   = await deriveKey(password, salt, b.iterations);
+
+  let plain;
+  try {
+    plain = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv, tagLength: Number(b.tag_bits) || 128 },
+      key,
+      data
+    );
+  } catch (_) {
+    throw new Error("BADPASS");
+  }
+
+  let json;
+  try { json = JSON.parse(new TextDecoder().decode(plain)); }
+  catch (_) { throw new Error("CORRUPT"); }
+
+  if (!json || !Array.isArray(json.assets)) throw new Error("CORRUPT");
   return json;
 }
 
-/* ── Session persistence (ผูกกับ issued_date → หมดอายุอัตโนมัติ) ── */
-function saveSession(passphrase, persist) {
-  const record = JSON.stringify({ k: passphrase, d: state.bundle?.issued_date || "" });
+/* ── Credential storage ── */
+function savePwd(pwd, persist) {
   try {
-    sessionStorage.setItem(SESSION_KEY, record);
-    if (persist) { localStorage.setItem(SESSION_KEY, record); localStorage.setItem(STORE_FLAG, "1"); }
-    else { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(STORE_FLAG); }
+    if (persist) { localStorage.setItem(AUTH_KEY, pwd); sessionStorage.removeItem(SESS_KEY); }
+    else { sessionStorage.setItem(SESS_KEY, pwd); localStorage.removeItem(AUTH_KEY); }
   } catch (_) {}
 }
-
-function readSession() {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    const rec = JSON.parse(raw);
-    if (state.bundle?.issued_date && rec.d && rec.d !== state.bundle.issued_date) {
-      clearSession();                       // ข้อมูลรอบใหม่ → บังคับกรอก OTP ใหม่
-      return null;
-    }
-    return rec.k || null;
-  } catch (_) { return null; }
+function readPwd() {
+  try { return localStorage.getItem(AUTH_KEY) || sessionStorage.getItem(SESS_KEY) || null; }
+  catch (_) { return null; }
 }
-
-function clearSession() {
-  try {
-    sessionStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem(STORE_FLAG);
-  } catch (_) {}
+function clearPwd() {
+  try { localStorage.removeItem(AUTH_KEY); sessionStorage.removeItem(SESS_KEY); } catch (_) {}
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -452,7 +462,6 @@ const THEMES = {
   "WATCH":      { label:"WATCH",      text:"text-amber",   border:"border-amber/30",   bg:"bg-amber/10",   dot:"bg-amber",   glow:"glow-amber"   },
   "AVOID":      { label:"AVOID",      text:"text-haven",   border:"border-haven/30",   bg:"bg-haven/10",   dot:"bg-haven",   glow:"glow-haven"   }
 };
-
 const themeFor = (signal, position) =>
   THEMES[String(signal || "").toUpperCase().trim()] ||
   (String(position).toUpperCase() === "IN" ? THEMES["INVESTED"] : THEMES["AVOID"]);
@@ -488,7 +497,7 @@ const Metric = (label, value, tone = "text-foreground") => `
   </div>`;
 
 function AssetCard(a, i) {
-  const t = themeFor(a.signal, a.position);
+  const t   = themeFor(a.signal, a.position);
   const chg = Number(a.chg_pct) || 0;
   const ema = Number(a.dist_ema200_pct) || 0;
   const rsi = Number(a.rsi) || 0;
@@ -503,7 +512,6 @@ function AssetCard(a, i) {
   <article class="asset-card liquid-glass card-glow reveal rounded-3xl border ${t.border} ${t.glow} p-5"
            data-position="${String(a.position).toUpperCase() === "IN" ? "IN" : "OUT"}"
            style="transition-delay:${i * 0.09}s">
-
     <header class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <div class="flex items-center gap-2">
@@ -576,7 +584,7 @@ function AssetCard(a, i) {
    5. RENDERERS
    ══════════════════════════════════════════════════════════════ */
 function renderNav(d) {
-  $("#nav-time").textContent = timeICT(d.last_run_ict);
+  $("#nav-time").textContent  = timeICT(d.last_run_ict);
   $("#nav-haven").textContent = d.portfolio_status?.cash_park || d.safe_haven || "—";
 }
 
@@ -584,19 +592,21 @@ function renderAllocation(d) {
   const ps = d.portfolio_status || {};
   const eq = clamp(ps.equity_weight_pct ?? 0);
   const ch = clamp(ps.cash_weight_pct ?? (100 - eq));
-  $("#alloc-eq").textContent = `${fmt(eq, 1)}%`;
+  $("#alloc-eq").textContent   = `${fmt(eq, 1)}%`;
   $("#alloc-cash").textContent = `${fmt(ch, 1)}%`;
   $("#alloc-fund").textContent = ps.cash_park || d.safe_haven || "—";
+  $("#bar-eq").style.width = "0%";
+  $("#bar-cash").style.width = "0%";
   requestAnimationFrame(() => {
-    setTimeout(() => { $("#bar-eq").style.width = `${eq}%`; }, 500);
-    setTimeout(() => { $("#bar-cash").style.width = `${ch}%`; }, 650);
+    setTimeout(() => { $("#bar-eq").style.width   = `${eq}%`; }, 400);
+    setTimeout(() => { $("#bar-cash").style.width = `${ch}%`; }, 550);
   });
 }
 
 function renderKPIs(d) {
   const assets = d.assets || [];
   const active = assets.filter(a => String(a.position).toUpperCase() === "IN");
-  const mean = assets.length ? assets.reduce((s, a) => s + (Number(a.score) || 0), 0) / assets.length : 0;
+  const mean   = assets.length ? assets.reduce((s, a) => s + (Number(a.score) || 0), 0) / assets.length : 0;
 
   const cards = [
     { icon:"layers",      label:"Tracked Universe",     value:String(assets.length), sub:"Assets under surveillance", tone:"text-foreground", border:"border-cardborder" },
@@ -618,12 +628,12 @@ function renderKPIs(d) {
 
 function renderGrid() {
   if (!state.data) return;
-  const all = state.data.assets || [];
+  const all     = state.data.assets || [];
   const visible = all.filter(a => state.filter === "active" ? String(a.position).toUpperCase() === "IN" : true);
 
   $("#asset-grid").innerHTML = visible.map(AssetCard).join("");
   $("#count-visible").textContent = visible.length;
-  $("#count-total").textContent = all.length;
+  $("#count-total").textContent   = all.length;
 
   const empty = $("#empty-state");
   empty.classList.toggle("hidden", visible.length > 0);
@@ -635,15 +645,14 @@ function renderGrid() {
 }
 
 function renderAll() {
-  const d = state.data;
-  if (!d) return;
-  renderNav(d);
-  renderAllocation(d);
-  renderKPIs(d);
+  if (!state.data) return;
+  renderNav(state.data);
+  renderAllocation(state.data);
+  renderKPIs(state.data);
   renderGrid();
   const fs = $("#feed-status");
   fs.textContent = "encrypted feed · decrypted locally";
-  fs.className = "text-emerald";
+  fs.className   = "text-emerald";
   if (window.lucide) lucide.createIcons();
   observeReveals();
 }
@@ -676,7 +685,7 @@ function bindDrawers() {
   $(".drawer-toggle").forEach(btn => {
     btn.addEventListener("click", () => {
       const drawer = btn.nextElementSibling;
-      const open = drawer.classList.toggle("open");
+      const open   = drawer.classList.toggle("open");
       btn.setAttribute("aria-expanded", String(open));
       const chev = $(".chev", btn);
       if (chev) chev.style.transform = open ? "rotate(180deg)" : "rotate(0deg)";
@@ -695,7 +704,7 @@ function setFilter(f) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   8. AUTH GATE UI
+   8. AUTH GATE
    ══════════════════════════════════════════════════════════════ */
 const overlay  = $("#auth-overlay");
 const authCard = $("#auth-card");
@@ -710,9 +719,10 @@ function showError(msg) {
   errBox.classList.remove("hidden");
   errBox.classList.add("flex");
   authCard.classList.remove("shake");
-  void authCard.offsetWidth;          // reflow เพื่อรีสตาร์ท animation
+  void authCard.offsetWidth;
   authCard.classList.add("shake");
-  input.value = "";
+  input.classList.add("border-rose/60");
+  input.select();
   input.focus();
   if (navigator.vibrate) navigator.vibrate(120);
 }
@@ -720,6 +730,7 @@ function showError(msg) {
 function hideError() {
   errBox.classList.add("hidden");
   errBox.classList.remove("flex");
+  input.classList.remove("border-rose/60");
 }
 
 function setBusy(busy) {
@@ -738,38 +749,41 @@ function unlockUI() {
   setTimeout(() => { window.scrollTo({ top: 0 }); observeReveals(); }, 120);
 }
 
-function lockUI() {
+function lockUI(message) {
   state.unlocked = false;
   state.data = null;
-  clearSession();
+  clearPwd();
   $("#asset-grid").innerHTML = "";
-  $("#kpi-grid").innerHTML = "";
+  $("#kpi-grid").innerHTML   = "";
   $("#app-shell").classList.add("blurred");
   document.body.classList.add("locked");
   overlay.classList.remove("hidden-gate");
   hideError();
+  if (message) showError(message);
   setTimeout(() => input.focus(), 300);
 }
 
-async function attemptUnlock(rawKey, { silent = false } = {}) {
-  const key = normalizeKey(rawKey);
-  if (!key) { if (!silent) showError("กรุณากรอกรหัสผ่านประจำวัน"); return false; }
+async function attemptUnlock(raw, { silent = false } = {}) {
+  const pwd = normalizePwd(raw);
+  if (!pwd) { if (!silent) showError("กรุณากรอก Master Password"); return false; }
 
   setBusy(true);
   try {
-    const payload = await decryptPayload(key);
+    const payload = await decryptPayload(pwd);
     state.data = payload;
-    saveSession(key, $("#remember-toggle").checked);
+    savePwd(pwd, $("#remember-toggle").checked);
     hideError();
     renderAll();
     setFilter("all");
     unlockUI();
     return true;
   } catch (e) {
-    const msg = /HTTP|รูปแบบ|ไม่พบ/.test(e.message)
-      ? e.message
-      : "รหัสผ่านไม่ถูกต้อง หรือหมดอายุแล้ว — ตรวจสอบ OTP ล่าสุดใน LINE";
-    if (!silent) showError(msg);
+    if (!silent) {
+      const m = String(e.message || "");
+      if (m.startsWith("NETWORK"))      showError(m.replace("NETWORK: ", ""));
+      else if (m === "CORRUPT")         showError("ไฟล์ข้อมูลเสียหาย — กรุณารันบอทใหม่อีกครั้ง");
+      else                              showError("รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
+    }
     return false;
   } finally {
     setBusy(false);
@@ -782,15 +796,14 @@ async function attemptUnlock(rawKey, { silent = false } = {}) {
 document.addEventListener("DOMContentLoaded", async () => {
   if (window.lucide) lucide.createIcons();
 
-  // เบราว์เซอร์ต้องอยู่ใน secure context (https / localhost)
   if (!window.crypto || !window.crypto.subtle) {
-    showError("เบราว์เซอร์นี้ไม่รองรับ Web Crypto — กรุณาเปิดผ่าน HTTPS");
+    showError("เบราว์เซอร์ไม่รองรับ Web Crypto — ต้องเปิดผ่าน HTTPS หรือ localhost");
     btn.disabled = true;
     return;
   }
 
   $("[data-filter]").forEach(b => b.addEventListener("click", () => setFilter(b.dataset.filter)));
-  $("#logout-btn").addEventListener("click", lockUI);
+  $("#logout-btn").addEventListener("click", () => lockUI());
 
   $("#toggle-visibility").addEventListener("click", () => {
     const show = input.type === "password";
@@ -801,41 +814,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   input.addEventListener("input", hideError);
+  $("#auth-form").addEventListener("submit", (e) => { e.preventDefault(); attemptUnlock(input.value); });
 
-  $("#auth-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    attemptUnlock(input.value);
-  });
-
-  // โหลด metadata ของไฟล์เข้ารหัส แล้วลอง auto-unlock จาก session
   try {
     const b = await fetchBundle();
     $("#enc-meta").textContent =
-      `${b.alg || "AES-GCM-256"} · ${b.kdf || "PBKDF2"} · ${(b.iterations || 0).toLocaleString()} iters · ${b.issued_date || ""}`;
-    const saved = readSession();
+      `${b.alg || "AES-GCM"}-${b.key_bits || 256} · ${b.kdf || "PBKDF2-SHA256"} · ${Number(b.iterations || 100000).toLocaleString()} iters`;
+
+    const saved = readPwd();
     if (saved) {
+      $("#remember-toggle").checked = !!localStorage.getItem(AUTH_KEY);
       const ok = await attemptUnlock(saved, { silent: true });
-      if (!ok) clearSession();
+      if (!ok) clearPwd();
     }
   } catch (e) {
-    showError(e.message);
+    showError(String(e.message).replace("NETWORK: ", ""));
   }
 
   if (!state.unlocked) input.focus();
 
-  // รีเฟรชข้อมูลอัตโนมัติทุก 10 นาที (ใช้คีย์เดิมใน session)
   setInterval(async () => {
     if (!state.unlocked) return;
-    const saved = readSession();
-    if (!saved) return;
-    state.bundle = null;                 // ดึง bundle ใหม่
+    const pwd = readPwd();
+    if (!pwd) return;
     try {
-      state.data = await decryptPayload(normalizeKey(saved));
+      await fetchBundle(true);
+      state.data = await decryptPayload(normalizePwd(pwd));
       renderAll();
-    } catch (_) {
-      lockUI();                          // ข้อมูลรอบใหม่ + OTP เปลี่ยน → ล็อกกลับ
-      showError("ข้อมูลรอบใหม่ถูกเผยแพร่แล้ว กรุณากรอก OTP ล่าสุดจาก LINE");
-    }
+    } catch (_) {}
   }, 10 * 60 * 1000);
 });
 </script>
