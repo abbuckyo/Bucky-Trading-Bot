@@ -331,10 +331,10 @@ const SESS_KEY  = "alphashield.master.sess"; // sessionStorage (ไม่ติ�
 const state = { data: null, filter: "all", bundle: null, unlocked: false };
 
 /* ══════════════════════════════════════════════════════════════
-   1. UTILITIES
+   1. UTILITIES (แก้ Bug ตัวแปร $ ซ้ำเรียบร้อย)
    ══════════════════════════════════════════════════════════════ */
 const $  = (s, r = document) => r.querySelector(s);
-const $ = (s, r = document) => [...r.querySelectorAll(s)];
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 const esc = (v) => String(v ?? "")
   .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
@@ -359,7 +359,6 @@ function timeICT(iso) {
   return `${p(d.getHours())}:${p(d.getMinutes())} ICT`;
 }
 
-/* base64 → Uint8Array */
 function b64ToBytes(b64) {
   const bin = atob(String(b64).replace(/[^A-Za-z0-9+/=]/g, ""));
   const out = new Uint8Array(bin.length);
@@ -436,7 +435,6 @@ async function decryptPayload(password) {
   return json;
 }
 
-/* ── Credential storage ── */
 function savePwd(pwd, persist) {
   try {
     if (persist) { localStorage.setItem(AUTH_KEY, pwd); sessionStorage.removeItem(SESS_KEY); }
@@ -668,21 +666,21 @@ function observeReveals() {
         if (!entry.isIntersecting) return;
         const el = entry.target;
         el.classList.add("shown");
-        $(".meter-ring", el).forEach(ring => {
+        $$(".meter-ring", el).forEach(ring => {
           setTimeout(() => { ring.style.strokeDashoffset = ring.dataset.offset; }, 250);
         });
         io.unobserve(el);
       });
     }, { rootMargin: "-60px 0px", threshold: 0.05 });
   }
-  $(".reveal:not(.shown)").forEach(el => io.observe(el));
+  $$(".reveal:not(.shown)").forEach(el => io.observe(el));
 }
 
 /* ══════════════════════════════════════════════════════════════
    7. INTERACTIONS
    ══════════════════════════════════════════════════════════════ */
 function bindDrawers() {
-  $(".drawer-toggle").forEach(btn => {
+  $$(".drawer-toggle").forEach(btn => {
     btn.addEventListener("click", () => {
       const drawer = btn.nextElementSibling;
       const open   = drawer.classList.toggle("open");
@@ -695,7 +693,7 @@ function bindDrawers() {
 
 function setFilter(f) {
   state.filter = f;
-  $("[data-filter]").forEach(btn => {
+  $$("[data-filter]").forEach(btn => {
     const on = btn.dataset.filter === f;
     btn.className = "filter-pill relative rounded-full px-4 py-1.5 text-xs font-semibold " +
       (on ? "bg-emerald text-black" : "text-muted hover:text-foreground");
@@ -802,7 +800,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  $("[data-filter]").forEach(b => b.addEventListener("click", () => setFilter(b.dataset.filter)));
+  $$("[data-filter]").forEach(b => b.addEventListener("click", () => setFilter(b.dataset.filter)));
   $("#logout-btn").addEventListener("click", () => lockUI());
 
   $("#toggle-visibility").addEventListener("click", () => {
@@ -845,5 +843,3 @@ document.addEventListener("DOMContentLoaded", async () => {
   }, 10 * 60 * 1000);
 });
 </script>
-</body>
-</html>
