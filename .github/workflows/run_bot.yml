@@ -1,33 +1,65 @@
-name: Run Allocation Bot
+name: Quant Allocation Bot
 
 on:
-  schedule:
-    # 05:15 UTC = 12:15 น. เวลาไทย (จันทร์ - ศุกร์)
-    - cron: "15 5 * * 1-5"
   workflow_dispatch:
+    inputs:
+      override_asset:
+        description: "เลือกสินทรัพย์ที่ต้องการปรับสถานะด้วยมือ (Reconciliation)"
+        required: false
+        default: "NONE"
+        type: choice
+        options:
+          - "NONE"
+          - "SCBWORLDE"
+          - "SCBS&P500E"
+          - "SCBNDQ(E)"
+          - "SCBGOLDE"
+          - "SCBSEMI(E)"
+      override_position:
+        description: "บังคับสถานะพอร์ตจำลองให้ตรงกับพอร์ตจริง"
+        required: false
+        default: "NO_CHANGE"
+        type: choice
+        options:
+          - "NO_CHANGE"
+          - "IN"
+          - "OUT"
+      reset_state:
+        description: "ล้างประวัติทั้งหมดเริ่มต้นใหม่ (all positions -> OUT)"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+concurrency:
+  group: quant-bot
+  cancel-in-progress: false
 
 permissions:
   contents: write
 
+env:
+  PYTHON_VERSION: "3.11"
+  TZ: Asia/Bangkok
+
 jobs:
   run-bot:
+    name: Run Allocation Engine
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python (with pip cache)
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests pandas numpy curl_cffi google-genai yfinance
-
-      - name: Run allocation bot
+      - name: Pre-flight secret validation
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -35,12 +67,124 @@ jobs:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
         run: |
-          python bot.py
+          set -euo pipefail
+          echo "::group::Secret presence check"
+          MISSING=0
 
-      - name: Commit and push state & dashboard data
+          check_required () {
+            if [ -z "${2:-}" ]; then
+              echo "::error::REQUIRED secret '$1' is missing or empty."
+              MISSING=1
+            else
+              echo "OK       required  $1"
+            fi
+          }
+
+          check_optional () {
+            if [ -z "${2:-}" ]; then
+              echo "::notice::Optional secret '$1' not set - feature will be skipped."
+            else
+              echo "OK       optional  $1"
+            fi
+          }
+
+          check_required "DISCORD_WEBHOOK_URL" "$DISCORD_WEBHOOK_URL"
+          check_optional "GEMINI_API_KEY" "$GEMINI_API_KEY"
+          check_optional "FINNHUB_API_KEY" "$FINNHUB_API_KEY"
+          check_optional "LINE_CHANNEL_ACCESS_TOKEN" "$LINE_CHANNEL_ACCESS_TOKEN"
+          check_optional "LINE_USER_ID" "$LINE_USER_ID"
+
+          echo "::endgroup::"
+          exit $MISSING
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install "pandas>=2.0" "numpy>=1.24" requests yfinance google-genai curl_cffi
+          fi
+
+      - name: Restore persisted state
+        id: state_restore
+        uses: actions/cache/restore@v4
+        with:
+          path: state.json
+          key: quant-bot-state-${{ github.run_id }}
+          restore-keys: |
+            quant-bot-state-
+
+      - name: Reset state (manual override)
+        if: github.event_name == 'workflow_dispatch' && inputs.reset_state == 'true'
+        run: |
+          rm -f state.json
+          echo "::warning::state.json deleted by manual reset request."
+
+      - name: Run allocation bot
+        id: bot
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          OVERRIDE_ASSET: ${{ github.event.inputs.override_asset || 'NONE' }}
+          OVERRIDE_POSITION: ${{ github.event.inputs.override_position || 'NO_CHANGE' }}
+          PYTHONUNBUFFERED: "1"
+        run: python bot.py
+
+      - name: Persist state to cache
+        if: always() && hashFiles('state.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: state.json
+          key: quant-bot-state-${{ github.run_id }}
+
+      - name: Upload state artifact (audit trail)
+        if: always() && hashFiles('state.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: state-${{ github.run_id }}
+          path: state.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Commit and push Dashboard data
+        if: always() && hashFiles('docs/data.json') != ''
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add state.json docs/data.json || true
-          git commit -m "chore: auto-update state and dashboard [skip ci]" || exit 0
+          git add docs/data.json
+          git commit -m "chore: auto-update web dashboard data [skip ci]" || exit 0
           git push
+
+      - name: Discord failure alert
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DISCORD_WEBHOOK_URL:-}" ]; then
+            exit 0
+          fi
+          python - <<'PY'
+          import json, os, urllib.request
+          url = os.environ["DISCORD_WEBHOOK_URL"]
+          run_url = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+          content = (
+              "🚨 **QUANT BOT WORKFLOW FAILED**\n"
+              f"Run: {run_url}\n"
+              "⚠️ สัญญาณไม่ถูกเผยแพร่ สถานะพอร์ตคงเดิม"
+          )
+          req = urllib.request.Request(
+              url,
+              data=json.dumps({"content": content}).encode("utf-8"),
+              headers={
+                  "Content-Type": "application/json",
+                  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+              },
+          )
+          urllib.request.urlopen(req, timeout=20).read()
+          PY
