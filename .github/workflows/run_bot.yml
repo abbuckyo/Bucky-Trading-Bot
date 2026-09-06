@@ -125,6 +125,7 @@ jobs:
       - name: Run allocation bot
         id: bot
         env:
+          DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
