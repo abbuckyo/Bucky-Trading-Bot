@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AlphaShield — Quant Portfolio Monitor</title>
+<meta name="description" content="AlphaShield · Rule-based tactical asset allocation monitor for SCB equity funds." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          background:  '#000000',
+          foreground:  '#ffffff',
+          muted:       '#a1a1aa',
+          card:        '#0a0a0c',
+          cardborder:  '#222228',
+          emerald:     { DEFAULT: '#10b981' },
+          amber:       { DEFAULT: '#f59e0b' },
+          rose:        { DEFAULT: '#f43f5e' },
+          indigo:      { DEFAULT: '#6366f1' },
+          haven:       { DEFAULT: '#64748b' }
+        },
+        fontFamily: {
+          sans:  ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          serif: ["'Instrument Serif'", 'Georgia', 'serif']
+        }
+      }
+    }
+  };
+</script>
+
+<style>
+  html, body {
+    background-color: #000000 !important;
+    color: #ffffff;
+    scroll-behavior: smooth;
+  }
+  body {
+    background-image:
+      radial-gradient(1200px 640px at 12% -10%, rgba(16,185,129,0.12), transparent 60%),
+      radial-gradient(1000px 560px at 90% -6%, rgba(99,102,241,0.10), transparent 58%);
+    background-attachment: fixed;
+  }
+  ::selection { background: rgba(16,185,129,0.35); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #000000; }
+  ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+
+  /* Liquid Glass */
+  .liquid-glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    position: relative;
+    overflow: hidden;
+  }
+  .liquid-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.2) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .serif-accent { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .anim-card { animation: fadeUp 0.5s cubic-bezier(.16,1,.3,1) both; }
+
+  .meter-ring { transition: stroke-dashoffset 1.2s cubic-bezier(.16,1,.3,1); }
+  .bar-fill   { transition: width 1.0s cubic-bezier(.16,1,.3,1); }
+  .chev       { transition: transform .25s ease; }
+  
+  .drawer {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .32s cubic-bezier(.16,1,.3,1), opacity .25s ease;
+    opacity: 0;
+  }
+  .drawer > div { overflow: hidden; }
+  .drawer.open { grid-template-rows: 1fr; opacity: 1; }
+
+  .card-glow { transition: box-shadow .3s ease, border-color .3s ease, transform .25s ease; }
+  .card-glow:hover { transform: translateY(-3px); }
+  .glow-emerald:hover { box-shadow: 0 0 35px -8px rgba(16,185,129,0.5); border-color: rgba(16,185,129,0.5); }
+  .glow-indigo:hover  { box-shadow: 0 0 35px -8px rgba(99,102,241,0.5); border-color: rgba(99,102,241,0.5); }
+  .glow-rose:hover    { box-shadow: 0 0 35px -8px rgba(244,63,94,0.5); border-color: rgba(244,63,94,0.5); }
+  .glow-amber:hover   { box-shadow: 0 0 35px -8px rgba(245,158,11,0.5); border-color: rgba(245,158,11,0.5); }
+  .glow-haven:hover   { box-shadow: 0 0 35px -8px rgba(100,116,139,0.5); border-color: rgba(100,116,139,0.5); }
+</style>
+</head>
+
+<body class="min-h-screen font-sans antialiased">
+
+<!-- NAVBAR -->
+<nav class="sticky top-0 z-50 border-b border-white/10 bg-black/70 px-6 py-4 backdrop-blur-xl md:px-16">
+  <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald/30 bg-emerald/10">
+        <i data-lucide="terminal-square" class="h-5 w-5 text-emerald"></i>
+      </div>
+      <span class="text-xl font-bold tracking-tight text-white">AlphaShield</span>
+      <span class="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold tracking-widest text-muted">ENGINE V7.2</span>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="liquid-glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-emerald">
+        <i data-lucide="radio" class="h-3.5 w-3.5 animate-pulse"></i>
+        <span id="nav-time">12:15 ICT</span> Synced
+      </span>
+      <span class="inline-flex items-center gap-2 rounded-full border border-haven/30 bg-haven/10 px-3 py-1.5 text-xs font-medium text-slate-300">
+        <i data-lucide="shield-check" class="h-3.5 w-3.5 text-slate-400"></i>
+        Safe Haven: <span id="nav-haven" class="font-semibold text-white">SCBTMFPLUS-E</span>
+      </span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="px-4 py-12 text-center md:py-16">
+  <div class="flex justify-center">
+    <div class="liquid-glass inline-flex items-center gap-2 rounded-full py-1.5 pl-2 pr-4">
+      <span class="rounded-full bg-emerald/20 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-emerald">SYSTEM STATUS</span>
+      <span class="text-xs font-medium text-zinc-300">Defensive Hysteresis Active</span>
+    </div>
+  </div>
+
+  <h1 class="mx-auto mb-4 mt-8 max-w-4xl text-5xl font-medium leading-tight tracking-tight text-white md:text-7xl">
+    Capital Preserved.<br />
+    One Clear <span class="serif-accent text-emerald-400">Signal.</span>
+  </h1>
+
+  <p class="mx-auto max-w-2xl text-base leading-relaxed text-muted md:text-lg">
+    Rule-based tactical asset allocation for SCB equity funds. Eliminating emotional
+    drawdowns with pure mathematical discipline.
+  </p>
+
+  <!-- Allocation Ratio Bar -->
+  <div class="liquid-glass mx-auto mt-10 w-full max-w-3xl rounded-2xl p-5 border border-white/10">
+    <div class="mb-3 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider">
+      <span class="text-emerald">Equity Allocation <span id="alloc-eq" class="tabular ml-1 text-white">0.0%</span></span>
+      <span class="text-slate-400"><span id="alloc-cash" class="tabular mr-1 text-white">100.0%</span> Cash Park</span>
+    </div>
+    <div class="flex h-3 w-full overflow-hidden rounded-full bg-white/10 ring-1 ring-inset ring-white/10">
+      <div id="bar-eq" class="bar-fill h-full rounded-l-full bg-emerald" style="width:0%"></div>
+      <div id="bar-cash" class="bar-fill h-full bg-slate-600" style="width:100%"></div>
+    </div>
+    <p class="mt-3 text-center text-xs text-muted">
+      Idle capital parked in <span id="alloc-fund" class="font-medium text-white">SCBTMFPLUS-E</span> money market fund
+    </p>
+  </div>
+</section>
+
+<!-- KPI CARDS -->
+<section id="kpi-grid" class="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 sm:grid-cols-2 lg:grid-cols-4 md:px-16"></section>
+
+<!-- ASSET SURVEILLANCE -->
+<section class="mx-auto mt-16 max-w-7xl px-6 md:px-16">
+  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h2 class="text-2xl font-medium tracking-tight text-white md:text-3xl">
+        Asset <span class="serif-accent text-emerald-400">Surveillance.</span>
+      </h2>
+      <p class="mt-1 text-xs text-muted">
+        <span id="count-visible">0</span> of <span id="count-total">0</span> instruments ·
+        <span id="feed-status" class="text-amber">offline mock feed</span>
+      </p>
+    </div>
+
+    <div class="liquid-glass inline-flex self-start rounded-full p-1 border border-white/10">
+      <button data-filter="all" class="filter-btn relative rounded-full px-4 py-1.5 text-xs font-semibold">View All</button>
+      <button data-filter="active" class="filter-btn relative rounded-full px-4 py-1.5 text-xs font-semibold">Active Only</button>
+    </div>
+  </div>
+
+  <div id="asset-grid" class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"></div>
+  <p id="empty-state" class="hidden py-16 text-center text-sm text-muted"></p>
+</section>
+
+<!-- FOOTER -->
+<footer class="mt-20 border-t border-white/10 px-6 py-10 md:px-16">
+  <div class="mx-auto max-w-3xl text-center">
+    <div class="mb-3 inline-flex items-center gap-2 text-muted">
+      <i data-lucide="shield-alert" class="h-4 w-4"></i>
+      <span class="text-[10px] font-bold uppercase tracking-widest">Educational Disclaimer</span>
+    </div>
+    <p class="text-xs leading-relaxed text-zinc-500">
+      AlphaShield is an automated, rule-based quantitative monitor built for educational and record purposes.
+      Signals are derived from technical indicators and do not constitute investment advice.
+    </p>
+    <p class="mt-4 text-[11px] text-zinc-600">AlphaShield Engine V7.2 · Single-File Zero Build</p>
+  </div>
+</footer>
+
+<script>
+const MOCK_DATA = {
+  version: 2,
+  last_run_ict: "2026-09-02T12:15:00",
+  safe_haven: "SCBTMFPLUS-E",
+  portfolio_status: {
+    invested_funds: ["SCBNDQ(E)", "SCBS&P500E"],
+    cash_park: "SCBTMFPLUS-E",
+    equity_weight_pct: 40.0,
+    cash_weight_pct: 60.0
+  },
+  assets: [
+    { fund:"SCBNDQ(E)", label:"Nasdaq 100", ticker:"QQQ", score:76.5, signal:"SWITCH IN", icon:"🟢",
+      action_detail:"สับเปลี่ยนเข้า SCBNDQ(E) จาก SCBTMFPLUS-E", position:"IN", price:482.35, chg_pct:1.25,
+      dist_ema200_pct:5.4, bull_stack:true, rsi:62.4, adx:26.8, hv20:16.5, chop_capped:false,
+      news:["Tech rallies on earnings beat", "Semiconductor momentum accelerates"],
+      ai_analysis:"โครงสร้างแนวโน้มขาขึ้นสมบูรณ์แบบ ราคาประคองตัวเหนือ EMA Bull Stack ชัดเจน โมเมนตัม RSI ยังไม่อยู่ในโซน Overbought รันเทรนด์ได้เต็มกำลัง" },
+    { fund:"SCBS&P500E", label:"S&P 500", ticker:"CSPX.L", score:68.2, signal:"INVESTED", icon:"🔵",
+      action_detail:"ถือครองรันเทรนด์ต่อ ไม่ต้องทำอะไร", position:"IN", price:612.10, chg_pct:0.42,
+      dist_ema200_pct:3.1, bull_stack:true, rsi:57.9, adx:21.4, hv20:12.8, chop_capped:false,
+      news:["Index edges higher after favorable CPI data"],
+      ai_analysis:"คะแนนอยู่ในโซน Dead-Zone (55-74) โครงสร้างยังไม่เสียแต่โมเมนตัมเริ่มชะลอ ถือครองสถานะเดิมโดยไม่ต้องเติมเงินเพิ่ม" },
+    { fund:"SCBWORLDE", label:"MSCI World", ticker:"URTH", score:61.7, signal:"WATCH", icon:"🟡",
+      action_detail:"ตลาดแกว่งตัว พักเงินใน SCBTMFPLUS-E สแตนด์บาย", position:"OUT", price:168.44, chg_pct:-0.18,
+      dist_ema200_pct:1.9, bull_stack:false, rsi:52.1, adx:17.6, hv20:14.2, chop_capped:true,
+      news:["Global equities mixed on geopolitical concerns"],
+      ai_analysis:"ติดเงื่อนไข Anti-Chop Cap เนื่องจากค่า ADX ต่ำกว่า 20 สะท้อนตลาดไร้ทิศทาง ล็อกห้ามเข้าซื้อจนกว่าจะมีเทรนด์ยืนยัน" },
+    { fund:"SCBGOLDE", label:"Gold", ticker:"GLD", score:48.9, signal:"SWITCH OUT", icon:"🔴",
+      action_detail:"สับเปลี่ยนออก SCBGOLDE → พัก SCBTMFPLUS-E", position:"OUT", price:241.72, chg_pct:-1.34,
+      dist_ema200_pct:-2.8, bull_stack:false, rsi:41.3, adx:24.9, hv20:19.7, chop_capped:false,
+      news:["Gold slips as treasury yields spike"],
+      ai_analysis:"เกิดสัญญาณ Breakdown ราคาปิดหลุดต่ำกว่า EMA200 เกิน -2% และคะแนนหลุดเกณฑ์ 55 สับเปลี่ยนออกพักเงินสด 100%" },
+    { fund:"SCBSEMI(E)", label:"Semiconductors", ticker:"SMH", score:33.4, signal:"AVOID", icon:"⚪",
+      action_detail:"โครงสร้างขาลง พักเงินใน SCBTMFPLUS-E ต่อ", position:"OUT", price:268.05, chg_pct:-2.11,
+      dist_ema200_pct:-7.6, bull_stack:false, rsi:36.8, adx:29.5, hv20:31.4, chop_capped:false,
+      news:["Semiconductor cyclical pullback deepens"],
+      ai_analysis:"โครงสร้างเสียครบทุกมิติ ราคาอยู่ใต้ EMA ทุกเส้น และความผันผวนพุ่งสูง พักเงินสดปลอดภัยที่สุด" }
+  ]
+};
+
+const THEMES = {
+  "SWITCH IN":  { label:"SWITCH IN",  text:"text-emerald", border:"border-emerald/40", bg:"bg-emerald/10", dot:"bg-emerald", glow:"glow-emerald", color:"#10b981" },
+  "INVESTED":   { label:"INVESTED",   text:"text-indigo-400", border:"border-indigo-500/40", bg:"bg-indigo-500/10", dot:"bg-indigo-400", glow:"glow-indigo", color:"#6366f1" },
+  "HOLD":       { label:"INVESTED",   text:"text-indigo-400", border:"border-indigo-500/40", bg:"bg-indigo-500/10", dot:"bg-indigo-400", glow:"glow-indigo", color:"#6366f1" },
+  "SWITCH OUT": { label:"SWITCH OUT", text:"text-rose", border:"border-rose/40", bg:"bg-rose/10", dot:"bg-rose", glow:"glow-rose", color:"#f43f5e" },
+  "WATCH":      { label:"WATCH",      text:"text-amber", border:"border-amber/40", bg:"bg-amber/10", dot:"bg-amber", glow:"glow-amber", color:"#f59e0b" },
+  "AVOID":      { label:"AVOID",      text:"text-slate-400", border:"border-slate-700", bg:"bg-slate-800/40", dot:"bg-slate-400", glow:"glow-haven", color:"#64748b" }
+};
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+const esc = (v) => String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const clamp = (v, lo = 0, hi = 100) => Math.min(hi, Math.max(lo, Number(v) || 0));
+const fmt = (v, d = 2) => (v === null || v === undefined || isNaN(v)) ? "—" : Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+const state = { data: MOCK_DATA, filter: "all", live: false };
+
+function renderScoreMeter(score, color) {
+  const s = clamp(score);
+  const R = 40, C = 2 * Math.PI * R;
+  const offset = (C * (1 - s / 100)).toFixed(1);
+  return `
+    <div class="relative h-[96px] w-[96px] shrink-0">
+      <svg viewBox="0 0 100 100" class="h-full w-full -rotate-90">
+        <circle cx="50" cy="50" r="${R}" fill="none" stroke-width="8" stroke="rgba(255,255,255,0.08)"/>
+        <circle cx="50" cy="50" r="${R}" fill="none" stroke-width="8" stroke-linecap="round"
+                class="meter-ring" stroke="${color}"
+                stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${C.toFixed(1)}"
+                data-offset="${offset}"/>
+      </svg>
+      <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+        <span class="tabular text-xl font-bold leading-none" style="color:${color}">${fmt(s, 1)}</span>
+        <span class="mt-1 text-[8px] font-bold uppercase tracking-wider text-muted">Score</span>
+      </div>
+    </div>`;
+}
+
+function renderCard(a, idx) {
+  const t = THEMES[a.signal] || (a.position === "IN" ? THEMES["INVESTED"] : THEMES["AVOID"]);
+  const chg = Number(a.chg_pct) || 0;
+  const ema = Number(a.dist_ema200_pct) || 0;
+  const rsi = Number(a.rsi) || 0;
+  const adx = Number(a.adx) || 0;
+  const hv = Number(a.hv20) || 0;
+
+  const newsItems = (a.news && a.news.length ? a.news : ["No recent headlines."])
+    .map(n => `<li class="flex gap-2 text-xs leading-relaxed text-zinc-400">
+      <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-600"></span><span>${esc(n)}</span></li>`).join("");
+
+  return `
+  <article class="anim-card card-glow rounded-3xl border ${t.border} ${t.glow} bg-card/80 p-5 backdrop-blur-md"
+           style="animation-delay: ${idx * 0.08}s">
+    <header class="flex items-start justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-base">${esc(a.icon || "•")}</span>
+          <h3 class="text-base font-bold text-white">${esc(a.fund)}</h3>
+        </div>
+        <p class="mt-0.5 text-xs text-muted">${esc(a.label)} · <span class="font-mono text-zinc-300">${esc(a.ticker)}</span></p>
+      </div>
+      <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${t.border} ${t.bg} ${t.text}">
+        <span class="h-1.5 w-1.5 rounded-full ${t.dot}"></span>${esc(t.label)}
+      </span>
+    </header>
+
+    <div class="mt-4 flex items-center gap-4">
+      ${renderScoreMeter(a.score, t.color)}
+      <div class="min-w-0 flex-1">
+        <p class="tabular text-2xl font-bold text-white">${fmt(a.price)}</p>
+        <p class="tabular text-sm font-semibold ${chg > 0 ? 'text-emerald' : chg < 0 ? 'text-rose' : 'text-muted'}">
+          ${chg > 0 ? "▲" : chg < 0 ? "▼" : "■"} ${fmt(Math.abs(chg))}%
+        </p>
+        <p class="mt-1 text-[11px] text-zinc-400 line-clamp-2">${esc(a.action_detail)}</p>
+      </div>
+    </div>
+
+    <div class="mt-4 grid grid-cols-4 gap-2 text-center">
+      <div class="rounded-xl border border-white/5 bg-white/[0.02] p-2">
+        <p class="text-[9px] font-bold uppercase tracking-wider text-muted">EMA200</p>
+        <p class="tabular mt-0.5 text-xs font-bold ${ema >= 0 ? 'text-emerald' : 'text-rose'}">${ema >= 0 ? '+' : ''}${fmt(ema, 1)}%</p>
+      </div>
+      <div class="rounded-xl border border-white/5 bg-white/[0.02] p-2">
+        <p class="text-[9px] font-bold uppercase tracking-wider text-muted">RSI 14</p>
+        <p class="tabular mt-0.5 text-xs font-bold ${rsi >= 70 ? 'text-amber' : rsi >= 50 ? 'text-emerald' : 'text-rose'}">${fmt(rsi, 1)}</p>
+      </div>
+      <div class="rounded-xl border border-white/5 bg-white/[0.02] p-2">
+        <p class="text-[9px] font-bold uppercase tracking-wider text-muted">ADX</p>
+        <p class="tabular mt-0.5 text-xs font-bold ${adx >= 25 ? 'text-emerald' : 'text-zinc-400'}">${fmt(adx, 1)}</p>
+      </div>
+      <div class="rounded-xl border border-white/5 bg-white/[0.02] p-2">
+        <p class="text-[9px] font-bold uppercase tracking-wider text-muted">HV20</p>
+        <p class="tabular mt-0.5 text-xs font-bold ${hv >= 25 ? 'text-amber' : 'text-zinc-300'}">${fmt(hv, 1)}%</p>
+      </div>
+    </div>
+
+    <div class="mt-3 flex items-center gap-2">
+      <span class="rounded-md border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+        a.bull_stack ? 'border-emerald/30 bg-emerald/10 text-emerald' : 'border-white/10 bg-white/5 text-zinc-500'}">
+        ${a.bull_stack ? '● EMA Bull Stack' : '○ EMA Stack Broken'}
+      </span>
+      ${a.chop_capped ? `
+      <span class="rounded-md border border-amber/30 bg-amber/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber">
+        ⚠️ Chop Cap
+      </span>` : ''}
+    </div>
+
+    <div class="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+      <button type="button" class="drawer-btn flex w-full items-center justify-between px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:text-white">
+        <span class="inline-flex items-center gap-2">
+          <i data-lucide="sparkles" class="h-3.5 w-3.5 text-emerald"></i> AI Narrative & Macro Feed
+        </span>
+        <i data-lucide="chevron-down" class="chev h-4 w-4 text-muted"></i>
+      </button>
+      <div class="drawer">
+        <div>
+          <div class="space-y-3 border-t border-white/10 p-4">
+            <p class="text-xs leading-relaxed text-zinc-300">${esc(a.ai_analysis)}</p>
+            <div>
+              <p class="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted">Recent Headlines</p>
+              <ul class="space-y-1.5">${newsItems}</ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>`;
+}
+
+function renderKPIs(d) {
+  const assets = d.assets || [];
+  const active = assets.filter(a => a.position === "IN");
+  const mean = assets.length ? assets.reduce((s, a) => s + (Number(a.score) || 0), 0) / assets.length : 0;
+
+  const cards = [
+    { icon:"layers", label:"Tracked Universe", value:String(assets.length), sub:"5 core SCB funds", tone:"text-white", border:"border-white/10" },
+    { icon:"trending-up", label:"Active Allocations", value:String(active.length), sub: active.length ? active.map(a => a.fund).join(", ") : "None — 100% Cash", tone:"text-emerald", border:"border-emerald/30" },
+    { icon:"landmark", label:"Capital in Cash Park", value:String(assets.length - active.length), sub:`Parked in ${d.portfolio_status?.cash_park || "SCBTMFPLUS-E"}`, tone:"text-slate-300", border:"border-slate-700" },
+    { icon:"gauge", label:"Mean Momentum Score", value:fmt(mean, 1), sub:"Universe Average / 100", tone:"text-amber", border:"border-amber/30" }
+  ];
+
+  $("#kpi-grid").innerHTML = cards.map((c, i) => `
+    <div class="anim-card liquid-glass rounded-2xl border ${c.border} p-5" style="animation-delay:${i * 0.05}s">
+      <div class="flex items-start justify-between">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-muted">${esc(c.label)}</p>
+        <i data-lucide="${c.icon}" class="h-4 w-4 ${c.tone}"></i>
+      </div>
+      <p class="tabular mt-2 text-3xl font-bold ${c.tone}">${esc(c.value)}</p>
+      <p class="mt-1 truncate text-xs text-muted">${esc(c.sub)}</p>
+    </div>`).join("");
+}
+
+function renderAllocation(d) {
+  const ps = d.portfolio_status || {};
+  const eq = clamp(ps.equity_weight_pct ?? 0);
+  const ch = clamp(ps.cash_weight_pct ?? (100 - eq));
+
+  $("#nav-time").textContent = d.last_run_ict ? `${d.last_run_ict.slice(11,16)} ICT` : "12:15 ICT";
+  $("#nav-haven").textContent = ps.cash_park || d.safe_haven || "SCBTMFPLUS-E";
+  $("#alloc-eq").textContent = `${fmt(eq, 1)}%`;
+  $("#alloc-cash").textContent = `${fmt(ch, 1)}%`;
+  $("#alloc-fund").textContent = ps.cash_park || d.safe_haven || "SCBTMFPLUS-E";
+
+  setTimeout(() => {
+    $("#bar-eq").style.width = `${eq}%`;
+    $("#bar-cash").style.width = `${ch}%`;
+  }, 300);
+}
+
+function renderGrid() {
+  const all = state.data.assets || [];
+  const visible = all.filter(a => state.filter === "active" ? a.position === "IN" : true);
+
+  $("#asset-grid").innerHTML = visible.map((a, i) => renderCard(a, i)).join("");
+  $("#count-visible").textContent = visible.length;
+  $("#count-total").textContent = all.length;
+
+  const empty = $("#empty-state");
+  empty.classList.toggle("hidden", visible.length > 0);
+  empty.textContent = `No active allocations. Portfolio is 100% parked in ${state.data.portfolio_status?.cash_park || "safe haven"}.`;
+
+  if (window.lucide) lucide.createIcons();
+
+  // Trigger score meters
+  setTimeout(() => {
+    $$(".meter-ring").forEach(ring => {
+      ring.style.strokeDashoffset = ring.dataset.offset;
+    });
+  }, 100);
+
+  // Bind accordion drawers
+  $$(".drawer-btn").forEach(btn => {
+    btn.onclick = () => {
+      const drawer = btn.nextElementSibling;
+      const open = drawer.classList.toggle("open");
+      const chev = btn.querySelector(".chev");
+      if (chev) chev.style.transform = open ? "rotate(180deg)" : "rotate(0deg)";
+    };
+  });
+}
+
+function setFilter(f) {
+  state.filter = f;
+  $$(".filter-btn").forEach(btn => {
+    const on = btn.dataset.filter === f;
+    btn.className = "filter-btn relative rounded-full px-4 py-1.5 text-xs font-semibold transition " +
+      (on ? "bg-emerald text-black" : "text-muted hover:text-white");
+  });
+  renderGrid();
+}
+
+function renderAll() {
+  renderAllocation(state.data);
+  renderKPIs(state.data);
+  renderGrid();
+  const el = $("#feed-status");
+  el.textContent = state.live ? "live data.json" : "offline mock feed";
+  el.className = state.live ? "text-emerald font-semibold" : "text-amber font-semibold";
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(`./data.json?t=${Date.now()}`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    if (!json || !Array.isArray(json.assets)) throw new Error("Bad schema");
+    state.data = json;
+    state.live = true;
+  } catch (err) {
+    state.data = MOCK_DATA;
+    state.live = false;
+  }
+  renderAll();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  $$(".filter-btn").forEach(btn => btn.addEventListener("click", () => setFilter(btn.dataset.filter)));
+  setFilter("all");
+  renderAll();
+  loadData();
+});
+</script>
+</body>
+</html>
