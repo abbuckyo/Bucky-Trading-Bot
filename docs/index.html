@@ -1,10 +1,14 @@
+<!-- ══════════════════════════════════════════════════════════════════
+     docs/index.html — AlphaShield V7.2 · Zero-Build · AES-GCM Gated
+     ══════════════════════════════════════════════════════════════════ -->
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="th" class="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AlphaShield — Quant Portfolio Monitor</title>
-<meta name="description" content="AlphaShield · Rule-based tactical asset allocation monitor for SCB equity funds." />
+<meta name="robots" content="noindex, nofollow, noarchive" />
+<title>AlphaShield — Secure Portfolio Monitor</title>
+<meta name="description" content="AlphaShield · Encrypted tactical allocation monitor." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,16 +24,16 @@
     theme: {
       extend: {
         colors: {
-          background:  '#000000',
-          foreground:  '#ffffff',
-          muted:       '#a1a1aa',
-          card:        '#0a0a0c',
-          cardborder:  '#222228',
-          emerald:     { DEFAULT: '#10b981' },
-          amber:       { DEFAULT: '#f59e0b' },
-          rose:        { DEFAULT: '#f43f5e' },
-          indigo:      { DEFAULT: '#6366f1' },
-          haven:       { DEFAULT: '#64748b' }
+          background: 'hsl(0 0% 0%)',
+          foreground: 'hsl(0 0% 100%)',
+          muted:      'hsl(0 0% 65%)',
+          card:       'hsl(0 0% 4%)',
+          cardborder: 'hsl(0 0% 14%)',
+          emerald: { DEFAULT: 'hsl(160 84% 39%)' },
+          amber:   { DEFAULT: 'hsl(38 92% 50%)' },
+          rose:    { DEFAULT: 'hsl(350 89% 60%)' },
+          indigo:  { DEFAULT: 'hsl(226 71% 60%)' },
+          haven:   { DEFAULT: 'hsl(215 16% 47%)' }
         },
         fontFamily: {
           sans:  ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
@@ -41,29 +45,27 @@
 </script>
 
 <style>
-  html, body {
-    background-color: #000000 !important;
-    color: #ffffff;
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
   body {
+    background-color: hsl(0 0% 0%);
     background-image:
-      radial-gradient(1200px 640px at 12% -10%, rgba(16,185,129,0.12), transparent 60%),
-      radial-gradient(1000px 560px at 90% -6%, rgba(99,102,241,0.10), transparent 58%);
+      radial-gradient(1200px 640px at 12% -10%, hsl(160 84% 39% / 0.10), transparent 60%),
+      radial-gradient(1000px 560px at 90% -6%, hsl(226 71% 60% / 0.09), transparent 58%);
     background-attachment: fixed;
   }
-  ::selection { background: rgba(16,185,129,0.35); }
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: #000000; }
-  ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 8px; }
-  ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+  body.locked { overflow: hidden; }
+  ::selection { background: hsl(160 84% 39% / .35); }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-track { background: hsl(0 0% 4%); }
+  ::-webkit-scrollbar-thumb { background: hsl(0 0% 18%); border-radius: 9px; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(0 0% 26%); }
 
-  /* Liquid Glass */
+  /* ── Liquid Glass ─────────────────────────────────────────── */
   .liquid-glass {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12);
     position: relative;
     overflow: hidden;
   }
@@ -73,7 +75,7 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.2) 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.2) 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -83,295 +85,485 @@
   .serif-accent { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
   .tabular { font-variant-numeric: tabular-nums; }
 
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  .anim-card { animation: fadeUp 0.5s cubic-bezier(.16,1,.3,1) both; }
+  /* ── Motion ───────────────────────────────────────────────── */
+  @keyframes fadeUp   { from { opacity:0; transform: translateY(26px); } to { opacity:1; transform:none; } }
+  @keyframes fadeDown { from { opacity:0; transform: translateY(-24px); } to { opacity:1; transform:none; } }
+  @keyframes shake    { 10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(4px)}
+                        30%,50%,70%{transform:translateX(-7px)} 40%,60%{transform:translateX(7px)} }
+  @keyframes glowPulse{ 0%,100%{ box-shadow:0 0 0 0 hsl(160 84% 39% / .35);} 50%{ box-shadow:0 0 34px -6px hsl(160 84% 39% / .55);} }
+  @keyframes spin     { to { transform: rotate(360deg); } }
 
-  .meter-ring { transition: stroke-dashoffset 1.2s cubic-bezier(.16,1,.3,1); }
-  .bar-fill   { transition: width 1.0s cubic-bezier(.16,1,.3,1); }
-  .chev       { transition: transform .25s ease; }
-  
-  .drawer {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows .32s cubic-bezier(.16,1,.3,1), opacity .25s ease;
-    opacity: 0;
-  }
+  .anim-up   { animation: fadeUp .72s cubic-bezier(.16,1,.3,1) both; }
+  .anim-down { animation: fadeDown .6s cubic-bezier(.16,1,.3,1) both; }
+  .shake     { animation: shake .5s cubic-bezier(.36,.07,.19,.97) both; }
+  .glow-pulse{ animation: glowPulse 3s ease-in-out infinite; }
+  .spinner   { animation: spin .8s linear infinite; }
+
+  .reveal { opacity: 0; transform: translateY(30px);
+            transition: opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1); }
+  .reveal.shown { opacity: 1; transform: translateY(0); }
+
+  .meter-ring { transition: stroke-dashoffset 1.3s cubic-bezier(.16,1,.3,1); }
+  .bar-fill   { transition: width 1.1s cubic-bezier(.16,1,.3,1); }
+  .chev       { transition: transform .28s cubic-bezier(.16,1,.3,1); }
+  .drawer     { display: grid; grid-template-rows: 0fr; opacity: 0;
+                transition: grid-template-rows .38s cubic-bezier(.16,1,.3,1), opacity .3s ease; }
   .drawer > div { overflow: hidden; }
   .drawer.open { grid-template-rows: 1fr; opacity: 1; }
 
-  .card-glow { transition: box-shadow .3s ease, border-color .3s ease, transform .25s ease; }
+  .card-glow { transition: box-shadow .35s ease, border-color .35s ease, transform .35s cubic-bezier(.16,1,.3,1); }
   .card-glow:hover { transform: translateY(-3px); }
-  .glow-emerald:hover { box-shadow: 0 0 35px -8px rgba(16,185,129,0.5); border-color: rgba(16,185,129,0.5); }
-  .glow-indigo:hover  { box-shadow: 0 0 35px -8px rgba(99,102,241,0.5); border-color: rgba(99,102,241,0.5); }
-  .glow-rose:hover    { box-shadow: 0 0 35px -8px rgba(244,63,94,0.5); border-color: rgba(244,63,94,0.5); }
-  .glow-amber:hover   { box-shadow: 0 0 35px -8px rgba(245,158,11,0.5); border-color: rgba(245,158,11,0.5); }
-  .glow-haven:hover   { box-shadow: 0 0 35px -8px rgba(100,116,139,0.5); border-color: rgba(100,116,139,0.5); }
+  .glow-emerald:hover { box-shadow: 0 0 44px -12px hsl(160 84% 39% / .55); }
+  .glow-indigo:hover  { box-shadow: 0 0 44px -12px hsl(226 71% 60% / .55); }
+  .glow-rose:hover    { box-shadow: 0 0 44px -12px hsl(350 89% 60% / .55); }
+  .glow-amber:hover   { box-shadow: 0 0 44px -12px hsl(38 92% 50% / .50); }
+  .glow-haven:hover   { box-shadow: 0 0 44px -14px hsl(215 16% 47% / .50); }
+
+  .filter-pill { transition: color .25s ease, background-color .25s ease; }
+  .line-clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+  /* ── Auth Gate ────────────────────────────────────────────── */
+  #auth-overlay { transition: opacity .5s ease, visibility .5s ease, backdrop-filter .5s ease; }
+  #auth-overlay.hidden-gate { opacity: 0; visibility: hidden; pointer-events: none; }
+  #app-shell { transition: opacity .7s cubic-bezier(.16,1,.3,1), filter .7s cubic-bezier(.16,1,.3,1); }
+  #app-shell.blurred { opacity: 0; filter: blur(24px); pointer-events: none; user-select: none; }
+  #otp-input { letter-spacing: .42em; }
+  #otp-input::placeholder { letter-spacing: .18em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
 </style>
 </head>
 
-<body class="min-h-screen font-sans antialiased">
+<body class="locked min-h-screen bg-background font-sans text-foreground antialiased">
 
-<!-- NAVBAR -->
-<nav class="sticky top-0 z-50 border-b border-white/10 bg-black/70 px-6 py-4 backdrop-blur-xl md:px-16">
-  <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
-    <div class="flex items-center gap-3">
-      <div class="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald/30 bg-emerald/10">
-        <i data-lucide="terminal-square" class="h-5 w-5 text-emerald"></i>
+<!-- ═══════════════════════ AUTHENTICATION OVERLAY ═══════════════════════ -->
+<div id="auth-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-4 backdrop-blur-2xl">
+  <div class="pointer-events-none absolute inset-0 opacity-70"
+       style="background:radial-gradient(700px 420px at 50% 8%, hsl(160 84% 39% / .12), transparent 65%);"></div>
+
+  <div id="auth-card" class="liquid-glass anim-up relative w-full max-w-md rounded-3xl border border-white/10 p-8">
+    <div class="flex flex-col items-center text-center">
+      <div class="glow-pulse mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald/25 bg-emerald/10">
+        <i data-lucide="shield-check" class="h-6 w-6 text-emerald"></i>
       </div>
-      <span class="text-xl font-bold tracking-tight text-white">AlphaShield</span>
-      <span class="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold tracking-widest text-muted">ENGINE V7.2</span>
-    </div>
 
-    <div class="flex flex-wrap items-center gap-2">
-      <span class="liquid-glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-emerald">
-        <i data-lucide="radio" class="h-3.5 w-3.5 animate-pulse"></i>
-        <span id="nav-time">12:15 ICT</span> Synced
-      </span>
-      <span class="inline-flex items-center gap-2 rounded-full border border-haven/30 bg-haven/10 px-3 py-1.5 text-xs font-medium text-slate-300">
-        <i data-lucide="shield-check" class="h-3.5 w-3.5 text-slate-400"></i>
-        Safe Haven: <span id="nav-haven" class="font-semibold text-white">SCBTMFPLUS-E</span>
-      </span>
-    </div>
-  </div>
-</nav>
+      <div class="mb-1 flex items-center gap-2">
+        <span class="text-2xl font-bold tracking-tight text-foreground">AlphaShield</span>
+        <span class="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold tracking-widest text-muted">V7.2</span>
+      </div>
 
-<!-- HERO -->
-<section class="px-4 py-12 text-center md:py-16">
-  <div class="flex justify-center">
-    <div class="liquid-glass inline-flex items-center gap-2 rounded-full py-1.5 pl-2 pr-4">
-      <span class="rounded-full bg-emerald/20 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-emerald">SYSTEM STATUS</span>
-      <span class="text-xs font-medium text-zinc-300">Defensive Hysteresis Active</span>
-    </div>
-  </div>
-
-  <h1 class="mx-auto mb-4 mt-8 max-w-4xl text-5xl font-medium leading-tight tracking-tight text-white md:text-7xl">
-    Capital Preserved.<br />
-    One Clear <span class="serif-accent text-emerald-400">Signal.</span>
-  </h1>
-
-  <p class="mx-auto max-w-2xl text-base leading-relaxed text-muted md:text-lg">
-    Rule-based tactical asset allocation for SCB equity funds. Eliminating emotional
-    drawdowns with pure mathematical discipline.
-  </p>
-
-  <!-- Allocation Ratio Bar -->
-  <div class="liquid-glass mx-auto mt-10 w-full max-w-3xl rounded-2xl p-5 border border-white/10">
-    <div class="mb-3 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider">
-      <span class="text-emerald">Equity Allocation <span id="alloc-eq" class="tabular ml-1 text-white">0.0%</span></span>
-      <span class="text-slate-400"><span id="alloc-cash" class="tabular mr-1 text-white">100.0%</span> Cash Park</span>
-    </div>
-    <div class="flex h-3 w-full overflow-hidden rounded-full bg-white/10 ring-1 ring-inset ring-white/10">
-      <div id="bar-eq" class="bar-fill h-full rounded-l-full bg-emerald" style="width:0%"></div>
-      <div id="bar-cash" class="bar-fill h-full bg-slate-600" style="width:100%"></div>
-    </div>
-    <p class="mt-3 text-center text-xs text-muted">
-      Idle capital parked in <span id="alloc-fund" class="font-medium text-white">SCBTMFPLUS-E</span> money market fund
-    </p>
-  </div>
-</section>
-
-<!-- KPI CARDS -->
-<section id="kpi-grid" class="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 sm:grid-cols-2 lg:grid-cols-4 md:px-16"></section>
-
-<!-- ASSET SURVEILLANCE -->
-<section class="mx-auto mt-16 max-w-7xl px-6 md:px-16">
-  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-    <div>
-      <h2 class="text-2xl font-medium tracking-tight text-white md:text-3xl">
-        Asset <span class="serif-accent text-emerald-400">Surveillance.</span>
+      <h2 class="mb-2 text-3xl font-medium tracking-tight text-foreground">
+        Encrypted <span class="serif-accent">Access.</span>
       </h2>
-      <p class="mt-1 text-xs text-muted">
-        <span id="count-visible">0</span> of <span id="count-total">0</span> instruments ·
-        <span id="feed-status" class="text-amber">offline mock feed</span>
+      <p class="mb-7 max-w-xs text-sm leading-relaxed text-muted">
+        ข้อมูลพอร์ตถูกเข้ารหัสด้วย AES-GCM 256-bit<br />
+        กรอกรหัสผ่านประจำวันที่ได้รับทาง LINE
       </p>
     </div>
 
-    <div class="liquid-glass inline-flex self-start rounded-full p-1 border border-white/10">
-      <button data-filter="all" class="filter-btn relative rounded-full px-4 py-1.5 text-xs font-semibold">View All</button>
-      <button data-filter="active" class="filter-btn relative rounded-full px-4 py-1.5 text-xs font-semibold">Active Only</button>
+    <form id="auth-form" autocomplete="off" novalidate>
+      <label for="otp-input" class="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+        Password / Access Key
+      </label>
+
+      <div class="relative">
+        <i data-lucide="key-round" class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"></i>
+        <input
+          id="otp-input" type="password" inputmode="text" maxlength="20"
+          spellcheck="false" autocapitalize="characters" autocomplete="one-time-code"
+          placeholder="••••••••"
+          class="w-full rounded-2xl border border-white/10 bg-white/[0.03] py-4 pl-11 pr-12 text-center text-lg font-semibold text-foreground outline-none transition placeholder:text-white/20 focus:border-emerald/50 focus:bg-white/[0.05] focus:ring-2 focus:ring-emerald/20" />
+        <button id="toggle-visibility" type="button" aria-label="สลับการแสดงรหัส"
+                class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted transition hover:text-foreground">
+          <i data-lucide="eye" class="h-4 w-4"></i>
+        </button>
+      </div>
+
+      <div id="auth-error" class="mt-3 hidden items-center gap-2 rounded-xl border border-rose/25 bg-rose/10 px-3 py-2.5 text-xs font-medium text-rose">
+        <i data-lucide="alert-circle" class="h-4 w-4 shrink-0"></i>
+        <span id="auth-error-text">รหัสผ่านไม่ถูกต้อง</span>
+      </div>
+
+      <label class="mt-4 flex cursor-pointer items-center gap-2.5 text-xs text-muted">
+        <input id="remember-toggle" type="checkbox" checked
+               class="h-4 w-4 rounded border-white/20 bg-white/5 accent-emerald" />
+        จดจำการเข้าสู่ระบบในเบราว์เซอร์นี้ (หมดอายุตามรอบข้อมูล)
+      </label>
+
+      <button id="unlock-btn" type="submit"
+              class="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald py-4 text-sm font-bold tracking-wide text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">
+        <i data-lucide="unlock" class="h-4 w-4"></i>
+        <span id="unlock-label">Unlock Dashboard</span>
+      </button>
+    </form>
+
+    <div class="mt-6 flex items-center justify-center gap-2 border-t border-white/[0.07] pt-5 text-[10px] uppercase tracking-[0.16em] text-white/35">
+      <i data-lucide="lock" class="h-3 w-3"></i>
+      <span id="enc-meta">PBKDF2 · AES-GCM · Client-side only</span>
     </div>
   </div>
+</div>
 
-  <div id="asset-grid" class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"></div>
-  <p id="empty-state" class="hidden py-16 text-center text-sm text-muted"></p>
-</section>
+<!-- ═══════════════════════════ APP SHELL ═══════════════════════════ -->
+<div id="app-shell" class="blurred">
 
-<!-- FOOTER -->
-<footer class="mt-20 border-t border-white/10 px-6 py-10 md:px-16">
-  <div class="mx-auto max-w-3xl text-center">
-    <div class="mb-3 inline-flex items-center gap-2 text-muted">
-      <i data-lucide="shield-alert" class="h-4 w-4"></i>
-      <span class="text-[10px] font-bold uppercase tracking-widest">Educational Disclaimer</span>
+  <!-- ── NAVBAR ── -->
+  <nav class="anim-down sticky top-0 z-50 border-b border-white/10 bg-black/60 px-6 py-4 backdrop-blur-xl md:px-16">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald/25 bg-emerald/10">
+          <i data-lucide="terminal-square" class="h-[18px] w-[18px] text-emerald"></i>
+        </div>
+        <span class="text-xl font-bold tracking-tight text-foreground">AlphaShield</span>
+        <span class="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold tracking-widest text-muted">ENGINE V7.2</span>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="liquid-glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-emerald">
+          <i data-lucide="radio" class="h-[13px] w-[13px] animate-pulse"></i>
+          <span id="nav-time">--:-- ICT</span> Synced
+        </span>
+        <span class="inline-flex items-center gap-2 rounded-full border border-haven/25 bg-haven/10 px-3 py-1.5 text-xs font-medium text-haven">
+          <i data-lucide="shield-check" class="h-[13px] w-[13px]"></i>
+          Safe Haven: <span id="nav-haven" class="font-semibold text-foreground/90">—</span>
+        </span>
+        <button id="logout-btn" type="button"
+                class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-muted transition hover:border-rose/30 hover:text-rose">
+          <i data-lucide="log-out" class="h-[13px] w-[13px]"></i> Lock
+        </button>
+      </div>
     </div>
-    <p class="text-xs leading-relaxed text-zinc-500">
-      AlphaShield is an automated, rule-based quantitative monitor built for educational and record purposes.
-      Signals are derived from technical indicators and do not constitute investment advice.
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="px-4 py-12 text-center md:py-16">
+    <div class="anim-up flex justify-center" style="animation-delay:.1s">
+      <div class="liquid-glass inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-4">
+        <span class="rounded-full bg-emerald/15 px-2.5 py-1 text-[10px] font-bold tracking-widest text-emerald">SYSTEM STATUS</span>
+        <span class="text-xs font-medium text-muted">Defensive Hysteresis Active</span>
+      </div>
+    </div>
+
+    <h1 class="anim-up mx-auto mb-4 mt-8 max-w-4xl text-5xl font-medium leading-tight tracking-tight text-foreground md:text-7xl" style="animation-delay:.2s">
+      Capital Preserved.<br />
+      One Clear <span class="serif-accent">Signal.</span>
+    </h1>
+
+    <p class="anim-up mx-auto max-w-2xl text-base leading-relaxed text-muted md:text-lg" style="animation-delay:.32s">
+      Rule-based tactical asset allocation for SCB equity funds. Eliminating emotional
+      drawdowns with pure mathematical discipline.
     </p>
-    <p class="mt-4 text-[11px] text-zinc-600">AlphaShield Engine V7.2 · Single-File Zero Build</p>
-  </div>
-</footer>
+
+    <div class="liquid-glass anim-up mx-auto mt-10 w-full max-w-3xl rounded-2xl p-5" style="animation-delay:.45s">
+      <div class="mb-3 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.18em]">
+        <span class="text-emerald">Equity Allocation <span id="alloc-eq" class="tabular ml-1 text-foreground">0.0%</span></span>
+        <span class="text-haven"><span id="alloc-cash" class="tabular mr-1 text-foreground">100.0%</span> Cash Park</span>
+      </div>
+      <div class="flex h-3 w-full overflow-hidden rounded-full bg-white/5 ring-1 ring-inset ring-white/10">
+        <div id="bar-eq" class="bar-fill h-full rounded-l-full bg-gradient-to-r from-emerald to-emerald/70" style="width:0%"></div>
+        <div id="bar-cash" class="bar-fill h-full bg-gradient-to-r from-haven/70 to-haven/40" style="width:0%"></div>
+      </div>
+      <p class="mt-3 text-center text-xs text-muted">
+        Idle capital parked in <span id="alloc-fund" class="font-medium text-foreground/90">—</span> money market fund
+      </p>
+    </div>
+  </section>
+
+  <!-- ── KPI CARDS ── -->
+  <section id="kpi-grid" class="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 sm:grid-cols-2 lg:grid-cols-4 md:px-16"></section>
+
+  <!-- ── ASSET SURVEILLANCE ── -->
+  <section class="mx-auto mt-16 max-w-7xl px-6 md:px-16">
+    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h2 class="text-2xl font-medium tracking-tight text-foreground md:text-3xl">
+          Asset <span class="serif-accent">Surveillance.</span>
+        </h2>
+        <p class="mt-1 text-xs text-muted">
+          <span id="count-visible">0</span> of <span id="count-total">0</span> instruments ·
+          <span id="feed-status" class="text-amber">awaiting decryption</span>
+        </p>
+      </div>
+
+      <div class="liquid-glass inline-flex self-start rounded-full p-1">
+        <button data-filter="all" class="filter-pill relative rounded-full px-4 py-1.5 text-xs font-semibold">View All</button>
+        <button data-filter="active" class="filter-pill relative rounded-full px-4 py-1.5 text-xs font-semibold">Active Only</button>
+      </div>
+    </div>
+
+    <div id="asset-grid" class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"></div>
+    <p id="empty-state" class="hidden py-20 text-center text-sm text-muted"></p>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="mt-20 border-t border-white/10 px-6 py-10 md:px-16">
+    <div class="mx-auto max-w-3xl text-center">
+      <div class="mb-3 inline-flex items-center gap-2 text-muted">
+        <i data-lucide="shield-alert" class="h-[14px] w-[14px]"></i>
+        <span class="text-[10px] font-bold uppercase tracking-[0.2em]">Educational Disclaimer</span>
+      </div>
+      <p class="text-xs leading-relaxed text-muted">
+        AlphaShield is an automated, rule-based research tool built for educational and
+        personal-record purposes only. Nothing displayed here constitutes investment advice,
+        a solicitation, or a recommendation to buy or sell any security or mutual fund.
+        Signals are derived from historical price data and may be wrong, delayed, or based on
+        faulty inputs. Past performance never guarantees future results. Mutual fund investment
+        carries risk — investors should study fund prospectuses and consult a licensed adviser
+        before acting.
+      </p>
+      <p class="mt-5 text-[11px] text-white/25">
+        AlphaShield Engine V7.2 · Zero-build static · AES-GCM encrypted payload · No user data collected
+      </p>
+    </div>
+  </footer>
+</div>
 
 <script>
-const MOCK_DATA = {
-  version: 2,
-  last_run_ict: "2026-09-02T12:15:00",
-  safe_haven: "SCBTMFPLUS-E",
-  portfolio_status: {
-    invested_funds: ["SCBNDQ(E)", "SCBS&P500E"],
-    cash_park: "SCBTMFPLUS-E",
-    equity_weight_pct: 40.0,
-    cash_weight_pct: 60.0
-  },
-  assets: [
-    { fund:"SCBNDQ(E)", label:"Nasdaq 100", ticker:"QQQ", score:76.5, signal:"SWITCH IN", icon:"🟢",
-      action_detail:"สับเปลี่ยนเข้า SCBNDQ(E) จาก SCBTMFPLUS-E", position:"IN", price:482.35, chg_pct:1.25,
-      dist_ema200_pct:5.4, bull_stack:true, rsi:62.4, adx:26.8, hv20:16.5, chop_capped:false,
-      news:["Tech rallies on earnings beat", "Semiconductor momentum accelerates"],
-      ai_analysis:"โครงสร้างแนวโน้มขาขึ้นสมบูรณ์แบบ ราคาประคองตัวเหนือ EMA Bull Stack ชัดเจน โมเมนตัม RSI ยังไม่อยู่ในโซน Overbought รันเทรนด์ได้เต็มกำลัง" },
-    { fund:"SCBS&P500E", label:"S&P 500", ticker:"CSPX.L", score:68.2, signal:"INVESTED", icon:"🔵",
-      action_detail:"ถือครองรันเทรนด์ต่อ ไม่ต้องทำอะไร", position:"IN", price:612.10, chg_pct:0.42,
-      dist_ema200_pct:3.1, bull_stack:true, rsi:57.9, adx:21.4, hv20:12.8, chop_capped:false,
-      news:["Index edges higher after favorable CPI data"],
-      ai_analysis:"คะแนนอยู่ในโซน Dead-Zone (55-74) โครงสร้างยังไม่เสียแต่โมเมนตัมเริ่มชะลอ ถือครองสถานะเดิมโดยไม่ต้องเติมเงินเพิ่ม" },
-    { fund:"SCBWORLDE", label:"MSCI World", ticker:"URTH", score:61.7, signal:"WATCH", icon:"🟡",
-      action_detail:"ตลาดแกว่งตัว พักเงินใน SCBTMFPLUS-E สแตนด์บาย", position:"OUT", price:168.44, chg_pct:-0.18,
-      dist_ema200_pct:1.9, bull_stack:false, rsi:52.1, adx:17.6, hv20:14.2, chop_capped:true,
-      news:["Global equities mixed on geopolitical concerns"],
-      ai_analysis:"ติดเงื่อนไข Anti-Chop Cap เนื่องจากค่า ADX ต่ำกว่า 20 สะท้อนตลาดไร้ทิศทาง ล็อกห้ามเข้าซื้อจนกว่าจะมีเทรนด์ยืนยัน" },
-    { fund:"SCBGOLDE", label:"Gold", ticker:"GLD", score:48.9, signal:"SWITCH OUT", icon:"🔴",
-      action_detail:"สับเปลี่ยนออก SCBGOLDE → พัก SCBTMFPLUS-E", position:"OUT", price:241.72, chg_pct:-1.34,
-      dist_ema200_pct:-2.8, bull_stack:false, rsi:41.3, adx:24.9, hv20:19.7, chop_capped:false,
-      news:["Gold slips as treasury yields spike"],
-      ai_analysis:"เกิดสัญญาณ Breakdown ราคาปิดหลุดต่ำกว่า EMA200 เกิน -2% และคะแนนหลุดเกณฑ์ 55 สับเปลี่ยนออกพักเงินสด 100%" },
-    { fund:"SCBSEMI(E)", label:"Semiconductors", ticker:"SMH", score:33.4, signal:"AVOID", icon:"⚪",
-      action_detail:"โครงสร้างขาลง พักเงินใน SCBTMFPLUS-E ต่อ", position:"OUT", price:268.05, chg_pct:-2.11,
-      dist_ema200_pct:-7.6, bull_stack:false, rsi:36.8, adx:29.5, hv20:31.4, chop_capped:false,
-      news:["Semiconductor cyclical pullback deepens"],
-      ai_analysis:"โครงสร้างเสียครบทุกมิติ ราคาอยู่ใต้ EMA ทุกเส้น และความผันผวนพุ่งสูง พักเงินสดปลอดภัยที่สุด" }
-  ]
-};
+/* ══════════════════════════════════════════════════════════════
+   0. CONFIG & STATE
+   ══════════════════════════════════════════════════════════════ */
+const ENC_URL       = "./data.enc";
+const SESSION_KEY   = "alphashield.session.v1";
+const STORE_FLAG    = "alphashield.persist.v1";
 
-const THEMES = {
-  "SWITCH IN":  { label:"SWITCH IN",  text:"text-emerald", border:"border-emerald/40", bg:"bg-emerald/10", dot:"bg-emerald", glow:"glow-emerald", color:"#10b981" },
-  "INVESTED":   { label:"INVESTED",   text:"text-indigo-400", border:"border-indigo-500/40", bg:"bg-indigo-500/10", dot:"bg-indigo-400", glow:"glow-indigo", color:"#6366f1" },
-  "HOLD":       { label:"INVESTED",   text:"text-indigo-400", border:"border-indigo-500/40", bg:"bg-indigo-500/10", dot:"bg-indigo-400", glow:"glow-indigo", color:"#6366f1" },
-  "SWITCH OUT": { label:"SWITCH OUT", text:"text-rose", border:"border-rose/40", bg:"bg-rose/10", dot:"bg-rose", glow:"glow-rose", color:"#f43f5e" },
-  "WATCH":      { label:"WATCH",      text:"text-amber", border:"border-amber/40", bg:"bg-amber/10", dot:"bg-amber", glow:"glow-amber", color:"#f59e0b" },
-  "AVOID":      { label:"AVOID",      text:"text-slate-400", border:"border-slate-700", bg:"bg-slate-800/40", dot:"bg-slate-400", glow:"glow-haven", color:"#64748b" }
-};
+const state = { data: null, filter: "all", bundle: null, unlocked: false };
 
-const $ = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+/* ══════════════════════════════════════════════════════════════
+   1. UTILITIES
+   ══════════════════════════════════════════════════════════════ */
+const $  = (s, r = document) => r.querySelector(s);
+const $ = (s, r = document) => [...r.querySelectorAll(s)];
 
-const esc = (v) => String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const esc = (v) => String(v ?? "")
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+
 const clamp = (v, lo = 0, hi = 100) => Math.min(hi, Math.max(lo, Number(v) || 0));
-const fmt = (v, d = 2) => (v === null || v === undefined || isNaN(v)) ? "—" : Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
 
-const state = { data: MOCK_DATA, filter: "all", live: false };
+const fmt = (v, d = 2) =>
+  (v === null || v === undefined || Number.isNaN(Number(v)))
+    ? "—"
+    : Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
 
-function renderScoreMeter(score, color) {
+const scoreColor = (s) =>
+  s >= 75 ? "hsl(160 84% 39%)" :
+  s >= 55 ? "hsl(226 71% 60%)" :
+  s >= 40 ? "hsl(38 92% 50%)"  : "hsl(350 89% 60%)";
+
+function timeICT(iso) {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "--:-- ICT";
+  const p = (n) => String(n).padStart(2, "0");
+  return `${p(d.getHours())}:${p(d.getMinutes())} ICT`;
+}
+
+const b64ToBytes = (b64) => {
+  const bin = atob(String(b64).replace(/\s/g, ""));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+};
+
+/* ══════════════════════════════════════════════════════════════
+   2. CRYPTO GATE — PBKDF2 + AES-GCM (WebCrypto)
+   ══════════════════════════════════════════════════════════════ */
+async function fetchBundle() {
+  if (state.bundle) return state.bundle;
+  const res = await fetch(`${ENC_URL}?t=${Date.now()}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`ไม่พบไฟล์ข้อมูลเข้ารหัส (HTTP ${res.status})`);
+  const b = await res.json();
+  if (!b || !b.ciphertext || !b.salt || !b.iv) throw new Error("รูปแบบไฟล์เข้ารหัสไม่ถูกต้อง");
+  state.bundle = b;
+  return b;
+}
+
+function normalizeKey(raw) {
+  // ยอมรับทั้ง "ABCD-2345" และ "abcd2345"
+  return String(raw || "").trim().toUpperCase().replace(/[\s-]/g, "");
+}
+
+async function deriveKey(passphrase, salt, iterations) {
+  const baseKey = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(passphrase), "PBKDF2", false, ["deriveKey"]
+  );
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt, iterations: iterations || 210000, hash: "SHA-256" },
+    baseKey,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"]
+  );
+}
+
+async function decryptPayload(passphrase) {
+  const b = await fetchBundle();
+  const key = await deriveKey(passphrase, b64ToBytes(b.salt), b.iterations);
+  // AES-GCM จะ throw ทันทีถ้า auth tag ไม่ผ่าน → ไม่มีข้อมูลรั่วแม้บางส่วน
+  const plain = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: b64ToBytes(b.iv) }, key, b64ToBytes(b.ciphertext)
+  );
+  const json = JSON.parse(new TextDecoder().decode(plain));
+  if (!json || !Array.isArray(json.assets)) throw new Error("โครงสร้างข้อมูลไม่ถูกต้อง");
+  return json;
+}
+
+/* ── Session persistence (ผูกกับ issued_date → หมดอายุอัตโนมัติ) ── */
+function saveSession(passphrase, persist) {
+  const record = JSON.stringify({ k: passphrase, d: state.bundle?.issued_date || "" });
+  try {
+    sessionStorage.setItem(SESSION_KEY, record);
+    if (persist) { localStorage.setItem(SESSION_KEY, record); localStorage.setItem(STORE_FLAG, "1"); }
+    else { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(STORE_FLAG); }
+  } catch (_) {}
+}
+
+function readSession() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const rec = JSON.parse(raw);
+    if (state.bundle?.issued_date && rec.d && rec.d !== state.bundle.issued_date) {
+      clearSession();                       // ข้อมูลรอบใหม่ → บังคับกรอก OTP ใหม่
+      return null;
+    }
+    return rec.k || null;
+  } catch (_) { return null; }
+}
+
+function clearSession() {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(STORE_FLAG);
+  } catch (_) {}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3. SIGNAL THEME MAP
+   ══════════════════════════════════════════════════════════════ */
+const THEMES = {
+  "SWITCH IN":  { label:"SWITCH IN",  text:"text-emerald", border:"border-emerald/30", bg:"bg-emerald/10", dot:"bg-emerald", glow:"glow-emerald" },
+  "INVESTED":   { label:"INVESTED",   text:"text-indigo",  border:"border-indigo/30",  bg:"bg-indigo/10",  dot:"bg-indigo",  glow:"glow-indigo"  },
+  "HOLD":       { label:"INVESTED",   text:"text-indigo",  border:"border-indigo/30",  bg:"bg-indigo/10",  dot:"bg-indigo",  glow:"glow-indigo"  },
+  "SWITCH OUT": { label:"SWITCH OUT", text:"text-rose",    border:"border-rose/30",    bg:"bg-rose/10",    dot:"bg-rose",    glow:"glow-rose"    },
+  "WATCH":      { label:"WATCH",      text:"text-amber",   border:"border-amber/30",   bg:"bg-amber/10",   dot:"bg-amber",   glow:"glow-amber"   },
+  "AVOID":      { label:"AVOID",      text:"text-haven",   border:"border-haven/30",   bg:"bg-haven/10",   dot:"bg-haven",   glow:"glow-haven"   }
+};
+
+const themeFor = (signal, position) =>
+  THEMES[String(signal || "").toUpperCase().trim()] ||
+  (String(position).toUpperCase() === "IN" ? THEMES["INVESTED"] : THEMES["AVOID"]);
+
+/* ══════════════════════════════════════════════════════════════
+   4. COMPONENT TEMPLATES
+   ══════════════════════════════════════════════════════════════ */
+function ScoreMeter(score) {
   const s = clamp(score);
-  const R = 40, C = 2 * Math.PI * R;
-  const offset = (C * (1 - s / 100)).toFixed(1);
+  const R = 42, C = 2 * Math.PI * R;
+  const color = scoreColor(s);
   return `
-    <div class="relative h-[96px] w-[96px] shrink-0">
+    <div class="relative h-[112px] w-[112px] shrink-0">
       <svg viewBox="0 0 100 100" class="h-full w-full -rotate-90">
-        <circle cx="50" cy="50" r="${R}" fill="none" stroke-width="8" stroke="rgba(255,255,255,0.08)"/>
+        <circle cx="50" cy="50" r="${R}" fill="none" stroke-width="8" stroke="rgba(255,255,255,0.07)"/>
         <circle cx="50" cy="50" r="${R}" fill="none" stroke-width="8" stroke-linecap="round"
                 class="meter-ring" stroke="${color}"
-                stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${C.toFixed(1)}"
-                data-offset="${offset}"/>
+                stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${C.toFixed(2)}"
+                data-offset="${(C * (1 - s / 100)).toFixed(2)}"
+                style="filter: drop-shadow(0 0 6px ${color});"/>
       </svg>
       <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span class="tabular text-xl font-bold leading-none" style="color:${color}">${fmt(s, 1)}</span>
-        <span class="mt-1 text-[8px] font-bold uppercase tracking-wider text-muted">Score</span>
+        <span class="tabular text-2xl font-semibold leading-none" style="color:${color}">${fmt(s, 1)}</span>
+        <span class="mt-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-muted">Score</span>
       </div>
     </div>`;
 }
 
-function renderCard(a, idx) {
-  const t = THEMES[a.signal] || (a.position === "IN" ? THEMES["INVESTED"] : THEMES["AVOID"]);
+const Metric = (label, value, tone = "text-foreground") => `
+  <div class="rounded-xl border border-white/[0.07] bg-white/[0.02] px-2.5 py-2">
+    <p class="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted">${esc(label)}</p>
+    <p class="tabular mt-1 text-sm font-semibold ${tone}">${value}</p>
+  </div>`;
+
+function AssetCard(a, i) {
+  const t = themeFor(a.signal, a.position);
   const chg = Number(a.chg_pct) || 0;
   const ema = Number(a.dist_ema200_pct) || 0;
   const rsi = Number(a.rsi) || 0;
   const adx = Number(a.adx) || 0;
-  const hv = Number(a.hv20) || 0;
+  const hv  = Number(a.hv20) || 0;
 
-  const newsItems = (a.news && a.news.length ? a.news : ["No recent headlines."])
-    .map(n => `<li class="flex gap-2 text-xs leading-relaxed text-zinc-400">
-      <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-600"></span><span>${esc(n)}</span></li>`).join("");
+  const news = (Array.isArray(a.news) && a.news.length ? a.news : ["No headlines retrieved this cycle."])
+    .map(n => `<li class="flex gap-2 text-xs leading-relaxed text-muted">
+        <span class="mt-[6px] h-1 w-1 shrink-0 rounded-full bg-white/25"></span><span>${esc(n)}</span></li>`).join("");
 
   return `
-  <article class="anim-card card-glow rounded-3xl border ${t.border} ${t.glow} bg-card/80 p-5 backdrop-blur-md"
-           style="animation-delay: ${idx * 0.08}s">
+  <article class="asset-card liquid-glass card-glow reveal rounded-3xl border ${t.border} ${t.glow} p-5"
+           data-position="${String(a.position).toUpperCase() === "IN" ? "IN" : "OUT"}"
+           style="transition-delay:${i * 0.09}s">
+
     <header class="flex items-start justify-between gap-3">
-      <div>
+      <div class="min-w-0">
         <div class="flex items-center gap-2">
-          <span class="text-base">${esc(a.icon || "•")}</span>
-          <h3 class="text-base font-bold text-white">${esc(a.fund)}</h3>
+          <span class="text-base leading-none">${esc(a.icon || "•")}</span>
+          <h3 class="truncate text-base font-semibold tracking-tight text-foreground">${esc(a.fund)}</h3>
         </div>
-        <p class="mt-0.5 text-xs text-muted">${esc(a.label)} · <span class="font-mono text-zinc-300">${esc(a.ticker)}</span></p>
+        <p class="mt-1 truncate text-xs text-muted">
+          ${esc(a.label || "—")} · <span class="font-medium text-foreground/70">${esc(a.ticker || "—")}</span>
+        </p>
       </div>
-      <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${t.border} ${t.bg} ${t.text}">
+      <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${t.border} ${t.bg} ${t.text}">
         <span class="h-1.5 w-1.5 rounded-full ${t.dot}"></span>${esc(t.label)}
       </span>
     </header>
 
-    <div class="mt-4 flex items-center gap-4">
-      ${renderScoreMeter(a.score, t.color)}
+    <div class="mt-5 flex items-center gap-5">
+      ${ScoreMeter(a.score)}
       <div class="min-w-0 flex-1">
-        <p class="tabular text-2xl font-bold text-white">${fmt(a.price)}</p>
-        <p class="tabular text-sm font-semibold ${chg > 0 ? 'text-emerald' : chg < 0 ? 'text-rose' : 'text-muted'}">
+        <p class="tabular text-2xl font-semibold tracking-tight text-foreground">${fmt(a.price)}</p>
+        <p class="tabular text-sm font-semibold ${chg > 0 ? "text-emerald" : chg < 0 ? "text-rose" : "text-muted"}">
           ${chg > 0 ? "▲" : chg < 0 ? "▼" : "■"} ${fmt(Math.abs(chg))}%
         </p>
-        <p class="mt-1 text-[11px] text-zinc-400 line-clamp-2">${esc(a.action_detail)}</p>
+        <p class="mt-2 line-clamp-2 text-[11px] leading-snug text-muted">${esc(a.action_detail || "—")}</p>
       </div>
     </div>
 
-    <div class="mt-4 grid grid-cols-4 gap-2 text-center">
-      <div class="rounded-xl border border-white/5 bg-white/[0.02] p-2">
-        <p class="text-[9px] font-bold uppercase tracking-wider text-muted">EMA200</p>
-        <p class="tabular mt-0.5 text-xs font-bold ${ema >= 0 ? 'text-emerald' : 'text-rose'}">${ema >= 0 ? '+' : ''}${fmt(ema, 1)}%</p>
-      </div>
-      <div class="rounded-xl border border-white/5 bg-white/[0.02] p-2">
-        <p class="text-[9px] font-bold uppercase tracking-wider text-muted">RSI 14</p>
-        <p class="tabular mt-0.5 text-xs font-bold ${rsi >= 70 ? 'text-amber' : rsi >= 50 ? 'text-emerald' : 'text-rose'}">${fmt(rsi, 1)}</p>
-      </div>
-      <div class="rounded-xl border border-white/5 bg-white/[0.02] p-2">
-        <p class="text-[9px] font-bold uppercase tracking-wider text-muted">ADX</p>
-        <p class="tabular mt-0.5 text-xs font-bold ${adx >= 25 ? 'text-emerald' : 'text-zinc-400'}">${fmt(adx, 1)}</p>
-      </div>
-      <div class="rounded-xl border border-white/5 bg-white/[0.02] p-2">
-        <p class="text-[9px] font-bold uppercase tracking-wider text-muted">HV20</p>
-        <p class="tabular mt-0.5 text-xs font-bold ${hv >= 25 ? 'text-amber' : 'text-zinc-300'}">${fmt(hv, 1)}%</p>
-      </div>
+    <div class="mt-5 grid grid-cols-4 gap-2">
+      ${Metric("EMA200", `${ema >= 0 ? "+" : ""}${fmt(ema, 1)}%`, ema >= 0 ? "text-emerald" : "text-rose")}
+      ${Metric("RSI 14", fmt(rsi, 1), rsi >= 70 ? "text-amber" : rsi >= 50 ? "text-emerald" : "text-rose")}
+      ${Metric("ADX", fmt(adx, 1), adx >= 25 ? "text-emerald" : "text-muted")}
+      ${Metric("HV20", `${fmt(hv, 1)}%`, hv >= 25 ? "text-amber" : "text-foreground")}
     </div>
 
-    <div class="mt-3 flex items-center gap-2">
-      <span class="rounded-md border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-        a.bull_stack ? 'border-emerald/30 bg-emerald/10 text-emerald' : 'border-white/10 bg-white/5 text-zinc-500'}">
-        ${a.bull_stack ? '● EMA Bull Stack' : '○ EMA Stack Broken'}
+    <div class="mt-4 flex flex-wrap items-center gap-2">
+      <span class="rounded-lg border px-2 py-1 text-[9px] font-bold uppercase tracking-widest ${
+        a.bull_stack ? "border-emerald/25 bg-emerald/10 text-emerald" : "border-white/10 bg-white/[0.03] text-muted"}">
+        ${a.bull_stack ? "EMA Stack 50 › 100 › 200" : "EMA Stack Broken"}
       </span>
       ${a.chop_capped ? `
-      <span class="rounded-md border border-amber/30 bg-amber/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber">
-        ⚠️ Chop Cap
-      </span>` : ''}
+      <span class="inline-flex items-center gap-1 rounded-lg border border-amber/25 bg-amber/10 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-amber">
+        <i data-lucide="alert-triangle" class="h-[11px] w-[11px]"></i> Chop Cap
+      </span>` : ``}
     </div>
 
-    <div class="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
-      <button type="button" class="drawer-btn flex w-full items-center justify-between px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:text-white">
+    <div class="mt-4 overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02]">
+      <button type="button" class="drawer-toggle flex w-full items-center justify-between px-4 py-3 text-xs font-semibold text-foreground/80 transition hover:text-foreground" aria-expanded="false">
         <span class="inline-flex items-center gap-2">
-          <i data-lucide="sparkles" class="h-3.5 w-3.5 text-emerald"></i> AI Narrative & Macro Feed
+          <i data-lucide="sparkles" class="h-[14px] w-[14px] text-muted"></i> AI Narrative &amp; Macro Feed
         </span>
         <i data-lucide="chevron-down" class="chev h-4 w-4 text-muted"></i>
       </button>
       <div class="drawer">
         <div>
-          <div class="space-y-3 border-t border-white/10 p-4">
-            <p class="text-xs leading-relaxed text-zinc-300">${esc(a.ai_analysis)}</p>
+          <div class="space-y-4 border-t border-white/[0.07] px-4 py-4">
+            <p class="text-xs leading-relaxed text-foreground/75">${esc(a.ai_analysis || "No analysis available for this cycle.")}</p>
             <div>
-              <p class="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted">Recent Headlines</p>
-              <ul class="space-y-1.5">${newsItems}</ul>
+              <p class="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted">
+                <i data-lucide="newspaper" class="h-3 w-3"></i> Recent Headlines
+              </p>
+              <ul class="space-y-2">${news}</ul>
             </div>
           </div>
         </div>
@@ -380,117 +572,271 @@ function renderCard(a, idx) {
   </article>`;
 }
 
-function renderKPIs(d) {
-  const assets = d.assets || [];
-  const active = assets.filter(a => a.position === "IN");
-  const mean = assets.length ? assets.reduce((s, a) => s + (Number(a.score) || 0), 0) / assets.length : 0;
-
-  const cards = [
-    { icon:"layers", label:"Tracked Universe", value:String(assets.length), sub:"5 core SCB funds", tone:"text-white", border:"border-white/10" },
-    { icon:"trending-up", label:"Active Allocations", value:String(active.length), sub: active.length ? active.map(a => a.fund).join(", ") : "None — 100% Cash", tone:"text-emerald", border:"border-emerald/30" },
-    { icon:"landmark", label:"Capital in Cash Park", value:String(assets.length - active.length), sub:`Parked in ${d.portfolio_status?.cash_park || "SCBTMFPLUS-E"}`, tone:"text-slate-300", border:"border-slate-700" },
-    { icon:"gauge", label:"Mean Momentum Score", value:fmt(mean, 1), sub:"Universe Average / 100", tone:"text-amber", border:"border-amber/30" }
-  ];
-
-  $("#kpi-grid").innerHTML = cards.map((c, i) => `
-    <div class="anim-card liquid-glass rounded-2xl border ${c.border} p-5" style="animation-delay:${i * 0.05}s">
-      <div class="flex items-start justify-between">
-        <p class="text-[10px] font-bold uppercase tracking-wider text-muted">${esc(c.label)}</p>
-        <i data-lucide="${c.icon}" class="h-4 w-4 ${c.tone}"></i>
-      </div>
-      <p class="tabular mt-2 text-3xl font-bold ${c.tone}">${esc(c.value)}</p>
-      <p class="mt-1 truncate text-xs text-muted">${esc(c.sub)}</p>
-    </div>`).join("");
+/* ══════════════════════════════════════════════════════════════
+   5. RENDERERS
+   ══════════════════════════════════════════════════════════════ */
+function renderNav(d) {
+  $("#nav-time").textContent = timeICT(d.last_run_ict);
+  $("#nav-haven").textContent = d.portfolio_status?.cash_park || d.safe_haven || "—";
 }
 
 function renderAllocation(d) {
   const ps = d.portfolio_status || {};
   const eq = clamp(ps.equity_weight_pct ?? 0);
   const ch = clamp(ps.cash_weight_pct ?? (100 - eq));
-
-  $("#nav-time").textContent = d.last_run_ict ? `${d.last_run_ict.slice(11,16)} ICT` : "12:15 ICT";
-  $("#nav-haven").textContent = ps.cash_park || d.safe_haven || "SCBTMFPLUS-E";
   $("#alloc-eq").textContent = `${fmt(eq, 1)}%`;
   $("#alloc-cash").textContent = `${fmt(ch, 1)}%`;
-  $("#alloc-fund").textContent = ps.cash_park || d.safe_haven || "SCBTMFPLUS-E";
+  $("#alloc-fund").textContent = ps.cash_park || d.safe_haven || "—";
+  requestAnimationFrame(() => {
+    setTimeout(() => { $("#bar-eq").style.width = `${eq}%`; }, 500);
+    setTimeout(() => { $("#bar-cash").style.width = `${ch}%`; }, 650);
+  });
+}
 
-  setTimeout(() => {
-    $("#bar-eq").style.width = `${eq}%`;
-    $("#bar-cash").style.width = `${ch}%`;
-  }, 300);
+function renderKPIs(d) {
+  const assets = d.assets || [];
+  const active = assets.filter(a => String(a.position).toUpperCase() === "IN");
+  const mean = assets.length ? assets.reduce((s, a) => s + (Number(a.score) || 0), 0) / assets.length : 0;
+
+  const cards = [
+    { icon:"layers",      label:"Tracked Universe",     value:String(assets.length), sub:"Assets under surveillance", tone:"text-foreground", border:"border-cardborder" },
+    { icon:"trending-up", label:"Active Allocations",   value:String(active.length), sub: active.length ? active.map(a => a.fund).join(", ") : "None — fully defensive", tone:"text-emerald", border:"border-emerald/25" },
+    { icon:"landmark",    label:"Capital in Cash Park", value:String(assets.length - active.length), sub:`Parked in ${d.portfolio_status?.cash_park || d.safe_haven || "—"}`, tone:"text-haven", border:"border-haven/25" },
+    { icon:"gauge",       label:"Mean Momentum Score",  value:fmt(mean, 1), sub:"Universe average / 100", tone:"text-amber", border:"border-amber/25" }
+  ];
+
+  $("#kpi-grid").innerHTML = cards.map((c, i) => `
+    <article class="liquid-glass reveal rounded-2xl border ${c.border} p-5" style="transition-delay:${i * 0.08}s">
+      <div class="flex items-start justify-between">
+        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">${esc(c.label)}</p>
+        <i data-lucide="${c.icon}" class="h-[18px] w-[18px] ${c.tone}"></i>
+      </div>
+      <p class="tabular mt-3 text-4xl font-semibold tracking-tight ${c.tone}">${esc(c.value)}</p>
+      <p class="mt-2 truncate text-xs text-muted">${esc(c.sub)}</p>
+    </article>`).join("");
 }
 
 function renderGrid() {
+  if (!state.data) return;
   const all = state.data.assets || [];
-  const visible = all.filter(a => state.filter === "active" ? a.position === "IN" : true);
+  const visible = all.filter(a => state.filter === "active" ? String(a.position).toUpperCase() === "IN" : true);
 
-  $("#asset-grid").innerHTML = visible.map((a, i) => renderCard(a, i)).join("");
+  $("#asset-grid").innerHTML = visible.map(AssetCard).join("");
   $("#count-visible").textContent = visible.length;
   $("#count-total").textContent = all.length;
 
   const empty = $("#empty-state");
   empty.classList.toggle("hidden", visible.length > 0);
-  empty.textContent = `No active allocations. Portfolio is 100% parked in ${state.data.portfolio_status?.cash_park || "safe haven"}.`;
+  empty.textContent = `No active allocations. Portfolio is 100% parked in ${state.data.portfolio_status?.cash_park || "the safe haven"}.`;
 
   if (window.lucide) lucide.createIcons();
+  observeReveals();
+  bindDrawers();
+}
 
-  // Trigger score meters
-  setTimeout(() => {
-    $$(".meter-ring").forEach(ring => {
-      ring.style.strokeDashoffset = ring.dataset.offset;
-    });
-  }, 100);
+function renderAll() {
+  const d = state.data;
+  if (!d) return;
+  renderNav(d);
+  renderAllocation(d);
+  renderKPIs(d);
+  renderGrid();
+  const fs = $("#feed-status");
+  fs.textContent = "encrypted feed · decrypted locally";
+  fs.className = "text-emerald";
+  if (window.lucide) lucide.createIcons();
+  observeReveals();
+}
 
-  // Bind accordion drawers
-  $$(".drawer-btn").forEach(btn => {
-    btn.onclick = () => {
+/* ══════════════════════════════════════════════════════════════
+   6. REVEAL OBSERVER
+   ══════════════════════════════════════════════════════════════ */
+let io = null;
+function observeReveals() {
+  if (!io) {
+    io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        el.classList.add("shown");
+        $(".meter-ring", el).forEach(ring => {
+          setTimeout(() => { ring.style.strokeDashoffset = ring.dataset.offset; }, 250);
+        });
+        io.unobserve(el);
+      });
+    }, { rootMargin: "-60px 0px", threshold: 0.05 });
+  }
+  $(".reveal:not(.shown)").forEach(el => io.observe(el));
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7. INTERACTIONS
+   ══════════════════════════════════════════════════════════════ */
+function bindDrawers() {
+  $(".drawer-toggle").forEach(btn => {
+    btn.addEventListener("click", () => {
       const drawer = btn.nextElementSibling;
       const open = drawer.classList.toggle("open");
-      const chev = btn.querySelector(".chev");
+      btn.setAttribute("aria-expanded", String(open));
+      const chev = $(".chev", btn);
       if (chev) chev.style.transform = open ? "rotate(180deg)" : "rotate(0deg)";
-    };
+    });
   });
 }
 
 function setFilter(f) {
   state.filter = f;
-  $$(".filter-btn").forEach(btn => {
+  $("[data-filter]").forEach(btn => {
     const on = btn.dataset.filter === f;
-    btn.className = "filter-btn relative rounded-full px-4 py-1.5 text-xs font-semibold transition " +
-      (on ? "bg-emerald text-black" : "text-muted hover:text-white");
+    btn.className = "filter-pill relative rounded-full px-4 py-1.5 text-xs font-semibold " +
+      (on ? "bg-emerald text-black" : "text-muted hover:text-foreground");
   });
   renderGrid();
 }
 
-function renderAll() {
-  renderAllocation(state.data);
-  renderKPIs(state.data);
-  renderGrid();
-  const el = $("#feed-status");
-  el.textContent = state.live ? "live data.json" : "offline mock feed";
-  el.className = state.live ? "text-emerald font-semibold" : "text-amber font-semibold";
+/* ══════════════════════════════════════════════════════════════
+   8. AUTH GATE UI
+   ══════════════════════════════════════════════════════════════ */
+const overlay  = $("#auth-overlay");
+const authCard = $("#auth-card");
+const input    = $("#otp-input");
+const errBox   = $("#auth-error");
+const errText  = $("#auth-error-text");
+const btn      = $("#unlock-btn");
+const btnLabel = $("#unlock-label");
+
+function showError(msg) {
+  errText.textContent = msg;
+  errBox.classList.remove("hidden");
+  errBox.classList.add("flex");
+  authCard.classList.remove("shake");
+  void authCard.offsetWidth;          // reflow เพื่อรีสตาร์ท animation
+  authCard.classList.add("shake");
+  input.value = "";
+  input.focus();
+  if (navigator.vibrate) navigator.vibrate(120);
 }
 
-async function loadData() {
+function hideError() {
+  errBox.classList.add("hidden");
+  errBox.classList.remove("flex");
+}
+
+function setBusy(busy) {
+  btn.disabled = busy;
+  btnLabel.textContent = busy ? "Decrypting…" : "Unlock Dashboard";
+  const icon = btn.querySelector("i, svg");
+  if (icon) icon.classList.toggle("spinner", busy);
+}
+
+function unlockUI() {
+  state.unlocked = true;
+  overlay.classList.add("hidden-gate");
+  document.body.classList.remove("locked");
+  $("#app-shell").classList.remove("blurred");
+  input.value = "";
+  setTimeout(() => { window.scrollTo({ top: 0 }); observeReveals(); }, 120);
+}
+
+function lockUI() {
+  state.unlocked = false;
+  state.data = null;
+  clearSession();
+  $("#asset-grid").innerHTML = "";
+  $("#kpi-grid").innerHTML = "";
+  $("#app-shell").classList.add("blurred");
+  document.body.classList.add("locked");
+  overlay.classList.remove("hidden-gate");
+  hideError();
+  setTimeout(() => input.focus(), 300);
+}
+
+async function attemptUnlock(rawKey, { silent = false } = {}) {
+  const key = normalizeKey(rawKey);
+  if (!key) { if (!silent) showError("กรุณากรอกรหัสผ่านประจำวัน"); return false; }
+
+  setBusy(true);
   try {
-    const res = await fetch(`./data.json?t=${Date.now()}`);
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const json = await res.json();
-    if (!json || !Array.isArray(json.assets)) throw new Error("Bad schema");
-    state.data = json;
-    state.live = true;
-  } catch (err) {
-    state.data = MOCK_DATA;
-    state.live = false;
+    const payload = await decryptPayload(key);
+    state.data = payload;
+    saveSession(key, $("#remember-toggle").checked);
+    hideError();
+    renderAll();
+    setFilter("all");
+    unlockUI();
+    return true;
+  } catch (e) {
+    const msg = /HTTP|รูปแบบ|ไม่พบ/.test(e.message)
+      ? e.message
+      : "รหัสผ่านไม่ถูกต้อง หรือหมดอายุแล้ว — ตรวจสอบ OTP ล่าสุดใน LINE";
+    if (!silent) showError(msg);
+    return false;
+  } finally {
+    setBusy(false);
   }
-  renderAll();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  $$(".filter-btn").forEach(btn => btn.addEventListener("click", () => setFilter(btn.dataset.filter)));
-  setFilter("all");
-  renderAll();
-  loadData();
+/* ══════════════════════════════════════════════════════════════
+   9. BOOT
+   ══════════════════════════════════════════════════════════════ */
+document.addEventListener("DOMContentLoaded", async () => {
+  if (window.lucide) lucide.createIcons();
+
+  // เบราว์เซอร์ต้องอยู่ใน secure context (https / localhost)
+  if (!window.crypto || !window.crypto.subtle) {
+    showError("เบราว์เซอร์นี้ไม่รองรับ Web Crypto — กรุณาเปิดผ่าน HTTPS");
+    btn.disabled = true;
+    return;
+  }
+
+  $("[data-filter]").forEach(b => b.addEventListener("click", () => setFilter(b.dataset.filter)));
+  $("#logout-btn").addEventListener("click", lockUI);
+
+  $("#toggle-visibility").addEventListener("click", () => {
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    $("#toggle-visibility").innerHTML = `<i data-lucide="${show ? "eye-off" : "eye"}" class="h-4 w-4"></i>`;
+    if (window.lucide) lucide.createIcons();
+    input.focus();
+  });
+
+  input.addEventListener("input", hideError);
+
+  $("#auth-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    attemptUnlock(input.value);
+  });
+
+  // โหลด metadata ของไฟล์เข้ารหัส แล้วลอง auto-unlock จาก session
+  try {
+    const b = await fetchBundle();
+    $("#enc-meta").textContent =
+      `${b.alg || "AES-GCM-256"} · ${b.kdf || "PBKDF2"} · ${(b.iterations || 0).toLocaleString()} iters · ${b.issued_date || ""}`;
+    const saved = readSession();
+    if (saved) {
+      const ok = await attemptUnlock(saved, { silent: true });
+      if (!ok) clearSession();
+    }
+  } catch (e) {
+    showError(e.message);
+  }
+
+  if (!state.unlocked) input.focus();
+
+  // รีเฟรชข้อมูลอัตโนมัติทุก 10 นาที (ใช้คีย์เดิมใน session)
+  setInterval(async () => {
+    if (!state.unlocked) return;
+    const saved = readSession();
+    if (!saved) return;
+    state.bundle = null;                 // ดึง bundle ใหม่
+    try {
+      state.data = await decryptPayload(normalizeKey(saved));
+      renderAll();
+    } catch (_) {
+      lockUI();                          // ข้อมูลรอบใหม่ + OTP เปลี่ยน → ล็อกกลับ
+      showError("ข้อมูลรอบใหม่ถูกเผยแพร่แล้ว กรุณากรอก OTP ล่าสุดจาก LINE");
+    }
+  }, 10 * 60 * 1000);
 });
 </script>
 </body>
