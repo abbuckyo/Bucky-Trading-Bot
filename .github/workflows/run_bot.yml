@@ -152,13 +152,16 @@ jobs:
           if-no-files-found: ignore
 
       - name: Commit and push Dashboard data
+        if: always() && hashFiles('docs/data.enc') != ''
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          rm -f docs/data.json
+          git rm -f docs/data.json 2>/dev/null || true
           git add docs/data.enc
           git commit -m "chore: auto-update encrypted dashboard [skip ci]" || exit 0
+          git stash --include-untracked || true
           git pull --rebase origin main
+          git stash pop 2>/dev/null || true
           git push
 
       - name: Discord failure alert
