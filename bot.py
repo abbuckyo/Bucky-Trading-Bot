@@ -996,6 +996,12 @@ def send_to_discord(message: str) -> bool:
 
 
 def send_to_line(message: str) -> bool:
+    # ── สวิตช์ปิด LINE ชั่วคราวเพื่อประหยัด QUOTA ──
+    enable_line = os.getenv("ENABLE_LINE", "false").lower() in ("true", "1", "yes")
+    if not enable_line:
+        LOG.info("MOCK: ข้ามการส่ง LINE ชั่วคราวเพื่อประหยัดโควตา (ENABLE_LINE=false)")
+        return True
+
     token = SECRETS["LINE_CHANNEL_ACCESS_TOKEN"]
     user_id = SECRETS["LINE_USER_ID"]
     if not token or not user_id:
