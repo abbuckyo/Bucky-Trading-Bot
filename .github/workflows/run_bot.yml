@@ -24,6 +24,12 @@ on:
           - "NO_CHANGE"
           - "IN"
           - "OUT"
+      send_line:
+        description: "ต้องการส่งแจ้งเตือนเข้า LINE หรือไม่"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
       reset_state:
         description: "ล้างประวัติทั้งหมดเริ่มต้นใหม่ (all positions -> OUT)"
         required: false
