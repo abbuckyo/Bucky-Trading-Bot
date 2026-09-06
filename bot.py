@@ -1100,74 +1100,93 @@ def render_header(now_th: datetime) -> str:
 
 
 # ------------------------------------------------------------------------------
-# SECTION 13 -- MAIN PIPELINE & ENCRYPTED DASHBOARD EXPORT
+# SECTION 13 -- MAIN PIPELINE & MASTER ENCRYPTED EXPORT
 # ------------------------------------------------------------------------------
 import base64
 import secrets
+from pathlib import Path
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-# Config สำหรับระบบเข้ารหัส AES-GCM
-OTP_LENGTH = 10
-PBKDF2_ITERATIONS = 210_000
+# Crypto Constants (ตรงกับ index.html 100%)
+PBKDF2_ITERATIONS = 100_000
+KEY_LENGTH = 32
 SALT_BYTES = 16
 IV_BYTES = 12
-OTP_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+TAG_BITS = 128
+
+DEFAULT_PASSWORD = "AlphaShield@2026"
+MASTER_PASSWORD = (os.getenv("DASHBOARD_PASSWORD") or DEFAULT_PASSWORD).strip()
 DASHBOARD_URL = "https://abbuckyo.github.io/Bucky-Trading-Bot/"
 
-
-def generate_daily_otp(length: int = OTP_LENGTH) -> str:
-    return "".join(secrets.choice(OTP_ALPHABET) for _ in range(length))
-
-
-def format_otp(otp: str) -> str:
-    mid = len(otp) // 2
-    return f"{otp[:mid]}-{otp[mid:]}"
+_b64e = lambda b: base64.b64encode(b).decode("ascii")
+_b64d = lambda s: base64.b64decode(str(s).strip())
 
 
-def _derive_key(passphrase: str, salt: bytes, iterations: int = PBKDF2_ITERATIONS) -> bytes:
+def derive_key(password: str, salt: bytes, iterations: int = PBKDF2_ITERATIONS) -> bytes:
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
-        length=32,
+        length=KEY_LENGTH,
         salt=salt,
         iterations=iterations,
     )
-    return kdf.derive(passphrase.encode("utf-8"))
+    return kdf.derive(password.strip().encode("utf-8"))
 
 
-def encrypt_and_save_dashboard(payload: dict, otp: str) -> None:
-    os.makedirs("docs", exist_ok=True)
+def encrypt_payload(payload: dict, password: str = MASTER_PASSWORD) -> dict:
     salt = secrets.token_bytes(SALT_BYTES)
     iv = secrets.token_bytes(IV_BYTES)
-    key = _derive_key(otp, salt)
+    key = derive_key(password, salt)
 
     plaintext = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     ciphertext = AESGCM(key).encrypt(iv, plaintext, None)
 
-    b64 = lambda b: base64.b64encode(b).decode("ascii")
-    envelope = {
-        "v": 1,
-        "alg": "AES-GCM-256",
+    return {
+        "v": 2,
+        "alg": "AES-GCM",
+        "key_bits": KEY_LENGTH * 8,
+        "tag_bits": TAG_BITS,
         "kdf": "PBKDF2-SHA256",
         "iterations": PBKDF2_ITERATIONS,
-        "salt": b64(salt),
-        "iv": b64(iv),
-        "ciphertext": b64(ciphertext),
-        "issued_date": datetime.now(CFG.TZ_BANGKOK).strftime("%Y-%m-%d"),
+        "salt": _b64e(salt),
+        "iv": _b64e(iv),
+        "ciphertext": _b64e(ciphertext),
         "issued_at_ict": datetime.now(CFG.TZ_BANGKOK).strftime("%Y-%m-%dT%H:%M:%S"),
-        "hint": f"OTP {OTP_LENGTH} หลัก ส่งทาง LINE ทุกวัน",
+        "hint": "Master Password (คงที่)",
     }
 
-    # บันทึกไฟล์ data.enc และลบ data.json ทิ้งทันทีเพื่อความปลอดภัย
-    with open("docs/data.enc", "w", encoding="utf-8") as f:
-        json.dump(envelope, f, separators=(",", ":"))
 
-    if os.path.exists("docs/data.json"):
-        os.remove("docs/data.json")
-        LOG.warning("ลบ docs/data.json ทิ้งแล้ว — ป้องกันข้อมูลรั่วไหลทาง Direct URL")
+def selftest_decrypt(envelope: dict, password: str, expect: dict) -> None:
+    key = derive_key(password, _b64d(envelope["salt"]), int(envelope["iterations"]))
+    plain = AESGCM(key).decrypt(_b64d(envelope["iv"]), _b64d(envelope["ciphertext"]), None)
+    back = json.loads(plain.decode("utf-8"))
 
-    LOG.info("เขียนไฟล์ docs/data.enc (AES-GCM Encrypted) สำเร็จ")
+    if not isinstance(back.get("assets"), list):
+        raise ValueError("Self-test: field 'assets' หายไปหลังถอดรหัส")
+    if len(back["assets"]) != len(expect.get("assets", [])):
+        raise ValueError("Self-test: จำนวน assets ไม่ตรงกับต้นฉบับ")
+    LOG.info("Self-test ผ่าน ✓ ถอดรหัสได้ %d assets", len(back["assets"]))
+
+
+def write_encrypted_dashboard(payload: dict, password: str = MASTER_PASSWORD) -> Path:
+    out_path = Path("docs/data.enc")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    envelope = encrypt_payload(payload, password)
+    selftest_decrypt(envelope, password, payload)
+
+    tmp = out_path.with_suffix(".enc.tmp")
+    tmp.write_text(json.dumps(envelope, separators=(",", ":")), encoding="utf-8")
+    tmp.replace(out_path)
+
+    legacy_json = Path("docs/data.json")
+    if legacy_json.exists():
+        legacy_json.unlink()
+        LOG.warning("ลบ docs/data.json ทิ้งแล้ว — กันข้อมูลรั่วไหลผ่าน Direct URL")
+
+    LOG.info("เขียน %s สำเร็จ (%d bytes)", out_path, out_path.stat().st_size)
+    return out_path
 
 
 def process_asset(asset: Asset, state: Dict[str, Any]) -> Tuple[str, Dict[str, Any], Optional[Tuple]]:
@@ -1246,7 +1265,7 @@ def main() -> int:
         if idx < len(UNIVERSE) - 1:
             time.sleep(CFG.INTER_ASSET_SLEEP)
 
-    # 1. จัดทำ State ข้ามวัน
+    # 1. State ข้ามวัน
     new_state = {
         "version": 2,
         "last_run_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -1255,7 +1274,7 @@ def main() -> int:
     }
     save_state(new_state)
 
-    # 2. คำนวณ Portfolio Status และสร้าง Encrypted Dashboard
+    # 2. Payload และเขียนไฟล์ data.enc (Master Password)
     invested_list = [fund for fund, _, _, pos, _, _ in summary_rows if pos == "IN"]
     eq_pct = round((len(invested_list) / len(UNIVERSE)) * 100.0, 1) if UNIVERSE else 0.0
 
@@ -1295,25 +1314,22 @@ def main() -> int:
         ],
     }
 
-    # สุ่ม OTP 10 หลัก และเข้ารหัสไฟล์ docs/data.enc ทันที
-    otp = generate_daily_otp()
-    encrypt_and_save_dashboard(dashboard_data, otp)
+    write_encrypted_dashboard(dashboard_data)
 
-    # 3. จัดทำรายงานสรุปพร้อมแนบ OTP ปลดล็อกหน้าเว็บ
+    # 3. ข้อความแจ้งเตือน (ไม่มี OTP แล้ว)
     report_sections = [
         render_header(now_th),
         render_executive_summary(summary_rows),
         "──────── 🔍 **รายละเอียดทางเทคนิครายสินทรัพย์** ────────\n",
         "\n\n".join(detail_blocks),
         "────────────────────────────────────────",
-        f"🔐 **รหัสปลดล็อก Dashboard วันนี้:** `{format_otp(otp)}`",
+        "🔐 **Dashboard เข้ารหัส AES-GCM เรียบร้อยแล้ว**",
+        "🔑 **เข้าดูด้วย Master Password ประจำตัว**",
         f"🌐 **Web Dashboard:** {DASHBOARD_URL}",
         f"_บอทเฝ้าดอย Engine v7.2 • สมบูรณ์ {len(summary_rows)}/{len(UNIVERSE)} • ล้มเหลว {failures}_"
     ]
 
     final_report = "\n\n".join(report_sections)
-
-    # 4. บรอดแคสต์ข้อความเข้า Discord และ LINE พร้อมกัน
     broadcast(final_report)
     LOG.info("=== QUANT BOT COMPLETED (Failures: %d) ===", failures)
     return 1 if failures == len(UNIVERSE) else 0
