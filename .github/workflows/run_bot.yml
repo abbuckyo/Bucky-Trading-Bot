@@ -129,9 +129,8 @@ jobs:
           echo "::warning::state.json deleted by manual reset request."
 
       - name: Run allocation bot
-        id: bot
         env:
-          ENABLE_LINE: ${{ github.event.inputs.send_line || 'false' }}
+          ENABLE_LINE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.send_line || 'true' }}
           DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
