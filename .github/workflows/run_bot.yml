@@ -131,6 +131,7 @@ jobs:
       - name: Run allocation bot
         id: bot
         env:
+          ENABLE_LINE: ${{ github.event.inputs.send_line || 'false' }}
           DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
