@@ -1181,7 +1181,7 @@ def main() -> int:
             time.sleep(CFG.INTER_ASSET_SLEEP)
 
     # 1. จัดทำรายงานข้อความแจ้งเตือน (พร้อมแนบลิงก์ Web Dashboard)
-    dashboard_url = "https://abbuckyo.github.io/my-ai-trading-bot/"
+    dashboard_url = "# แก้เป็นตัวนี้ https://abbuckyo.github.io/Bucky-Trading-Bot/"
     report_sections = [
         render_header(now_th),
         render_executive_summary(summary_rows),
