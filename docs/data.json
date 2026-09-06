@@ -1,0 +1,189 @@
+{
+  "version": 2,
+  "last_run_ict": "2026-09-06T23:48:35+07:00",
+  "safe_haven": "SCBTMFPLUS-E",
+  "portfolio_status": {
+    "invested_funds": [
+      "SCBS&P500E"
+    ],
+    "cash_park": "SCBTMFPLUS-E",
+    "equity_weight_pct": 20.0,
+    "cash_weight_pct": 80.0
+  },
+  "assets": [
+    {
+      "fund": "SCBWORLDE",
+      "label": "MSCI World",
+      "ticker": "URTH",
+      "position": "OUT",
+      "signal": "WATCH",
+      "icon": "🟡",
+      "action_detail": "ตลาดแกว่งตัวไร้ทิศทาง สแตนด์บายใน SCBTMFPLUS-E",
+      "score": 65.0,
+      "raw_score": 80.0,
+      "price": 209.82,
+      "chg_pct": -0.25,
+      "dist_ema200_pct": 7.98,
+      "bull_stack": true,
+      "rsi": 56.2,
+      "adx": 14.1,
+      "hv20": 8.2,
+      "chop_capped": true,
+      "breakdown": false,
+      "breakdown_reason": "",
+      "news": [
+        "Diversifying in September? iShares Emerging Markets ETF vs. iShares World ETF Compared."
+      ],
+      "ai_analysis": "ราคา SCBWORLDE ยืนเหนือ EMA200 ได้ แต่ ADX ต่ำเพียง 14.1 ชี้ชัดว่าตลาดแก",
+      "data_source": "yahoo_v8",
+      "components": {
+        "trend_structure": 40.0,
+        "trend_strength": 3.0,
+        "momentum_macd": 7.0,
+        "momentum_rsi": 15.0,
+        "volatility": 15.0
+      },
+      "updated_at": "2026-09-06T23:48:47+07:00"
+    },
+    {
+      "fund": "SCBS&P500E",
+      "label": "S&P 500",
+      "ticker": "CSPX.L",
+      "position": "IN",
+      "signal": "SWITCH IN",
+      "icon": "🟢",
+      "action_detail": "สับเปลี่ยนเงินเข้า SCBS&P500E (จาก SCBTMFPLUS-E)",
+      "score": 81.0,
+      "raw_score": 81.0,
+      "price": 831.04,
+      "chg_pct": -0.52,
+      "dist_ema200_pct": 7.68,
+      "bull_stack": true,
+      "rsi": 54.2,
+      "adx": 20.8,
+      "hv20": 9.2,
+      "chop_capped": false,
+      "breakdown": false,
+      "breakdown_reason": "",
+      "news": [],
+      "ai_analysis": "ระบบสั่ง **SWITCH IN** ชัดเจนด้วยคะแนน Quant สูง 81.0 ดัชนียืนเหนือ EMA200 แข็งแกร่ง +7.7% พร้อมแรงส่งจาก +DI ที่เหนือกว่า -DI ยืนยันแนวโน้มขาขึ้นโดยที่โครงสร้างราคาไม่เสียหาย \n**เงื่อนไขสำคัญ:** จับตาการรักษาระดับเหนือเส้น EMA200 และโมเมนตัม RSI ไม่ให้หลุด 50 เพื่อปกป้องเงินต้นและเกาะแนวโน้มต่อ",
+      "data_source": "yahoo_v8",
+      "components": {
+        "trend_structure": 40.0,
+        "trend_strength": 9.0,
+        "momentum_macd": 7.0,
+        "momentum_rsi": 10.0,
+        "volatility": 15.0
+      },
+      "updated_at": "2026-09-06T23:48:54+07:00"
+    },
+    {
+      "fund": "SCBNDQ(E)",
+      "label": "Nasdaq 100",
+      "ticker": "QQQ",
+      "position": "OUT",
+      "signal": "WATCH",
+      "icon": "🟡",
+      "action_detail": "ตลาดแกว่งตัวไร้ทิศทาง สแตนด์บายใน SCBTMFPLUS-E",
+      "score": 65.0,
+      "raw_score": 75.0,
+      "price": 718.96,
+      "chg_pct": 0.18,
+      "dist_ema200_pct": 8.33,
+      "bull_stack": true,
+      "rsi": 53.6,
+      "adx": 10.9,
+      "hv20": 12.9,
+      "chop_capped": true,
+      "breakdown": false,
+      "breakdown_reason": "",
+      "news": [
+        "A Hot CPI Report May Force A September Rate Hike",
+        "It's Not Worth Buying VOO Or QQQ Anymore",
+        "What I Found By Analyzing How Seeking Alpha Analysts Rated The Mag 7"
+      ],
+      "ai_analysis": "ราคาอยู่เหนือ EMA200 แต่ ADX ต่ำเพียง 10.9 สะท้อนตลาด Sideways ไร้ทิศทาง ผสานแรงกดดันจากข่าว CPI จึงต้องพักเงินใน SCBTMFPLUS-E เพื่อรักษาเงินต้น\n**เงื่อนไขจับตา:** รอ ADX ดีดทะลุ 20 พร้อมสัญญาณ Breakout ยืนยันเทรนด์ขาขึ้นรอบใหม่ก่อนพิจารณาเข้าลงทุน",
+      "data_source": "yahoo_v8",
+      "components": {
+        "trend_structure": 40.0,
+        "trend_strength": 3.0,
+        "momentum_macd": 7.0,
+        "momentum_rsi": 10.0,
+        "volatility": 15.0
+      },
+      "updated_at": "2026-09-06T23:49:01+07:00"
+    },
+    {
+      "fund": "SCBGOLDE",
+      "label": "Gold",
+      "ticker": "GLD",
+      "position": "OUT",
+      "signal": "WATCH",
+      "icon": "🟡",
+      "action_detail": "ตลาดแกว่งตัวไร้ทิศทาง สแตนด์บายใน SCBTMFPLUS-E",
+      "score": 62.0,
+      "raw_score": 62.0,
+      "price": 406.77,
+      "chg_pct": -0.84,
+      "dist_ema200_pct": 2.69,
+      "bull_stack": false,
+      "rsi": 52.4,
+      "adx": 22.2,
+      "hv20": 27.1,
+      "chop_capped": false,
+      "breakdown": false,
+      "breakdown_reason": "",
+      "news": [
+        "The \"Warsh Vs. The White House\" Trade",
+        "August NFP Behind Her, Goldilocks Looks To Upcoming Inflation Data",
+        "Invest In 7 Funds For Likely $5,000 Income With SWAN-Like Stability"
+      ],
+      "ai_analysis": "เลือก [WATCH] เพราะ ADX (22.2) ชี้ว่าเทรนด์ยังไร้ทิศทางที่ชัดเจน ต",
+      "data_source": "yahoo_v8",
+      "components": {
+        "trend_structure": 32.0,
+        "trend_strength": 9.0,
+        "momentum_macd": 3.0,
+        "momentum_rsi": 10.0,
+        "volatility": 8.0
+      },
+      "updated_at": "2026-09-06T23:49:31+07:00"
+    },
+    {
+      "fund": "SCBSEMI(E)",
+      "label": "Semiconductors",
+      "ticker": "SMH",
+      "position": "OUT",
+      "signal": "WATCH",
+      "icon": "🟡",
+      "action_detail": "ตลาดแกว่งตัวไร้ทิศทาง สแตนด์บายใน SCBTMFPLUS-E",
+      "score": 65.0,
+      "raw_score": 80.0,
+      "price": 567.01,
+      "chg_pct": 2.61,
+      "dist_ema200_pct": 15.42,
+      "bull_stack": true,
+      "rsi": 51.2,
+      "adx": 13.2,
+      "hv20": 31.4,
+      "chop_capped": true,
+      "breakdown": false,
+      "breakdown_reason": "",
+      "news": [
+        "The \"Warsh Vs. The White House\" Trade",
+        "August NFP Behind Her, Goldilocks Looks To Upcoming Inflation Data",
+        "Semis Survived Hawkish August Jobs Data: CPI's Next"
+      ],
+      "ai_analysis": "(12 คำ)\n    การสแตนด์บายใน SCBTMFPLUS-E ช่วยปกป้องเงินต้น โดยต้องจับตาการ",
+      "data_source": "yahoo_v8",
+      "components": {
+        "trend_structure": 40.0,
+        "trend_strength": 3.0,
+        "momentum_macd": 12.0,
+        "momentum_rsi": 10.0,
+        "volatility": 15.0
+      },
+      "updated_at": "2026-09-06T23:49:36+07:00"
+    }
+  ]
+}
