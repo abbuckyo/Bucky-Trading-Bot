@@ -1100,8 +1100,75 @@ def render_header(now_th: datetime) -> str:
 
 
 # ------------------------------------------------------------------------------
-# SECTION 13 -- MAIN PIPELINE & DASHBOARD EXPORT
+# SECTION 13 -- MAIN PIPELINE & ENCRYPTED DASHBOARD EXPORT
 # ------------------------------------------------------------------------------
+import base64
+import secrets
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+# Config สำหรับระบบเข้ารหัส AES-GCM
+OTP_LENGTH = 10
+PBKDF2_ITERATIONS = 210_000
+SALT_BYTES = 16
+IV_BYTES = 12
+OTP_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+DASHBOARD_URL = "https://abbuckyo.github.io/Bucky-Trading-Bot/"
+
+
+def generate_daily_otp(length: int = OTP_LENGTH) -> str:
+    return "".join(secrets.choice(OTP_ALPHABET) for _ in range(length))
+
+
+def format_otp(otp: str) -> str:
+    mid = len(otp) // 2
+    return f"{otp[:mid]}-{otp[mid:]}"
+
+
+def _derive_key(passphrase: str, salt: bytes, iterations: int = PBKDF2_ITERATIONS) -> bytes:
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=iterations,
+    )
+    return kdf.derive(passphrase.encode("utf-8"))
+
+
+def encrypt_and_save_dashboard(payload: dict, otp: str) -> None:
+    os.makedirs("docs", exist_ok=True)
+    salt = secrets.token_bytes(SALT_BYTES)
+    iv = secrets.token_bytes(IV_BYTES)
+    key = _derive_key(otp, salt)
+
+    plaintext = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    ciphertext = AESGCM(key).encrypt(iv, plaintext, None)
+
+    b64 = lambda b: base64.b64encode(b).decode("ascii")
+    envelope = {
+        "v": 1,
+        "alg": "AES-GCM-256",
+        "kdf": "PBKDF2-SHA256",
+        "iterations": PBKDF2_ITERATIONS,
+        "salt": b64(salt),
+        "iv": b64(iv),
+        "ciphertext": b64(ciphertext),
+        "issued_date": datetime.now(CFG.TZ_BANGKOK).strftime("%Y-%m-%d"),
+        "issued_at_ict": datetime.now(CFG.TZ_BANGKOK).strftime("%Y-%m-%dT%H:%M:%S"),
+        "hint": f"OTP {OTP_LENGTH} หลัก ส่งทาง LINE ทุกวัน",
+    }
+
+    # บันทึกไฟล์ data.enc และลบ data.json ทิ้งทันทีเพื่อความปลอดภัย
+    with open("docs/data.enc", "w", encoding="utf-8") as f:
+        json.dump(envelope, f, separators=(",", ":"))
+
+    if os.path.exists("docs/data.json"):
+        os.remove("docs/data.json")
+        LOG.warning("ลบ docs/data.json ทิ้งแล้ว — ป้องกันข้อมูลรั่วไหลทาง Direct URL")
+
+    LOG.info("เขียนไฟล์ docs/data.enc (AES-GCM Encrypted) สำเร็จ")
+
 
 def process_asset(asset: Asset, state: Dict[str, Any]) -> Tuple[str, Dict[str, Any], Optional[Tuple]]:
     prev_entry = state.get("assets", {}).get(asset.fund, {})
@@ -1118,7 +1185,6 @@ def process_asset(asset: Asset, state: Dict[str, Any]) -> Tuple[str, Dict[str, A
     news = fetch_news(asset.yahoo)
     ai_text = ai_explain(asset, m, sc, dec, news)
 
-    # รวบรวมข้อมูลทางเทคนิคครบถ้วนสำหรับส่งออกไปยัง Web Dashboard
     entry = {
         "fund": asset.fund,
         "label": asset.label,
@@ -1180,21 +1246,7 @@ def main() -> int:
         if idx < len(UNIVERSE) - 1:
             time.sleep(CFG.INTER_ASSET_SLEEP)
 
-    # 1. จัดทำรายงานข้อความแจ้งเตือน (พร้อมแนบลิงก์ Web Dashboard)
-    dashboard_url = "# แก้เป็นตัวนี้ https://abbuckyo.github.io/Bucky-Trading-Bot/"
-    report_sections = [
-        render_header(now_th),
-        render_executive_summary(summary_rows),
-        "──────── 🔍 **รายละเอียดทางเทคนิครายสินทรัพย์** ────────\n",
-        "\n\n".join(detail_blocks),
-        f"\n🌐 **Web Dashboard:** {dashboard_url}",
-        f"_บอทเฝ้าดอย Engine v7.2 • สินทรัพย์สมบูรณ์ {len(summary_rows)}/{len(UNIVERSE)} • ล้มเหลว {failures}_"
-    ]
-
-    final_report = "\n\n".join(report_sections)
-    print(final_report)
-
-    # 2. บันทึก state.json สำหรับคงสถานะข้ามวัน
+    # 1. จัดทำ State ข้ามวัน
     new_state = {
         "version": 2,
         "last_run_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -1203,13 +1255,13 @@ def main() -> int:
     }
     save_state(new_state)
 
-    # 3. ส่งออก docs/data.json ให้หน้าเว็บ GitHub Pages นำไปเรนเดอร์
-    os.makedirs("docs", exist_ok=True)
+    # 2. คำนวณ Portfolio Status และสร้าง Encrypted Dashboard
     invested_list = [fund for fund, _, _, pos, _, _ in summary_rows if pos == "IN"]
     eq_pct = round((len(invested_list) / len(UNIVERSE)) * 100.0, 1) if UNIVERSE else 0.0
 
     dashboard_data = {
         "version": 2,
+        "engine": "AlphaShield V7.2",
         "last_run_ict": now_th.isoformat(timespec="seconds"),
         "safe_haven": CFG.CASH_FUND,
         "portfolio_status": {
@@ -1243,11 +1295,25 @@ def main() -> int:
         ],
     }
 
-    with open("docs/data.json", "w", encoding="utf-8") as f:
-        json.dump(dashboard_data, f, indent=2, ensure_ascii=False)
-    LOG.info("ส่งออก docs/data.json เรียบร้อย")
+    # สุ่ม OTP 10 หลัก และเข้ารหัสไฟล์ docs/data.enc ทันที
+    otp = generate_daily_otp()
+    encrypt_and_save_dashboard(dashboard_data, otp)
 
-    # 4. บรอดแคสต์ข้อความเข้า Discord และ LINE
+    # 3. จัดทำรายงานสรุปพร้อมแนบ OTP ปลดล็อกหน้าเว็บ
+    report_sections = [
+        render_header(now_th),
+        render_executive_summary(summary_rows),
+        "──────── 🔍 **รายละเอียดทางเทคนิครายสินทรัพย์** ────────\n",
+        "\n\n".join(detail_blocks),
+        "────────────────────────────────────────",
+        f"🔐 **รหัสปลดล็อก Dashboard วันนี้:** `{format_otp(otp)}`",
+        f"🌐 **Web Dashboard:** {DASHBOARD_URL}",
+        f"_บอทเฝ้าดอย Engine v7.2 • สมบูรณ์ {len(summary_rows)}/{len(UNIVERSE)} • ล้มเหลว {failures}_"
+    ]
+
+    final_report = "\n\n".join(report_sections)
+
+    # 4. บรอดแคสต์ข้อความเข้า Discord และ LINE พร้อมกัน
     broadcast(final_report)
     LOG.info("=== QUANT BOT COMPLETED (Failures: %d) ===", failures)
     return 1 if failures == len(UNIVERSE) else 0
