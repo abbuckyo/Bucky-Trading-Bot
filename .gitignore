@@ -1,0 +1,26 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*.class
+venv/
+.venv/
+env/
+
+# Data cache & large data files
+*.pkl
+*.parquet
+*.feather
+historical_data_*.pkl
+
+# Runtime state & logs
+state.json
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
