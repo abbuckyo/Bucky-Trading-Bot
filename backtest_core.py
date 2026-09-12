@@ -1,7 +1,7 @@
-\"\"\"
+"""
 Quant Asset Allocation Bot - Backtest Core Engine
 Calculates indicators and quant scoring identically to bot.py without lookahead bias.
-\"\"\"
+"""
 from __future__ import annotations
 
 from typing import Dict, List, Tuple, Optional
@@ -10,17 +10,17 @@ import pandas as pd
 
 
 def ema(series: pd.Series, length: int) -> pd.Series:
-    \"\"\"Exponential Moving Average matching bot.py.\"\"\"
+    """Exponential Moving Average matching bot.py."""
     return series.ewm(span=length, adjust=False, min_periods=length).mean()
 
 
 def wilder_smooth(series: pd.Series, length: int) -> pd.Series:
-    \"\"\"Wilder smoothing function used for RSI, ATR, and ADX.\"\"\"
+    """Wilder smoothing function used for RSI, ATR, and ADX."""
     return series.ewm(alpha=1.0 / length, adjust=False, min_periods=length).mean()
 
 
 def rsi_wilder(close: pd.Series, length: int = 14) -> pd.Series:
-    \"\"\"Wilder's RSI (14-period).\"\"\"
+    """Wilder's RSI (14-period)."""
     delta = close.diff()
     gain = delta.clip(lower=0.0)
     loss = (-delta).clip(lower=0.0)
@@ -32,7 +32,7 @@ def rsi_wilder(close: pd.Series, length: int = 14) -> pd.Series:
 
 
 def macd(close: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9) -> Tuple[pd.Series, pd.Series, pd.Series]:
-    \"\"\"MACD Line, Signal Line, and Histogram (12, 26, 9).\"\"\"
+    """MACD Line, Signal Line, and Histogram (12, 26, 9)."""
     fast_s = ema(close, fast)
     slow_s = ema(close, slow)
     line = fast_s - slow_s
@@ -42,7 +42,7 @@ def macd(close: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9) -> T
 
 
 def true_range(df: pd.DataFrame) -> pd.Series:
-    \"\"\"True Range calculation for ATR and ADX.\"\"\"
+    """True Range calculation for ATR and ADX."""
     prev_close = df['close'].shift(1)
     tr = pd.concat([
         df['high'] - df['low'],
@@ -53,7 +53,7 @@ def true_range(df: pd.DataFrame) -> pd.Series:
 
 
 def adx_wilder(df: pd.DataFrame, length: int = 14) -> Tuple[pd.Series, pd.Series, pd.Series]:
-    \"\"\"Wilder's Directional Movement Index (ADX, +DI, -DI).\"\"\"
+    """Wilder's Directional Movement Index (ADX, +DI, -DI)."""
     up_move = df['high'].diff()
     down_move = -df['low'].diff()
     plus_dm = pd.Series(np.where((up_move > down_move) & (up_move > 0), up_move, 0.0), index=df.index)
@@ -68,13 +68,13 @@ def adx_wilder(df: pd.DataFrame, length: int = 14) -> Tuple[pd.Series, pd.Series
 
 
 def hist_volatility(close: pd.Series, window: int = 20, trading_days: int = 252) -> pd.Series:
-    \"\"\"20-day annualized historical volatility.\"\"\"
+    """20-day annualized historical volatility."""
     log_ret = np.log(close / close.shift(1))
     return log_ret.rolling(window).std() * np.sqrt(trading_days) * 100.0
 
 
 def precompute_asset_indicators(df: pd.DataFrame) -> pd.DataFrame:
-    \"\"\"Vectorized computation of all indicators across the entire price history.\"\"\"
+    """Vectorized computation of all indicators across the entire price history."""
     df = df.copy()
     close = df['close']
     df['ema50'] = ema(close, 50)
@@ -113,7 +113,7 @@ def score_bar(
     use_anti_chop: bool = True,
     use_hard_breakdown: bool = True
 ) -> Tuple[float, bool]:
-    \"\"\"Calculates quant composite score (0-100) and detects hard breakdowns for a single bar.\"\"\"
+    """Calculates quant composite score (0-100) and detects hard breakdowns for a single bar."""
     p = row['close']
     e50, e100, e200 = row['ema50'], row['ema100'], row['ema200']
     if pd.isna(e200) or pd.isna(row['adx']) or pd.isna(row['rsi']):

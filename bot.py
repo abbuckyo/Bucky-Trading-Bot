@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================================
- QUANT ASSET ALLOCATION BOT V7.2  --  Capital Preservation & Tactical Switcher
+ QUANT ASSET ALLOCATION BOT V8.0 (Beta) -- AlphaShield Tactical Switcher
 ================================================================================
  Strategy : Long-only mutual fund switcher (SCB Easy App).
             Safe-haven cash park = SCBTMFPLUS-E (Money Market Fund).
- Engine   : 0-100 defensive quant score + unambiguous hysteresis state machine.
+ Engine   : HAA TIP Regime Canary + 3-Tranche Scaling (0%, 33%, 66%, 100%)
+            with Hard Breakdown Guard (-2% below EMA200) & Anti-Chop Guard.
  Data     : 4-layer resilient pipeline (Direct Yahoo v8 Chart API via curl_cffi,
             yfinance fallback, Stooq via curl_cffi, and Finnhub Candles).
  Layout   : Mobile-first Summary-at-Top for LINE/Discord.
@@ -103,8 +104,9 @@ class CFG:
     NEWS_LOOKBACK_DAYS = 3
     NEWS_MAX_HEADLINES = 3
 
-    # Safe Haven
+    # Safe Haven & Macro Canary
     CASH_FUND = "SCBTMFPLUS-E"
+    CANARY_TIP_TICKER = "TIP"
 
 
 @dataclass(frozen=True)
@@ -471,6 +473,41 @@ def percentile_rank(series: pd.Series, lookback: int = CFG.HV_PERCENTILE_LOOKBAC
     return float((tail < latest).sum()) / float(len(tail)) * 100.0
 
 
+def calc_momentum_13612(series: pd.Series, weighted: bool = False) -> float:
+    """Computes 13612 momentum (21, 63, 126, 252 days). Unweighted mean for HAA TIP."""
+    s = series.dropna()
+    if len(s) < 253:
+        return 0.0
+    p0 = float(s.iloc[-1])
+    r1 = (p0 / float(s.iloc[-22])) - 1.0
+    r3 = (p0 / float(s.iloc[-64])) - 1.0
+    r6 = (p0 / float(s.iloc[-127])) - 1.0
+    r12 = (p0 / float(s.iloc[-253])) - 1.0
+    if weighted:
+        return 12.0 * r1 + 4.0 * r3 + 2.0 * r6 + 1.0 * r12
+    return (r1 + r3 + r6 + r12) / 4.0
+
+
+def evaluate_tip_canary() -> Tuple[bool, float, str]:
+    """
+    Evaluates Richman HAA TIP Canary Momentum.
+    Returns (canary_ok, tip_mom, description)
+    - If tip_mom <= 0: Force 100% Cash Park (Bear / Stagflation Defense)
+    - If tip_mom > 0: Canary is GREEN, allow normal staged entry
+    """
+    dummy_asset = Asset("TIP_CANARY", CFG.CANARY_TIP_TICKER, "TIP.US", "iShares TIPS Bond ETF")
+    df, src = get_price_history(dummy_asset)
+    if df is None or len(df) < 253:
+        LOG.warning("Could not fetch full TIP history (rows=%d), defaulting canary to NEUTRAL/ON", len(df) if df is not None else 0)
+        return True, 0.0, "TIP Canary Data Unavailable (Defaulting Normal)"
+
+    mom = calc_momentum_13612(df["close"], weighted=False)
+    ok = (mom > 0.0)
+    status_desc = f"TIP 13612 Mom: {mom * 100.0:+.2f}% ({'GREEN: Normal Operation' if ok else 'RED: 100% Cash Park Enforced'})"
+    LOG.info("HAA Regime Canary Check: %s (source: %s)", status_desc, src)
+    return ok, round(mom * 100.0, 2), status_desc
+
+
 # ------------------------------------------------------------------------------
 # SECTION 5 -- METRICS SNAPSHOT
 # ------------------------------------------------------------------------------
@@ -742,66 +779,109 @@ def apply_manual_override(state: Dict[str, Any]) -> None:
 
 @dataclass
 class Decision:
-    signal: str           # SWITCH IN / INVESTED / SWITCH OUT / AVOID / WATCH
-    position: str         # IN / OUT
-    prev_position: str    # IN / OUT
+    signal: str           # SWITCH IN / INVESTED / SWITCH OUT / AVOID / WATCH / TRANCHE SCALING
+    position: str         # IN / OUT / TRANCHE_1 / TRANCHE_2 / FULL
+    prev_position: str    # Previous position string
     action: str           # Badge tag
     icon: str             # 🟢 / 🔵 / 🔴 / ⚪ / 🟡
     action_detail: str    # Action description
+    target_exposure: float = 0.0  # 0.0, 0.33, 0.66, 1.0
+    tranche_stage: int = 0        # 0, 1, 2, 3
+    tranche_label: str = "0% (Cash)"
     changed: bool = False
 
 
-def decide(score: float, breakdown: bool, prev_position: str, fund: str) -> Decision:
-    prev = "IN" if str(prev_position).upper() == "IN" else "OUT"
+def decide(
+    score: float,
+    breakdown: bool,
+    prev_position: str,
+    fund: str,
+    m: Metrics,
+    canary_ok: bool = True
+) -> Decision:
+    """
+    AlphaShield V8.0 (Beta) Decision Engine:
+    - If canary_ok is False (TIP 13612 Mom <= 0): Enforces 100% Cash Park (Exposure 0%)
+    - Hard Breakdown: Price < EMA200 by -2% -> 0.0 (Cut 100% to Cash Park)
+    - Tranche 3 (100% Full): Price > EMA200 and EMA50 > EMA100 > EMA200
+    - Tranche 2 (66% Scaling): Price > EMA100 and EMA50 > EMA100
+    - Tranche 1 (33% Starter): Price > EMA50
+    - Else: 0% (Cash Park)
+    """
+    prev_pos_str = str(prev_position).upper()
 
-    if breakdown or score < CFG.SELL_THRESHOLD:
-        target_position = "OUT"
-    elif score >= CFG.BUY_THRESHOLD:
-        target_position = "IN"
+    # Determine staged tranche target
+    if not canary_ok:
+        target_exp = 0.0
+        stage = 0
+        tranche_label = "0% (Canary Cash)"
+    elif breakdown or m.dist_ema200_pct < CFG.BREAKDOWN_EMA200_PCT:
+        target_exp = 0.0
+        stage = 0
+        tranche_label = "0% (Breakdown Cut)"
+    elif m.price > m.ema200 and (m.ema50 > m.ema100 > m.ema200):
+        target_exp = 1.0
+        stage = 3
+        tranche_label = "100% (ไม้ 3/3 Full)"
+    elif m.price > m.ema100 and (m.ema50 > m.ema100):
+        target_exp = 0.66
+        stage = 2
+        tranche_label = "66% (ไม้ 2/3 Mid)"
+    elif m.price > m.ema50:
+        target_exp = 0.33
+        stage = 1
+        tranche_label = "33% (ไม้ 1/3 Starter)"
     else:
-        target_position = prev
+        target_exp = 0.0
+        stage = 0
+        tranche_label = "0% (Cash Park)"
 
-    changed = (target_position != prev)
+    pos_code = "OUT" if stage == 0 else f"T{stage}"
+    is_in = stage > 0
+    target_position = "IN" if is_in else "OUT"
+    changed = (pos_code != prev_pos_str and target_position != prev_pos_str)
 
-    if prev == "OUT" and target_position == "IN":
-        signal = "SWITCH IN"
-        action = "[SWITCH IN]"
+    if not canary_ok:
+        signal = "CANARY DEFENSE"
+        action = "[CANARY CASH]"
+        icon = "🛡️"
+        detail = f"HAA TIP Canary สั่งล็อกหลบภัย 100% ใน {CFG.CASH_FUND}"
+    elif breakdown or m.dist_ema200_pct < CFG.BREAKDOWN_EMA200_PCT:
+        signal = "HARD EXIT"
+        action = "[HARD EXIT]"
+        icon = "🧨"
+        detail = f"หลุดแนวรับวิกฤต EMA200 เกิน -2% ตัดขาย 100% เข้า {CFG.CASH_FUND}"
+    elif stage == 3:
+        signal = "FULL ALLOCATION"
+        action = "[TRANCHE 3: 100%]"
         icon = "🟢"
-        detail = f"สับเปลี่ยนเงินเข้า {fund} (จาก {CFG.CASH_FUND})"
-    elif prev == "IN" and target_position == "IN":
-        signal = "INVESTED"
-        action = "[INVESTED]"
+        detail = f"โครงสร้าง Bullish เต็มรูปแบบ (EMA 50>100>200) จัดสรรเต็ม 100%"
+    elif stage == 2:
+        signal = "SCALE IN"
+        action = "[TRANCHE 2: 66%]"
         icon = "🔵"
-        detail = f"ถือครอง {fund} รันเทรนด์ต่อ ไม่ต้องทำอะไร"
-    elif prev == "IN" and target_position == "OUT":
-        signal = "SWITCH OUT"
-        action = "[SWITCH OUT]"
-        icon = "🔴"
-        detail = f"สับเปลี่ยนออกจาก {fund} → พักที่ {CFG.CASH_FUND}"
-    elif prev == "OUT" and target_position == "OUT":
-        if breakdown or score < CFG.SELL_THRESHOLD:
-            signal = "AVOID"
-            action = "[AVOID]"
-            icon = "⚪"
-            detail = f"โครงสร้างไม่แข็งแรง พักเงินใน {CFG.CASH_FUND} ต่อ"
-        else:
-            signal = "WATCH"
-            action = "[WATCH]"
-            icon = "🟡"
-            detail = f"ตลาดแกว่งตัวไร้ทิศทาง สแตนด์บายใน {CFG.CASH_FUND}"
-    else:
-        signal = "HOLD"
-        action = "[HOLD]"
+        detail = f"เทรนด์ระยะกลางแข็งแกร่ง (Price>EMA100 & EMA50>100) เพิ่มไม้เป็น 66%"
+    elif stage == 1:
+        signal = "STARTER"
+        action = "[TRANCHE 1: 33%]"
         icon = "🟡"
-        detail = "คงสถานะเดิม"
+        detail = f"เริ่มผ่าน EMA 50 ทยอยเปิดไม้ 1 ที่สัดส่วน 33% (คุมความเสี่ยง)"
+    else:
+        signal = "CASH PARK"
+        action = "[CASH PARK]"
+        icon = "⚪"
+        detail = f"ราคาต่ำกว่า EMA 50 สแตนด์บายใน {CFG.CASH_FUND}"
 
     return Decision(
         signal=signal,
         position=target_position,
-        prev_position=prev,
+        prev_position=prev_pos_str,
         action=action,
         icon=icon,
         action_detail=detail,
+        target_exposure=target_exp,
+        tranche_stage=stage,
+        tranche_label=tranche_label,
         changed=changed,
     )
 
@@ -1059,31 +1139,49 @@ def broadcast(message: str) -> None:
 # SECTION 12 -- RENDERING (SUMMARY AT TOP)
 # ------------------------------------------------------------------------------
 
-def render_executive_summary(summary_rows: List[Tuple[str, float, str, str, str, str]]) -> str:
+def render_executive_summary(
+    summary_rows: List[Tuple[str, float, str, str, str, str, float, str]],
+    canary_ok: bool,
+    tip_mom: float,
+    canary_desc: str
+) -> str:
     lines = [
-        "──────── ⚡ **สรุปคำสั่งพอร์ต (3 วินาที)** ────────",
+        "──────── ⚡ **สรุปคำสั่งพอร์ต AlphaShield V8.0 (Beta)** ────────",
     ]
-    invested = []
-    for fund, score, signal, position, icon, detail in summary_rows:
-        if position == "IN":
-            invested.append(fund)
-        lines.append(f"{icon} **{fund}** | `{score:4.1f}` | **{signal}**")
+    # Macro Canary status banner
+    canary_icon = "🟢" if canary_ok else "🚨"
+    canary_badge = "CANARY GREEN" if canary_ok else "CANARY RED (100% CASH DEFENSE)"
+    lines.append(f"{canary_icon} **HAA Regime Canary:** `{canary_badge}` (TIP 13612 Mom: `{tip_mom:+.2f}%`)")
+    lines.append("")
+
+    total_equity_weight = 0.0
+    active_allocations = []
+
+    for item in summary_rows:
+        fund, score, signal, position, icon, detail, exp, tranche_lbl = item
+        total_equity_weight += (exp / len(UNIVERSE)) * 100.0
+        if exp > 0:
+            active_allocations.append(f"{fund} ({tranche_lbl})")
+        lines.append(f"{icon} **{fund}** | `{score:4.1f}` | **{signal}** | ไม้: `{tranche_lbl}`")
         lines.append(f"   ↳ _{detail}_")
 
+    cash_weight = max(0.0, 100.0 - total_equity_weight)
     lines.append("")
-    alloc_text = f"🟢 ถือกองทุน: {', '.join(invested)}" if invested else f"⚪ เงินสด 100% พักใน {CFG.CASH_FUND}"
-    lines.append(f"💼 **สถานะเงินลงทุนจริง:** {alloc_text}")
-    lines.append("────────────────────────────────────")
+    if active_allocations:
+        lines.append(f"💼 **สัดส่วนพอร์ตจริง:** หุ้น/ทอง `{total_equity_weight:.1f}%` ({', '.join(active_allocations)}) | เงินสด `{cash_weight:.1f}%` ({CFG.CASH_FUND})")
+    else:
+        lines.append(f"💼 **สัดส่วนพอร์ตจริง:** ⚪ เงินสด `100.0%` พักหลุมหลบภัยใน `{CFG.CASH_FUND}`")
+    lines.append("────────────────────────────────────────────────────")
     return "\n".join(lines)
 
 
 def render_asset_block(asset: Asset, m: Metrics, sc: ScoreResult, dec: Decision, news: List[str], ai_text: str) -> str:
     lines = [
         f"{dec.icon} **{asset.fund}** — {asset.label} (`{asset.yahoo}`)",
-        f"**Score:** `{sc.score}/100` | **คำสั่ง:** `{dec.action}` | **พอร์ต:** `{dec.prev_position} → {dec.position}`",
-        f"**ราคา:** {m.price:,.2f} ({m.chg_pct:+.2f}%) | **vs EMA200:** {m.dist_ema200_pct:+.1f}%",
-        f"**RSI:** {m.rsi:.1f} | **ADX:** {m.adx:.1f} (+DI {m.plus_di:.1f}/-DI {m.minus_di:.1f}) | **HV20:** {m.hv20:.1f}%",
-        f"**แหล่งข้อมูล:** `{m.data_source}`",
+        f"**ไม้จัดสรร:** `{dec.tranche_label}` | **คำสั่ง:** `{dec.action}` | **สถานะ:** `{dec.prev_position} → {dec.position}`",
+        f"**ราคา:** {m.price:,.2f} ({m.chg_pct:+.2f}%) | **EMA Stack:** {'50>100>200 (สมบูรณ์)' if m.bull_stack else 'Broken'}",
+        f"**vs EMA50:** {m.dist_ema50_pct:+.1f}% | **vs EMA200:** {m.dist_ema200_pct:+.1f}% | **RSI:** {m.rsi:.1f} | **ADX:** {m.adx:.1f}",
+        f"**คะแนน Quant:** `{sc.score}/100` | **แหล่งข้อมูล:** `{m.data_source}`",
     ]
     if sc.chop_capped:
         lines.append("🌀 _สภาวะตลาดแกว่งตัว (ADX < 20) — ล็อกคะแนนห้ามเข้าซื้อ_")
@@ -1097,11 +1195,11 @@ def render_asset_block(asset: Asset, m: Metrics, sc: ScoreResult, dec: Decision,
 
 def render_header(now_th: datetime) -> str:
     return (
-        "═══════════════════════════════\n"
-        "🛡️ **บอทเฝ้าดอย V7.2 — QUANT SWITCHER**\n"
+        "═══════════════════════════════════════════════════════════════\n"
+        "🛡️ **บอทเฝ้าดอย V8.0 (Beta) — STAGED TRANCHE & HAA CANARY**\n"
         f"🕛 {now_th.strftime('%Y-%m-%d %H:%M')} ICT | หลุมหลบภัย: `{CFG.CASH_FUND}`\n"
-        f"กติกา: เข้า ≥ {CFG.BUY_THRESHOLD:.0f} | พัก {CFG.SELL_THRESHOLD:.0f}-{CFG.BUY_THRESHOLD - 1:.0f} | ออก < {CFG.SELL_THRESHOLD:.0f}\n"
-        "═══════════════════════════════"
+        f"กติกา: HAA TIP Canary + 3-Tranche Scaling (0%, 33%, 66%, 100%) + Hard Breakdown -2%\n"
+        "═══════════════════════════════════════════════════════════════"
     )
 
 
@@ -1195,7 +1293,11 @@ def write_encrypted_dashboard(payload: dict, password: str = MASTER_PASSWORD) ->
     return out_path
 
 
-def process_asset(asset: Asset, state: Dict[str, Any]) -> Tuple[str, Dict[str, Any], Optional[Tuple]]:
+def process_asset(
+    asset: Asset,
+    state: Dict[str, Any],
+    canary_ok: bool = True
+) -> Tuple[str, Dict[str, Any], Optional[Tuple]]:
     prev_entry = state.get("assets", {}).get(asset.fund, {})
     prev_position = prev_entry.get("position", "OUT")
 
@@ -1206,7 +1308,7 @@ def process_asset(asset: Asset, state: Dict[str, Any]) -> Tuple[str, Dict[str, A
 
     m = build_metrics(df, source)
     sc = compute_score(m)
-    dec = decide(sc.score, sc.breakdown, prev_position, asset.fund)
+    dec = decide(sc.score, sc.breakdown, prev_position, asset.fund, m, canary_ok=canary_ok)
     news = fetch_news(asset.yahoo)
     ai_text = ai_explain(asset, m, sc, dec, news)
 
@@ -1218,10 +1320,14 @@ def process_asset(asset: Asset, state: Dict[str, Any]) -> Tuple[str, Dict[str, A
         "signal": dec.signal,
         "icon": dec.icon,
         "action_detail": dec.action_detail,
+        "target_exposure": dec.target_exposure,
+        "tranche_stage": dec.tranche_stage,
+        "tranche_label": dec.tranche_label,
         "score": sc.score,
         "raw_score": sc.raw_score,
         "price": round(m.price, 4),
         "chg_pct": round(m.chg_pct, 2),
+        "dist_ema50_pct": round(m.dist_ema50_pct, 2),
         "dist_ema200_pct": round(m.dist_ema200_pct, 2),
         "bull_stack": m.bull_stack,
         "rsi": round(m.rsi, 1),
@@ -1238,25 +1344,37 @@ def process_asset(asset: Asset, state: Dict[str, Any]) -> Tuple[str, Dict[str, A
     }
 
     block = render_asset_block(asset, m, sc, dec, news, ai_text)
-    summary_tuple = (asset.fund, sc.score, dec.signal, dec.position, dec.icon, dec.action_detail)
+    summary_tuple = (
+        asset.fund,
+        sc.score,
+        dec.signal,
+        dec.position,
+        dec.icon,
+        dec.action_detail,
+        dec.target_exposure,
+        dec.tranche_label
+    )
     return block, entry, summary_tuple
 
 
 def main() -> int:
     now_th = datetime.now(CFG.TZ_BANGKOK)
-    LOG.info("=== QUANT BOT V7.2 START @ %s ICT ===", now_th.strftime("%Y-%m-%d %H:%M:%S"))
+    LOG.info("=== QUANT BOT V8.0 (Beta) START @ %s ICT ===", now_th.strftime("%Y-%m-%d %H:%M:%S"))
+
+    # 1. Macro Regime Canary (Richman HAA TIP Momentum)
+    canary_ok, tip_mom, canary_desc = evaluate_tip_canary()
 
     state = load_state()
     apply_manual_override(state)
     assets_state: Dict[str, Any] = dict(state.get("assets", {}))
 
     detail_blocks: List[str] = []
-    summary_rows: List[Tuple[str, float, str, str, str, str]] = []
+    summary_rows: List[Tuple[str, float, str, str, str, str, float, str]] = []
     failures = 0
 
     for idx, asset in enumerate(UNIVERSE):
         try:
-            block, entry, s_tuple = process_asset(asset, {"assets": assets_state})
+            block, entry, s_tuple = process_asset(asset, {"assets": assets_state}, canary_ok=canary_ok)
             detail_blocks.append(block)
             assets_state[asset.fund] = entry
             if s_tuple:
@@ -1271,29 +1389,50 @@ def main() -> int:
         if idx < len(UNIVERSE) - 1:
             time.sleep(CFG.INTER_ASSET_SLEEP)
 
-    # 1. State ข้ามวัน
+    # 2. State ข้ามวัน
     new_state = {
-        "version": 2,
+        "version": 3,
         "last_run_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "last_run_ict": now_th.isoformat(timespec="seconds"),
+        "canary": {
+            "ticker": CFG.CANARY_TIP_TICKER,
+            "tip_mom_13612_pct": tip_mom,
+            "canary_ok": canary_ok,
+            "description": canary_desc,
+        },
         "assets": assets_state,
     }
     save_state(new_state)
 
-    # 2. Payload และเขียนไฟล์ data.enc (Master Password)
-    invested_list = [fund for fund, _, _, pos, _, _ in summary_rows if pos == "IN"]
-    eq_pct = round((len(invested_list) / len(UNIVERSE)) * 100.0, 1) if UNIVERSE else 0.0
+    # 3. Payload และเขียนไฟล์ data.enc (Master Password)
+    total_eq_weight = 0.0
+    invested_funds = []
+    for item in summary_rows:
+        fund, _, _, _, _, _, exp, tr_lbl = item
+        total_eq_weight += (exp / len(UNIVERSE)) * 100.0
+        if exp > 0:
+            invested_funds.append(f"{fund} ({tr_lbl})")
+
+    eq_pct = round(total_eq_weight, 1)
+    cash_pct = round(max(0.0, 100.0 - eq_pct), 1)
 
     dashboard_data = {
-        "version": 2,
-        "engine": "AlphaShield V7.2",
+        "version": 3,
+        "engine": "AlphaShield V8.0 (Beta)",
         "last_run_ict": now_th.isoformat(timespec="seconds"),
         "safe_haven": CFG.CASH_FUND,
+        "macro_canary": {
+            "model": "Richman HAA (13612 Momentum)",
+            "ticker": CFG.CANARY_TIP_TICKER,
+            "momentum_pct": tip_mom,
+            "status": "GREEN" if canary_ok else "RED",
+            "description": canary_desc,
+        },
         "portfolio_status": {
-            "invested_funds": invested_list,
+            "invested_funds": invested_funds,
             "cash_park": CFG.CASH_FUND,
             "equity_weight_pct": eq_pct,
-            "cash_weight_pct": round(100.0 - eq_pct, 1),
+            "cash_weight_pct": cash_pct,
         },
         "assets": [
             assets_state.get(a.fund, {
@@ -1305,8 +1444,12 @@ def main() -> int:
                 "icon": "⚪",
                 "action_detail": "ไม่มีข้อมูล",
                 "position": "OUT",
+                "target_exposure": 0.0,
+                "tranche_stage": 0,
+                "tranche_label": "0% (No Data)",
                 "price": 0.0,
                 "chg_pct": 0.0,
+                "dist_ema50_pct": 0.0,
                 "dist_ema200_pct": 0.0,
                 "bull_stack": False,
                 "rsi": 50.0,
@@ -1322,17 +1465,17 @@ def main() -> int:
 
     write_encrypted_dashboard(dashboard_data)
 
-    # 3. ข้อความแจ้งเตือน (ไม่มี OTP แล้ว)
+    # 4. ข้อความแจ้งเตือน Discord / LINE
     report_sections = [
         render_header(now_th),
-        render_executive_summary(summary_rows),
+        render_executive_summary(summary_rows, canary_ok=canary_ok, tip_mom=tip_mom, canary_desc=canary_desc),
         "──────── 🔍 **รายละเอียดทางเทคนิครายสินทรัพย์** ────────\n",
         "\n\n".join(detail_blocks),
         "────────────────────────────────────────",
         "🔐 **Dashboard เข้ารหัส AES-GCM เรียบร้อยแล้ว**",
         "🔑 **เข้าดูด้วย Master Password ประจำตัว**",
         f"🌐 **Web Dashboard:** {DASHBOARD_URL}",
-        f"_บอทเฝ้าดอย Engine v7.2 • สมบูรณ์ {len(summary_rows)}/{len(UNIVERSE)} • ล้มเหลว {failures}_"
+        f"_AlphaShield Engine v8.0 (Beta) • HAA TIP Regime: {'GREEN' if canary_ok else 'RED'} • สมบูรณ์ {len(summary_rows)}/{len(UNIVERSE)} • ล้มเหลว {failures}_"
     ]
 
     final_report = "\n\n".join(report_sections)
