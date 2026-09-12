@@ -19,6 +19,7 @@ from __future__ import annotations
 import io
 import json
 import logging
+import math
 import os
 import sys
 import time
@@ -114,6 +115,58 @@ class CFG:
     FUTURES_NQ_TICKER = "NQ=F"
     FUTURES_ES_DROP_LIMIT_PCT = -1.2  # If ES <= -1.2% -> pause opening new tranches
     FUTURES_NQ_DROP_LIMIT_PCT = -1.5  # If NQ <= -1.5% -> pause opening new tranches
+
+    # SCB Order & Execution Limits
+    SCB_MIN_SWITCH_THB = 1000.0       # Minimum order size required by SCB fund platform
+
+
+def is_nan(val: Any) -> bool:
+    """Check if a numeric value is NaN, None, or infinite."""
+    if val is None:
+        return True
+    try:
+        f = float(val)
+        return math.isnan(f) or math.isinf(f)
+    except (ValueError, TypeError):
+        return True
+
+
+def validate_sizing_for_scb(
+    fund: str,
+    prev_stage: int,
+    target_stage: int,
+    portfolio_total_thb: float,
+    sleeve_pct: float = 0.20,
+    min_switch_thb: float = CFG.SCB_MIN_SWITCH_THB
+) -> Tuple[bool, int, str]:
+    """
+    SCB Minimum Switch Guard:
+    Checks if the delta THB value of the tranche step meets the minimum SCB order threshold (1,000 THB).
+    - If total port value is too small and delta < min_switch_thb:
+      Blocks the trade/switch to prevent state.json from drifting away from the actual SCB portfolio.
+    Returns: (is_valid, allowed_stage, reason)
+    """
+    if target_stage == prev_stage:
+        return True, target_stage, "NO CHANGE"
+
+    # Full exit to cash (stage -> 0) is always permitted by SCB fund redemptions
+    if target_stage == 0:
+        return True, 0, "FULL EXIT PERMITTED"
+
+    # Compute tranche delta value
+    # Each sleeve is sleeve_pct (20%) of total portfolio
+    stage_step_fraction = abs(target_stage - prev_stage) / 3.0
+    delta_thb = stage_step_fraction * sleeve_pct * portfolio_total_thb
+
+    if delta_thb < min_switch_thb:
+        reason = (
+            f"BLOCKED: มูลค่าไม้ {delta_thb:,.2f} บาท ต่ำกว่าเกณฑ์ขั้นต่ำ SCB ({min_switch_thb:,.0f} บาท) "
+            f"สำหรับพอร์ตขนาด {portfolio_total_thb:,.2f} บาท (คงสถานะเดิม T{prev_stage})"
+        )
+        LOG.warning("SCB Minimum Switch Guard on %s: %s", fund, reason)
+        return False, prev_stage, reason
+
+    return True, target_stage, f"VALID: มูลค่าไม้ {delta_thb:,.2f} บาท >= {min_switch_thb:,.0f} บาท"
 
 
 @dataclass(frozen=True)
@@ -499,16 +552,20 @@ def evaluate_tip_canary() -> Tuple[bool, float, str]:
     """
     Evaluates Richman HAA TIP Canary Momentum.
     Returns (canary_ok, tip_mom, description)
-    - If tip_mom <= 0: Force 100% Cash Park (Bear / Stagflation Defense)
+    - If tip_mom <= 0 or NaN: Force 100% Cash Park (Bear / Stagflation Defense)
     - If tip_mom > 0: Canary is GREEN, allow normal staged entry
     """
     dummy_asset = Asset("TIP_CANARY", CFG.CANARY_TIP_TICKER, "TIP.US", "iShares TIPS Bond ETF")
     df, src = get_price_history(dummy_asset)
     if df is None or len(df) < 253:
-        LOG.warning("Could not fetch full TIP history (rows=%d), defaulting canary to NEUTRAL/ON", len(df) if df is not None else 0)
-        return True, 0.0, "TIP Canary Data Unavailable (Defaulting Normal)"
+        LOG.warning("Could not fetch full TIP history (rows=%d), enforcing defensive cash", len(df) if df is not None else 0)
+        return False, 0.0, "TIP Canary Data Unavailable (Enforcing Defensive Cash)"
 
     mom = calc_momentum_13612(df["close"], weighted=False)
+    if is_nan(mom):
+        LOG.warning("TIP Canary computed as NaN -> Enforcing Defensive Cash Park")
+        return False, 0.0, "TIP Canary NaN Detected (Enforcing Defensive Cash)"
+
     ok = (mom > 0.0)
     status_desc = f"TIP 13612 Mom: {mom * 100.0:+.2f}% ({'GREEN: Normal Operation' if ok else 'RED: 100% Cash Park Enforced'})"
     LOG.info("HAA Regime Canary Check: %s (source: %s)", status_desc, src)
@@ -549,7 +606,10 @@ def evaluate_us_futures_guard() -> Tuple[bool, Dict[str, float], str, str]:
 
                 if last_p is not None and prev_c is not None and prev_c > 0:
                     pct = ((last_p / prev_c) - 1.0) * 100.0
-                    futures_data[t_sym] = round(pct, 2)
+                    if not is_nan(pct):
+                        futures_data[t_sym] = round(pct, 2)
+                    else:
+                        LOG.warning("Futures %s returned NaN change pct", t_sym)
             except Exception as e:
                 LOG.warning("Failed to fetch futures quote for %s: %s", t_sym, e)
 
@@ -648,53 +708,49 @@ def build_metrics(df: pd.DataFrame, source: str) -> Metrics:
         macd_line=last(m_line),
         macd_signal=last(m_sig),
         macd_hist=last(m_hist),
-        macd_hist_prev=last(m_hist, 0.0, -2),
+        macd_hist_prev=last(m_hist, offset=-2),
         adx=last(adx_s),
         plus_di=last(pdi_s),
         minus_di=last(mdi_s),
         atr_pct=(last(atr_s) / price * 100.0) if price else 0.0,
         hv20=last(hv_s),
         hv_pct_rank=percentile_rank(hv_s),
+        bull_stack=(ema50 > last(e100, price) > ema200),
         data_source=source,
     )
-    m.bull_stack = (m.ema50 > m.ema100 > m.ema200)
     return m
 
 
 # ------------------------------------------------------------------------------
-# SECTION 6 -- QUANT SCORING ENGINE (0-100)
+# SECTION 6 -- COMPOSITE SCORING ENGINE
 # ------------------------------------------------------------------------------
 
 @dataclass
 class ScoreResult:
-    score: float = 0.0
-    raw_score: float = 0.0
-    breakdown: bool = False
-    breakdown_reason: str = ""
-    chop_capped: bool = False
-    components: Dict[str, float] = field(default_factory=dict)
-    notes: List[str] = field(default_factory=list)
+    score: float
+    raw_score: float
+    breakdown: bool
+    breakdown_reason: str
+    chop_capped: bool
+    components: Dict[str, float]
+    notes: List[str]
 
 
 def _score_trend_structure(m: Metrics, notes: List[str]) -> float:
     pts = 0.0
     if m.bull_stack:
-        pts += 15.0
-        notes.append("EMA bull stack (50>100>200)")
+        pts += 20.0
+        notes.append("Full Bull Stack: EMA50>100>200")
     elif m.ema50 > m.ema200:
-        pts += 7.0
-        notes.append("Partial bull stack (50>200)")
-    else:
-        notes.append("EMA stack broken")
-
-    if m.price > m.ema200:
-        pts += 15.0
-        notes.append(f"Price > EMA200 (+{m.dist_ema200_pct:.1f}%)")
-    else:
-        notes.append(f"Price < EMA200 ({m.dist_ema200_pct:.1f}%)")
+        pts += 12.0
+        notes.append("EMA50 > EMA200 (Golden structure)")
+    elif m.price > m.ema200:
+        pts += 6.0
+        notes.append("Price above EMA200 only")
 
     if m.price > m.ema50:
-        pts += 10.0
+        pts += 15.0
+        notes.append("Price > EMA50")
     elif m.dist_ema50_pct > -1.5:
         pts += 4.0
         notes.append("Price clinging to EMA50")
@@ -902,6 +958,7 @@ def decide(
 ) -> Decision:
     """
     AlphaShield V8.0 (Beta) Decision Engine -- Strict Deterministic Precedence Order:
+    0. NaN Guard -> หากตัวแปรชี้วัดทางเทคนิคเป็น NaN ให้บังคับ Force Cash Park 100% ทันที
     1. TIP Canary OFF (<= 0) -> บังคับ Force Cash 100% (ทุกสินทรัพย์ reset เป็น stage 0)
     2. Hard Breakdown (-2% EMA 200) -> บังคับ Force Exit (reset เป็น stage 0)
     3. Normal Exit/Trim (หลุด EMA 50/100) -> ลดขั้นบันได (ลดได้มากกว่า 1 ขั้นในวันเดียว: Asymmetric De-risking)
@@ -918,6 +975,32 @@ def decide(
         prev_stage = 1
     else:
         prev_stage = 0
+
+    # --------------------------------------------------------------------------
+    # Step 0: Precondition NaN Guard (Critical Data Integrity)
+    # --------------------------------------------------------------------------
+    nan_fields = []
+    if is_nan(m.price): nan_fields.append("price")
+    if is_nan(m.ema50): nan_fields.append("ema50")
+    if is_nan(m.ema100): nan_fields.append("ema100")
+    if is_nan(m.ema200): nan_fields.append("ema200")
+    if is_nan(m.rsi): nan_fields.append("rsi")
+    if is_nan(score): nan_fields.append("score")
+
+    if nan_fields:
+        LOG.error("CRITICAL: NaN detected in %s indicators (%s) -> Forcing 100%% Cash Park", fund, ", ".join(nan_fields))
+        return Decision(
+            signal="CORRUPT DATA EXIT",
+            position="OUT",
+            prev_position=f"T{prev_stage}" if prev_stage > 0 else "OUT",
+            action="[CORRUPT CASH]",
+            icon="🚨",
+            action_detail=f"ตรวจพบค่า NaN ใน {', '.join(nan_fields)} บังคับตัดเข้า {CFG.CASH_FUND} เพื่อความปลอดภัย",
+            target_exposure=0.0,
+            tranche_stage=0,
+            tranche_label="0% (Corrupt Data Cash)",
+            changed=(prev_stage != 0),
+        )
 
     # --------------------------------------------------------------------------
     # Step 1: TIP Canary OFF (<= 0) -> Atomic Reset to Stage 0
