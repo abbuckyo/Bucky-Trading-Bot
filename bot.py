@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================================
- QUANT ASSET ALLOCATION BOT V8.0 (Beta) -- AlphaShield Tactical Switcher
+ QUANT ASSET ALLOCATION BOT V8.1 -- AlphaShield Tactical Switcher
 ================================================================================
  Strategy : Long-only mutual fund switcher (SCB Easy App).
             Safe-haven cash park = SCBTMFPLUS-E (Money Market Fund).
- Engine   : HAA TIP Regime Canary + 3-Tranche Scaling (0%, 33%, 66%, 100%)
-            with Hard Breakdown Guard (-2% below EMA200) & Anti-Chop Guard.
+ Engine   : HAA TIP Regime Canary + 2-Strike Corrupt Data Engine + 3-Tranche Scaling
+            with Pre-Market Futures Guard & Anti-Chop Protection.
  Data     : 4-layer resilient pipeline (Direct Yahoo v8 Chart API via curl_cffi,
             yfinance fallback, Stooq via curl_cffi, and Finnhub Candles).
  Layout   : Mobile-first Summary-at-Top for LINE/Discord.
@@ -30,6 +30,22 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 import requests
+
+from alphashield.strategy.data_integrity import (
+    DataHealth,
+    IntegrityAction,
+    IntegrityVerdict,
+    assess_data_health,
+    evaluate_integrity,
+    is_nan,
+)
+from alphashield.strategy.signals import (
+    TrancheDecision,
+    resolve_stage,
+    TRANCHE_EXPOSURE_MAP,
+    TRANCHE_LABEL_MAP,
+    STAGE_TO_POS,
+)
 
 # ------------------------------------------------------------------------------
 # SECTION 0 -- LOGGING
@@ -1433,7 +1449,7 @@ def render_executive_summary(
     futures_desc: str = ""
 ) -> str:
     lines = [
-        "──────── ⚡ **สรุปคำสั่งพอร์ต AlphaShield V8.0 (Beta)** ────────",
+        "──────── ⚡ **สรุปคำสั่งพอร์ต AlphaShield V8.1** ────────",
     ]
     # Macro Canary status banner
     canary_icon = "🟢" if canary_ok else "🚨"
@@ -1588,19 +1604,175 @@ def process_asset(
     asset: Asset,
     state: Dict[str, Any],
     canary_ok: bool = True,
-    futures_guard_triggered: bool = False
+    futures_guard_triggered: bool = False,
+    run_date: Optional[date] = None,
+    now_iso: Optional[str] = None,
 ) -> Tuple[str, Dict[str, Any], Optional[Tuple]]:
     prev_entry = state.get("assets", {}).get(asset.fund, {})
-    prev_position = prev_entry.get("position", "OUT")
+    prev_stage = prev_entry.get("tranche_stage", 0)
+    prev_integ = prev_entry.get("integrity", {
+        "corrupt_strike": prev_entry.get("corrupt_strike", 0),
+        "corrupt_last_date": prev_entry.get("corrupt_last_date"),
+        "corrupt_first_seen_ict": prev_entry.get("corrupt_first_seen_ict"),
+    })
+
+    if run_date is None:
+        run_date = datetime.now(CFG.TZ_BANGKOK).date()
 
     df, source = get_price_history(asset)
+    last_bar_date = None
+    if df is not None and not df.empty:
+        try:
+            last_bar_date = df.index[-1].date() if hasattr(df.index[-1], "date") else df.index[-1]
+        except Exception:
+            last_bar_date = None
+
     if df is None:
-        block = f"⚠️ **{asset.fund}** — ไม่สามารถดึงข้อมูลราคาได้จากทุกแหล่ง (คงสถานะเดิม `{prev_position}`)"
-        return block, prev_entry or {"position": prev_position, "signal": "NO DATA"}, None
+        # Complete cascade failure: metrics is None
+        sc = ScoreResult(score=0.0, raw_score=0.0, chop_capped=False, breakdown=False, breakdown_reason="", components={})
+        td = resolve_stage(
+            fund=asset.fund,
+            metrics=None,
+            raw_stage=0,
+            prev_stage=prev_stage,
+            run_date=run_date,
+            last_bar_date=None,
+            prev_integrity=prev_integ,
+            canary_ok=canary_ok,
+            canary_healthy=True,
+            breakdown=False,
+            futures_guard_triggered=futures_guard_triggered,
+            now_iso=now_iso,
+        )
+        dec = Decision(
+            signal=td.signal,
+            position=td.position,
+            prev_position=f"T{prev_stage}" if prev_stage > 0 else "OUT",
+            action=td.action,
+            icon="🚨" if td.signal == "CORRUPT DATA EXIT" else ("⚠️" if td.signal == "FROZEN" else "⚪"),
+            action_detail=td.detail,
+            target_exposure=td.exposure,
+            tranche_stage=td.stage,
+            tranche_label=TRANCHE_LABEL_MAP.get(td.stage, "0% (Cash Park)"),
+            changed=td.changed,
+        )
+        entry = {
+            "fund": asset.fund,
+            "label": asset.label,
+            "ticker": asset.yahoo,
+            "position": dec.position,
+            "signal": dec.signal,
+            "icon": dec.icon,
+            "action_detail": dec.action_detail,
+            "target_exposure": dec.target_exposure,
+            "tranche_stage": dec.tranche_stage,
+            "tranche_label": dec.tranche_label,
+            "integrity": td.integrity.to_state(),
+            "score": 0.0,
+            "raw_score": 0.0,
+            "price": 0.0,
+            "chg_pct": 0.0,
+            "dist_ema50_pct": 0.0,
+            "dist_ema200_pct": 0.0,
+            "bull_stack": False,
+            "rsi": 50.0,
+            "adx": 0.0,
+            "hv20": 0.0,
+            "chop_capped": False,
+            "breakdown": False,
+            "breakdown_reason": "",
+            "news": [],
+            "ai_analysis": "ไม่สามารถดึงข้อมูลได้ในรอบนี้",
+            "data_source": "NONE",
+            "components": {},
+            "updated_at": datetime.now(CFG.TZ_BANGKOK).isoformat(timespec="seconds"),
+        }
+        block = f"⚠️ **{asset.fund}** — ไม่สามารถดึงข้อมูลราคาได้ ({td.signal} • Strike {td.integrity.strike})"
+        summary_tuple = (
+            asset.fund,
+            0.0,
+            dec.signal,
+            dec.position,
+            dec.icon,
+            dec.action_detail,
+            dec.tranche_stage,
+            dec.tranche_label,
+        )
+        return block, entry, summary_tuple
 
     m = build_metrics(df, source)
     sc = compute_score(m)
-    dec = decide(sc.score, sc.breakdown, prev_position, asset.fund, m, canary_ok=canary_ok, futures_guard_triggered=futures_guard_triggered)
+
+    # Raw stage logic
+    if m.price > m.ema200 and (m.ema50 > m.ema100 > m.ema200):
+        raw_stage = 3
+    elif m.price > m.ema100 and (m.ema50 > m.ema100):
+        raw_stage = 2
+    elif m.price > m.ema50:
+        raw_stage = 1
+    else:
+        raw_stage = 0
+
+    metrics_dict = {
+        "price": m.price,
+        "ema50": m.ema50,
+        "ema100": m.ema100,
+        "ema200": m.ema200,
+        "score": sc.score,
+        "rsi": m.rsi,
+        "adx": m.adx,
+        "hv20": m.hv20,
+        "chg_pct": m.chg_pct,
+    }
+
+    td = resolve_stage(
+        fund=asset.fund,
+        metrics=metrics_dict,
+        raw_stage=raw_stage,
+        prev_stage=prev_stage,
+        run_date=run_date,
+        last_bar_date=last_bar_date,
+        prev_integrity=prev_integ,
+        canary_ok=canary_ok,
+        canary_healthy=True,
+        breakdown=sc.breakdown,
+        futures_guard_triggered=futures_guard_triggered,
+        now_iso=now_iso,
+    )
+
+    dec_icon = "⚪"
+    if td.signal == "CORRUPT DATA EXIT":
+        dec_icon = "🚨"
+    elif td.signal == "FROZEN":
+        dec_icon = "⚠️"
+    elif td.signal == "HARD EXIT":
+        dec_icon = "🧨"
+    elif td.signal == "SWITCH OUT":
+        dec_icon = "⚪"
+    elif td.signal == "TRIM RISK":
+        dec_icon = "🔵" if td.stage == 2 else "🟡"
+    elif td.signal == "FUTURES PAUSE":
+        dec_icon = "⚠️"
+    elif td.stage == 3:
+        dec_icon = "🟢"
+    elif td.stage == 2:
+        dec_icon = "🔵"
+    elif td.stage == 1:
+        dec_icon = "🟡"
+
+    dec = Decision(
+        signal=td.signal,
+        position=td.position,
+        prev_position=f"T{prev_stage}" if prev_stage > 0 else "OUT",
+        action=td.action,
+        icon=dec_icon,
+        action_detail=td.detail,
+        target_exposure=td.exposure,
+        tranche_stage=td.stage,
+        tranche_label=TRANCHE_LABEL_MAP.get(td.stage, "0% (Cash Park)"),
+        changed=td.changed,
+    )
+
     news = fetch_news(asset.yahoo)
     ai_text = ai_explain(asset, m, sc, dec, news)
 
@@ -1615,16 +1787,17 @@ def process_asset(
         "target_exposure": dec.target_exposure,
         "tranche_stage": dec.tranche_stage,
         "tranche_label": dec.tranche_label,
+        "integrity": td.integrity.to_state(),
         "score": sc.score,
         "raw_score": sc.raw_score,
-        "price": round(m.price, 4),
-        "chg_pct": round(m.chg_pct, 2),
-        "dist_ema50_pct": round(m.dist_ema50_pct, 2),
-        "dist_ema200_pct": round(m.dist_ema200_pct, 2),
+        "price": round(m.price, 4) if not is_nan(m.price) else 0.0,
+        "chg_pct": round(m.chg_pct, 2) if not is_nan(m.chg_pct) else 0.0,
+        "dist_ema50_pct": round(m.dist_ema50_pct, 2) if not is_nan(m.dist_ema50_pct) else 0.0,
+        "dist_ema200_pct": round(m.dist_ema200_pct, 2) if not is_nan(m.dist_ema200_pct) else 0.0,
         "bull_stack": m.bull_stack,
-        "rsi": round(m.rsi, 1),
-        "adx": round(m.adx, 1),
-        "hv20": round(m.hv20, 1),
+        "rsi": round(m.rsi, 1) if not is_nan(m.rsi) else 50.0,
+        "adx": round(m.adx, 1) if not is_nan(m.adx) else 0.0,
+        "hv20": round(m.hv20, 1) if not is_nan(m.hv20) else 0.0,
         "chop_capped": sc.chop_capped,
         "breakdown": sc.breakdown,
         "breakdown_reason": sc.breakdown_reason,
@@ -1651,7 +1824,7 @@ def process_asset(
 
 def main() -> int:
     now_th = datetime.now(CFG.TZ_BANGKOK)
-    LOG.info("=== QUANT BOT V8.0 (Beta) START @ %s ICT ===", now_th.strftime("%Y-%m-%d %H:%M:%S"))
+    LOG.info("=== QUANT BOT V8.1 START @ %s ICT ===", now_th.strftime("%Y-%m-%d %H:%M:%S"))
 
     # 1. Macro Regime Canary (Richman HAA TIP Momentum)
     canary_ok, tip_mom, canary_desc = evaluate_tip_canary()
@@ -1667,13 +1840,18 @@ def main() -> int:
     summary_rows: List[Tuple[str, float, str, str, str, str, int, str]] = []
     failures = 0
 
+    run_date = now_th.date()
+    now_iso = now_th.isoformat(timespec="seconds")
+
     for idx, asset in enumerate(UNIVERSE):
         try:
             block, entry, s_tuple = process_asset(
                 asset,
                 {"assets": assets_state},
                 canary_ok=canary_ok,
-                futures_guard_triggered=futures_triggered
+                futures_guard_triggered=futures_triggered,
+                run_date=run_date,
+                now_iso=now_iso,
             )
             detail_blocks.append(block)
             assets_state[asset.fund] = entry
@@ -1712,9 +1890,9 @@ def main() -> int:
     eq_pct = round(total_eq_weight * 100.0, 1)
     cash_pct = round(cash_weight * 100.0, 1)
 
-    # 4. State ข้ามวัน (tranche_stage as single source of truth)
+    # 4. State ข้ามวัน (Schema v3.1 - tranche_stage as single source of truth)
     new_state = {
-        "version": 3,
+        "version": 3.1,
         "last_run_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "last_run_ict": now_th.isoformat(timespec="seconds"),
         "canary": {
@@ -1740,8 +1918,8 @@ def main() -> int:
 
     # 5. Payload และเขียนไฟล์ data.enc (Master Password)
     dashboard_data = {
-        "version": 3,
-        "engine": "AlphaShield V8.0 (Beta)",
+        "version": 3.1,
+        "engine": "AlphaShield V8.1",
         "last_run_ict": now_th.isoformat(timespec="seconds"),
         "safe_haven": CFG.CASH_FUND,
         "macro_canary": {
@@ -1810,7 +1988,7 @@ def main() -> int:
         "🔐 **Dashboard เข้ารหัส AES-GCM เรียบร้อยแล้ว**",
         "🔑 **เข้าดูด้วย Master Password ประจำตัว**",
         f"🌐 **Web Dashboard:** {DASHBOARD_URL}",
-        f"_AlphaShield Engine v8.0 (Beta) • HAA TIP Regime: {'GREEN' if canary_ok else 'RED'} • สมบูรณ์ {len(summary_rows)}/{len(UNIVERSE)} • ล้มเหลว {failures}_"
+        f"_AlphaShield Engine v8.1 • HAA TIP Regime: {'GREEN' if canary_ok else 'RED'} • สมบูรณ์ {len(summary_rows)}/{len(UNIVERSE)} • ล้มเหลว {failures}_"
     ]
 
     final_report = "\n\n".join(report_sections)

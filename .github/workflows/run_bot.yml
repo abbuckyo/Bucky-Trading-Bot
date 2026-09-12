@@ -1,202 +1,137 @@
-name: Quant Allocation Bot
+name: AlphaShield Live Runner
 
 on:
+  schedule:
+    - cron: "15 5 * * 1-5"          # 12:15 ICT
   workflow_dispatch:
     inputs:
-      override_asset:
-        description: "เลือกสินทรัพย์ที่ต้องการปรับสถานะด้วยมือ (Reconciliation)"
-        required: false
-        default: "NONE"
-        type: choice
-        options:
-          - "NONE"
-          - "SCBWORLDE"
-          - "SCBS&P500E"
-          - "SCBNDQ(E)"
-          - "SCBGOLDE"
-          - "SCBSEMI(E)"
-      override_position:
-        description: "บังคับสถานะพอร์ตจำลองให้ตรงกับพอร์ตจริง"
-        required: false
-        default: "NO_CHANGE"
-        type: choice
-        options:
-          - "NO_CHANGE"
-          - "IN"
-          - "OUT"
-      send_line:
-        description: "ต้องการส่งแจ้งเตือนเข้า LINE หรือไม่"
-        required: false
-        default: "false"
-        type: choice
-        options: ["false", "true"]
-      reset_state:
-        description: "ล้างประวัติทั้งหมดเริ่มต้นใหม่ (all positions -> OUT)"
-        required: false
-        default: "false"
-        type: choice
-        options: ["false", "true"]
+      force_run:
+        description: "บังคับรันแม้วันนี้รันไปแล้ว (ข้าม idempotency guard)"
+        type: boolean
+        default: false
+      shadow_mode:
+        description: "Shadow: คำนวณ + log แต่ไม่เขียน state / ไม่ส่ง order"
+        type: boolean
+        default: false
 
+# ⭐ กัน cron ชน manual dispatch — คิวรอ ไม่ kill run ที่กำลังเขียน state
 concurrency:
-  group: quant-bot
+  group: alphashield-live-${{ github.ref_name }}
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: write                    # commit state.json + docs/data.enc
 
 env:
-  PYTHON_VERSION: "3.11"
   TZ: Asia/Bangkok
+  PYTHON_VERSION: "3.11"
 
 jobs:
-  run-bot:
-    name: Run Allocation Engine
+  run:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-
+    timeout-minutes: 20
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
 
-      - name: Set up Python (with pip cache)
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: requirements.txt
 
-      - name: Pre-flight secret validation
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
-          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
-          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+      - name: Install
         run: |
-          set -euo pipefail
-          echo "::group::Secret presence check"
-          MISSING=0
+          python -m pip install -U pip
+          pip install -e . -r requirements.txt
 
-          check_required () {
-            if [ -z "${2:-}" ]; then
-              echo "::error::REQUIRED secret '$1' is missing or empty."
-              MISSING=1
-            else
-              echo "OK       required  $1"
-            fi
-          }
+      # ── Gate: test ต้องเขียวก่อนเสมอ ──────────────────────────
+      - name: Run test suite (blocking)
+        run: pytest -q --maxfail=1
 
-          check_optional () {
-            if [ -z "${2:-}" ]; then
-              echo "::notice::Optional secret '$1' not set - feature will be skipped."
-            else
-              echo "OK       optional  $1"
-            fi
-          }
-
-          check_required "DISCORD_WEBHOOK_URL" "$DISCORD_WEBHOOK_URL"
-          check_optional "GEMINI_API_KEY" "$GEMINI_API_KEY"
-          check_optional "FINNHUB_API_KEY" "$FINNHUB_API_KEY"
-          check_optional "LINE_CHANNEL_ACCESS_TOKEN" "$LINE_CHANNEL_ACCESS_TOKEN"
-          check_optional "LINE_USER_ID" "$LINE_USER_ID"
-
-          echo "::endgroup::"
-          exit $MISSING
-
-      - name: Install dependencies
-        run: |
-          set -euo pipefail
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          else
-            pip install "pandas>=2.0" "numpy>=1.24" requests yfinance google-genai curl_cffi
-          fi
-
-      - name: Restore persisted state
-        id: state_restore
+      # ── State: cache = fast path, git = durable source of truth ──
+      - name: Restore state cache
         uses: actions/cache/restore@v4
         with:
           path: state.json
-          key: quant-bot-state-${{ github.run_id }}
-          restore-keys: |
-            quant-bot-state-
+          key: alphashield-state-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: alphashield-state-${{ github.ref_name }}-
 
-      - name: Reset state (manual override)
-        if: github.event_name == 'workflow_dispatch' && inputs.reset_state == 'true'
+      - name: Reconcile state (git wins over cache)
         run: |
-          rm -f state.json
-          echo "::warning::state.json deleted by manual reset request."
+          if [ -f .state/state.json ]; then
+            echo "::notice::ใช้ state จาก git (durable)"
+            cp .state/state.json state.json
+          fi
+          [ -f state.json ] && cat state.json || echo "::warning::cold start"
 
-      - name: Run allocation bot
+      # ── ⭐ Idempotency guard: กันรันซ้ำวันเดียวกัน ─────────────
+      - name: Idempotency check
+        id: guard
+        run: |
+          TODAY=$(TZ=Asia/Bangkok date +%F)
+          LAST=$(python -c "
+          import json,pathlib
+          p=pathlib.Path('state.json')
+          print(json.loads(p.read_text()).get('last_run_ict','')[:10] if p.exists() else '')
+          " 2>/dev/null || echo "")
+          echo "today=$TODAY last=$LAST"
+          if [ "$LAST" = "$TODAY" ] && [ "${{ inputs.force_run }}" != "true" ]; then
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "::warning::รันไปแล้ววันนี้ ($TODAY) — ข้ามเพื่อกัน strike/ladder ซ้ำ"
+          else
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run AlphaShield
+        if: steps.guard.outputs.should_run == 'true'
         id: bot
         env:
-          ENABLE_LINE: ${{ github.event_name == 'schedule' && 'true' || (github.event.inputs.send_line || 'true') }}
-          DASHBOARD_PASSWORD: ${{ secrets.DASHBOARD_PASSWORD }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          DASHBOARD_PASSWORD:        ${{ secrets.DASHBOARD_PASSWORD }}
+          GEMINI_API_KEY:            ${{ secrets.GEMINI_API_KEY }}
+          FINNHUB_API_KEY:           ${{ secrets.FINNHUB_API_KEY }}
+          DISCORD_WEBHOOK_URL:       ${{ secrets.DISCORD_WEBHOOK_URL }}
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
-          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
-          OVERRIDE_ASSET: ${{ github.event.inputs.override_asset || 'NONE' }}
-          OVERRIDE_POSITION: ${{ github.event.inputs.override_position || 'NO_CHANGE' }}
-          PYTHONUNBUFFERED: "1"
+          LINE_USER_ID:              ${{ secrets.LINE_USER_ID }}
+          SHADOW_MODE:               ${{ inputs.shadow_mode }}
+          PYTHONUNBUFFERED:          "1"
         run: python bot.py
 
-      - name: Persist state to cache
+      # ── ⭐ Persist state ก่อน notify เสมอ (bot.py ต้องเรียงแบบนี้ด้วย) ──
+      - name: Commit durable state
+        if: steps.guard.outputs.should_run == 'true' && inputs.shadow_mode != true
+        run: |
+          mkdir -p .state && cp state.json .state/state.json
+          git config user.name  "alphashield-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add .state/state.json docs/data.enc
+          git diff --staged --quiet || git commit -m "state: $(TZ=Asia/Bangkok date +%F) [skip ci]"
+          git push
+
+      - name: Save state cache
         if: always() && hashFiles('state.json') != ''
         uses: actions/cache/save@v4
         with:
           path: state.json
-          key: quant-bot-state-${{ github.run_id }}
+          key: alphashield-state-${{ github.ref_name }}-${{ github.run_id }}
 
-      - name: Upload state artifact (audit trail)
-        if: always() && hashFiles('state.json') != ''
+      - name: Upload run artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: state-${{ github.run_id }}
-          path: state.json
+          name: run-${{ github.run_id }}
+          path: |
+            state.json
+            logs/
           retention-days: 30
           if-no-files-found: ignore
 
-      - name: Commit and push Dashboard data
-        if: always() && hashFiles('docs/data.enc') != ''
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git rm -f docs/data.json 2>/dev/null || true
-          git add docs/data.enc
-          git commit -m "chore: auto-update encrypted dashboard [skip ci]" || exit 0
-          git stash --include-untracked || true
-          git pull --rebase origin main
-          git stash pop 2>/dev/null || true
-          git push
-
+      # ── Failure alert ─────────────────────────────────────────
       - name: Discord failure alert
         if: failure()
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          set -euo pipefail
-          if [ -z "${DISCORD_WEBHOOK_URL:-}" ]; then
-            exit 0
-          fi
-          python - <<'PY'
-          import json, os, urllib.request
-          url = os.environ["DISCORD_WEBHOOK_URL"]
-          run_url = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
-          content = (
-              "🚨 **QUANT BOT WORKFLOW FAILED**\n"
-              f"Run: {run_url}\n"
-              "⚠️ สัญญาณไม่ถูกเผยแพร่ สถานะพอร์ตคงเดิม"
-          )
-          req = urllib.request.Request(
-              url,
-              data=json.dumps({"content": content}).encode("utf-8"),
-              headers={
-                  "Content-Type": "application/json",
-                  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-              },
-          )
-          urllib.request.urlopen(req, timeout=20).read()
-          PY
+          [ -z "$DISCORD_WEBHOOK_URL" ] && exit 0
+          RUN="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          curl -sS -H "Content-Type: application/json" -X POST "$DISCORD_WEBHOOK_URL" \
+            -d "{\"content\":\"🚨 **ALPHASHIELD RUN FAILED**\nBranch: \`${GITHUB_REF_NAME}\`\n$RUN\n⚠️ ไม่มีสัญญาณออก — สถานะพอร์ตคงเดิม\"}"

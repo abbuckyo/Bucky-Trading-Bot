@@ -1,0 +1,85 @@
+{
+  "version": 3.1,
+  "last_run_utc": "2026-09-12T17:00:00Z",
+  "last_run_ict": "2026-09-13T00:00:00+07:00",
+  "canary": {
+    "ticker": "TIP",
+    "tip_mom_13612_pct": 0.0,
+    "canary_ok": true,
+    "description": "Baseline Initial State (Cold Start / Reset)"
+  },
+  "futures_guard": {
+    "triggered": false,
+    "guard_status": "ok",
+    "data": {},
+    "description": "Initial State (No circuit breaker)"
+  },
+  "portfolio": {
+    "equity_weight": 0.0,
+    "cash_weight": 1.0,
+    "weights": {
+      "SCBWORLDE": 0.0,
+      "SCBS&P500E": 0.0,
+      "SCBNDQ(E)": 0.0,
+      "SCBGOLDE": 0.0,
+      "SCBSEMI(E)": 0.0
+    }
+  },
+  "assets": {
+    "SCBWORLDE": {
+      "fund": "SCBWORLDE",
+      "position": "OUT",
+      "tranche_stage": 0,
+      "tranche_label": "0% (Cash Park)",
+      "integrity": {
+        "corrupt_strike": 0,
+        "corrupt_last_date": null,
+        "corrupt_first_seen_ict": null
+      }
+    },
+    "SCBS&P500E": {
+      "fund": "SCBS&P500E",
+      "position": "OUT",
+      "tranche_stage": 0,
+      "tranche_label": "0% (Cash Park)",
+      "integrity": {
+        "corrupt_strike": 0,
+        "corrupt_last_date": null,
+        "corrupt_first_seen_ict": null
+      }
+    },
+    "SCBNDQ(E)": {
+      "fund": "SCBNDQ(E)",
+      "position": "OUT",
+      "tranche_stage": 0,
+      "tranche_label": "0% (Cash Park)",
+      "integrity": {
+        "corrupt_strike": 0,
+        "corrupt_last_date": null,
+        "corrupt_first_seen_ict": null
+      }
+    },
+    "SCBGOLDE": {
+      "fund": "SCBGOLDE",
+      "position": "OUT",
+      "tranche_stage": 0,
+      "tranche_label": "0% (Cash Park)",
+      "integrity": {
+        "corrupt_strike": 0,
+        "corrupt_last_date": null,
+        "corrupt_first_seen_ict": null
+      }
+    },
+    "SCBSEMI(E)": {
+      "fund": "SCBSEMI(E)",
+      "position": "OUT",
+      "tranche_stage": 0,
+      "tranche_label": "0% (Cash Park)",
+      "integrity": {
+        "corrupt_strike": 0,
+        "corrupt_last_date": null,
+        "corrupt_first_seen_ict": null
+      }
+    }
+  }
+}
