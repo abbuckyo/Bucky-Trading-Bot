@@ -86,6 +86,7 @@ class CFG:
     # Notifications
     DISCORD_CHUNK = 1900
     LINE_CHUNK = 4900
+    LINE_TIMEOUT = 8.0            # Strict timeout for LINE gateway to avoid hanging pipeline
     LINE_PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push"
 
     # AI Explainer (Static fallback if dynamic discovery fails)
@@ -107,6 +108,12 @@ class CFG:
     # Safe Haven & Macro Canary
     CASH_FUND = "SCBTMFPLUS-E"
     CANARY_TIP_TICKER = "TIP"
+
+    # Pre-Market US Futures Guard (Circuit Breaker)
+    FUTURES_ES_TICKER = "ES=F"
+    FUTURES_NQ_TICKER = "NQ=F"
+    FUTURES_ES_DROP_LIMIT_PCT = -1.2  # If ES <= -1.2% -> pause opening new tranches
+    FUTURES_NQ_DROP_LIMIT_PCT = -1.5  # If NQ <= -1.5% -> pause opening new tranches
 
 
 @dataclass(frozen=True)
@@ -508,6 +515,67 @@ def evaluate_tip_canary() -> Tuple[bool, float, str]:
     return ok, round(mom * 100.0, 2), status_desc
 
 
+def evaluate_us_futures_guard() -> Tuple[bool, Dict[str, float], str]:
+    """
+    Evaluates Pre-Market US Futures Guard (Circuit Breaker) at 12:15 ICT.
+    Fetches real-time / intraday price change of ES=F (S&P 500) and NQ=F (Nasdaq).
+    Returns (circuit_triggered, {ticker: chg_pct}, alert_msg)
+    - If ES=F <= -1.2% or NQ=F <= -1.5%: Circuit breaker triggered -> PAUSE opening new tranches
+    """
+    futures_data: Dict[str, float] = {}
+    triggered = False
+    alert_reasons = []
+
+    try:
+        import yfinance as yf
+        tickers = [CFG.FUTURES_ES_TICKER, CFG.FUTURES_NQ_TICKER]
+        for t_sym in tickers:
+            try:
+                t = yf.Ticker(t_sym)
+                info = getattr(t, "fast_info", None)
+                last_p = getattr(info, "last_price", None)
+                prev_c = getattr(info, "previous_close", None)
+                if last_p is None or prev_c is None or prev_c <= 0:
+                    # Fallback to history 2d
+                    h = t.history(period="2d")
+                    if len(h) >= 2:
+                        prev_c = float(h["Close"].iloc[-2])
+                        last_p = float(h["Close"].iloc[-1])
+                    elif len(h) == 1:
+                        prev_c = float(h["Open"].iloc[0])
+                        last_p = float(h["Close"].iloc[-1])
+
+                if last_p is not None and prev_c is not None and prev_c > 0:
+                    pct = ((last_p / prev_c) - 1.0) * 100.0
+                    futures_data[t_sym] = round(pct, 2)
+            except Exception as e:
+                LOG.warning("Failed to fetch futures quote for %s: %s", t_sym, e)
+
+        es_pct = futures_data.get(CFG.FUTURES_ES_TICKER, 0.0)
+        nq_pct = futures_data.get(CFG.FUTURES_NQ_TICKER, 0.0)
+
+        if es_pct <= CFG.FUTURES_ES_DROP_LIMIT_PCT:
+            triggered = True
+            alert_reasons.append(f"ES=F {es_pct:+.2f}% (Limit: {CFG.FUTURES_ES_DROP_LIMIT_PCT}%)")
+        if nq_pct <= CFG.FUTURES_NQ_DROP_LIMIT_PCT:
+            triggered = True
+            alert_reasons.append(f"NQ=F {nq_pct:+.2f}% (Limit: {CFG.FUTURES_NQ_DROP_LIMIT_PCT}%)")
+
+        if triggered:
+            desc = f"🚨 CIRCUIT BREAKER TRIGGERED: {', '.join(alert_reasons)} — ระงับการเปิดไม้ใหม่ 1 วัน"
+            LOG.warning("Pre-Market Futures Guard: %s", desc)
+        else:
+            es_str = f"ES=F {es_pct:+.2f}%" if CFG.FUTURES_ES_TICKER in futures_data else "ES=F N/A"
+            nq_str = f"NQ=F {nq_pct:+.2f}%" if CFG.FUTURES_NQ_TICKER in futures_data else "NQ=F N/A"
+            desc = f"NORMAL: {es_str} | {nq_str} (สภาวะตลาดล่วงหน้าปกติ)"
+            LOG.info("Pre-Market Futures Guard: %s", desc)
+
+        return triggered, futures_data, desc
+    except Exception as exc:
+        LOG.error("evaluate_us_futures_guard encountered error: %s", exc)
+        return False, {}, f"Futures Check Error: {exc} (Defaulting Normal)"
+
+
 # ------------------------------------------------------------------------------
 # SECTION 5 -- METRICS SNAPSHOT
 # ------------------------------------------------------------------------------
@@ -797,7 +865,8 @@ def decide(
     prev_position: str,
     fund: str,
     m: Metrics,
-    canary_ok: bool = True
+    canary_ok: bool = True,
+    futures_guard_triggered: bool = False
 ) -> Decision:
     """
     AlphaShield V8.0 (Beta) Decision Engine:
@@ -806,9 +875,20 @@ def decide(
     - Tranche 3 (100% Full): Price > EMA200 and EMA50 > EMA100 > EMA200
     - Tranche 2 (66% Scaling): Price > EMA100 and EMA50 > EMA100
     - Tranche 1 (33% Starter): Price > EMA50
+    - Pre-Market US Futures Guard: If futures drop heavily (ES <= -1.2% or NQ <= -1.5%),
+      pause/skip opening new tranches (stage > prev_stage), maintaining prev exposure.
     - Else: 0% (Cash Park)
     """
     prev_pos_str = str(prev_position).upper()
+    # Map previous position to stage integer
+    if prev_pos_str in ("T3", "TRANCHE_3", "FULL"):
+        prev_stage = 3
+    elif prev_pos_str in ("T2", "TRANCHE_2"):
+        prev_stage = 2
+    elif prev_pos_str in ("T1", "TRANCHE_1", "IN"):
+        prev_stage = 1
+    else:
+        prev_stage = 0
 
     # Determine staged tranche target
     if not canary_ok:
@@ -836,6 +916,21 @@ def decide(
         stage = 0
         tranche_label = "0% (Cash Park)"
 
+    # Pre-Market US Futures Guard: Circuit breaker pauses opening new tranches
+    futures_paused = False
+    if futures_guard_triggered and stage > prev_stage:
+        futures_paused = True
+        stage = prev_stage
+        if stage == 2:
+            target_exp = 0.66
+            tranche_label = "66% (Futures Hold T2)"
+        elif stage == 1:
+            target_exp = 0.33
+            tranche_label = "33% (Futures Hold T1)"
+        else:
+            target_exp = 0.0
+            tranche_label = "0% (Futures Cash Park)"
+
     pos_code = "OUT" if stage == 0 else f"T{stage}"
     is_in = stage > 0
     target_position = "IN" if is_in else "OUT"
@@ -851,6 +946,11 @@ def decide(
         action = "[HARD EXIT]"
         icon = "🧨"
         detail = f"หลุดแนวรับวิกฤต EMA200 เกิน -2% ตัดขาย 100% เข้า {CFG.CASH_FUND}"
+    elif futures_paused:
+        signal = "FUTURES PAUSE"
+        action = f"[PAUSE: {pos_code}]"
+        icon = "⚠️"
+        detail = f"Futures Alert: ตลาดล่วงหน้าติดลบหนัก ชะลอการเปิดไม้ใหม่ คงน้ำหนักเดิม ({tranche_label})"
     elif stage == 3:
         signal = "FULL ALLOCATION"
         action = "[TRANCHE 3: 100%]"
@@ -1103,24 +1203,25 @@ def send_to_line(message: str) -> bool:
             "to": user_id,
             "messages": [{"type": "text", "text": c} for c in batch],
         }
-        for attempt in range(3):
+        for attempt in range(2):
             try:
                 r = requests.post(
                     CFG.LINE_PUSH_ENDPOINT,
                     headers=headers,
                     data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-                    timeout=CFG.HTTP_TIMEOUT,
+                    timeout=CFG.LINE_TIMEOUT,
                 )
                 if r.status_code == 429:
-                    time.sleep(3.0 * (attempt + 1))
+                    time.sleep(2.0 * (attempt + 1))
                     continue
                 r.raise_for_status()
                 break
-            except Exception:
-                time.sleep(1.5 * (attempt + 1))
+            except Exception as e:
+                LOG.warning("LINE push failed (attempt %d/2, timeout=%.1fs): %s", attempt + 1, CFG.LINE_TIMEOUT, e)
+                time.sleep(1.0 * (attempt + 1))
         else:
             ok = False
-        time.sleep(0.5)
+        time.sleep(0.3)
     return ok
 
 
@@ -1143,7 +1244,9 @@ def render_executive_summary(
     summary_rows: List[Tuple[str, float, str, str, str, str, float, str]],
     canary_ok: bool,
     tip_mom: float,
-    canary_desc: str
+    canary_desc: str,
+    futures_triggered: bool = False,
+    futures_desc: str = ""
 ) -> str:
     lines = [
         "──────── ⚡ **สรุปคำสั่งพอร์ต AlphaShield V8.0 (Beta)** ────────",
@@ -1152,6 +1255,12 @@ def render_executive_summary(
     canary_icon = "🟢" if canary_ok else "🚨"
     canary_badge = "CANARY GREEN" if canary_ok else "CANARY RED (100% CASH DEFENSE)"
     lines.append(f"{canary_icon} **HAA Regime Canary:** `{canary_badge}` (TIP 13612 Mom: `{tip_mom:+.2f}%`)")
+
+    # Pre-Market US Futures Guard banner
+    if futures_triggered:
+        lines.append(f"⚠️ **Pre-Market Futures Alert:** `{futures_desc}`")
+    else:
+        lines.append(f"🌐 **Pre-Market US Futures:** `{futures_desc}`")
     lines.append("")
 
     total_equity_weight = 0.0
@@ -1198,7 +1307,7 @@ def render_header(now_th: datetime) -> str:
         "═══════════════════════════════════════════════════════════════\n"
         "🛡️ **บอทเฝ้าดอย V8.0 (Beta) — STAGED TRANCHE & HAA CANARY**\n"
         f"🕛 {now_th.strftime('%Y-%m-%d %H:%M')} ICT | หลุมหลบภัย: `{CFG.CASH_FUND}`\n"
-        f"กติกา: HAA TIP Canary + 3-Tranche Scaling (0%, 33%, 66%, 100%) + Hard Breakdown -2%\n"
+        f"กติกา: HAA TIP Canary + 3-Tranche Scaling + Pre-Market Futures Guard\n"
         "═══════════════════════════════════════════════════════════════"
     )
 
@@ -1262,12 +1371,9 @@ def encrypt_payload(payload: dict, password: str = MASTER_PASSWORD) -> dict:
 
 
 def selftest_decrypt(envelope: dict, password: str, expect: dict) -> None:
-    key = derive_key(password, _b64d(envelope["salt"]), int(envelope["iterations"]))
-    plain = AESGCM(key).decrypt(_b64d(envelope["iv"]), _b64d(envelope["ciphertext"]), None)
-    back = json.loads(plain.decode("utf-8"))
-
-    if not isinstance(back.get("assets"), list):
-        raise ValueError("Self-test: field 'assets' หายไปหลังถอดรหัส")
+    key = derive_key(password, _b64d(envelope["salt"]), envelope["iterations"])
+    decrypted = AESGCM(key).decrypt(_b64d(envelope["iv"]), _b64d(envelope["ciphertext"]), None)
+    back = json.loads(decrypted.decode("utf-8"))
     if len(back["assets"]) != len(expect.get("assets", [])):
         raise ValueError("Self-test: จำนวน assets ไม่ตรงกับต้นฉบับ")
     LOG.info("Self-test ผ่าน ✓ ถอดรหัสได้ %d assets", len(back["assets"]))
@@ -1296,7 +1402,8 @@ def write_encrypted_dashboard(payload: dict, password: str = MASTER_PASSWORD) ->
 def process_asset(
     asset: Asset,
     state: Dict[str, Any],
-    canary_ok: bool = True
+    canary_ok: bool = True,
+    futures_guard_triggered: bool = False
 ) -> Tuple[str, Dict[str, Any], Optional[Tuple]]:
     prev_entry = state.get("assets", {}).get(asset.fund, {})
     prev_position = prev_entry.get("position", "OUT")
@@ -1308,7 +1415,7 @@ def process_asset(
 
     m = build_metrics(df, source)
     sc = compute_score(m)
-    dec = decide(sc.score, sc.breakdown, prev_position, asset.fund, m, canary_ok=canary_ok)
+    dec = decide(sc.score, sc.breakdown, prev_position, asset.fund, m, canary_ok=canary_ok, futures_guard_triggered=futures_guard_triggered)
     news = fetch_news(asset.yahoo)
     ai_text = ai_explain(asset, m, sc, dec, news)
 
@@ -1364,6 +1471,9 @@ def main() -> int:
     # 1. Macro Regime Canary (Richman HAA TIP Momentum)
     canary_ok, tip_mom, canary_desc = evaluate_tip_canary()
 
+    # 2. Pre-Market US Futures Guard (Circuit Breaker)
+    futures_triggered, futures_data, futures_desc = evaluate_us_futures_guard()
+
     state = load_state()
     apply_manual_override(state)
     assets_state: Dict[str, Any] = dict(state.get("assets", {}))
@@ -1374,7 +1484,12 @@ def main() -> int:
 
     for idx, asset in enumerate(UNIVERSE):
         try:
-            block, entry, s_tuple = process_asset(asset, {"assets": assets_state}, canary_ok=canary_ok)
+            block, entry, s_tuple = process_asset(
+                asset,
+                {"assets": assets_state},
+                canary_ok=canary_ok,
+                futures_guard_triggered=futures_triggered
+            )
             detail_blocks.append(block)
             assets_state[asset.fund] = entry
             if s_tuple:
@@ -1389,7 +1504,7 @@ def main() -> int:
         if idx < len(UNIVERSE) - 1:
             time.sleep(CFG.INTER_ASSET_SLEEP)
 
-    # 2. State ข้ามวัน
+    # 3. State ข้ามวัน
     new_state = {
         "version": 3,
         "last_run_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -1400,11 +1515,16 @@ def main() -> int:
             "canary_ok": canary_ok,
             "description": canary_desc,
         },
+        "futures_guard": {
+            "triggered": futures_triggered,
+            "data": futures_data,
+            "description": futures_desc,
+        },
         "assets": assets_state,
     }
     save_state(new_state)
 
-    # 3. Payload และเขียนไฟล์ data.enc (Master Password)
+    # 4. Payload และเขียนไฟล์ data.enc (Master Password)
     total_eq_weight = 0.0
     invested_funds = []
     for item in summary_rows:
@@ -1427,6 +1547,11 @@ def main() -> int:
             "momentum_pct": tip_mom,
             "status": "GREEN" if canary_ok else "RED",
             "description": canary_desc,
+        },
+        "futures_guard": {
+            "triggered": futures_triggered,
+            "data": futures_data,
+            "description": futures_desc,
         },
         "portfolio_status": {
             "invested_funds": invested_funds,
@@ -1465,10 +1590,17 @@ def main() -> int:
 
     write_encrypted_dashboard(dashboard_data)
 
-    # 4. ข้อความแจ้งเตือน Discord / LINE
+    # 5. ข้อความแจ้งเตือน Discord / LINE
     report_sections = [
         render_header(now_th),
-        render_executive_summary(summary_rows, canary_ok=canary_ok, tip_mom=tip_mom, canary_desc=canary_desc),
+        render_executive_summary(
+            summary_rows,
+            canary_ok=canary_ok,
+            tip_mom=tip_mom,
+            canary_desc=canary_desc,
+            futures_triggered=futures_triggered,
+            futures_desc=futures_desc
+        ),
         "──────── 🔍 **รายละเอียดทางเทคนิครายสินทรัพย์** ────────\n",
         "\n\n".join(detail_blocks),
         "────────────────────────────────────────",
