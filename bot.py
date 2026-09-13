@@ -46,6 +46,7 @@ from alphashield.strategy.signals import (
     TRANCHE_LABEL_MAP,
     STAGE_TO_POS,
 )
+from tools.divergence_log import log_daily_divergence
 
 # ------------------------------------------------------------------------------
 # SECTION 0 -- LOGGING
@@ -1971,7 +1972,20 @@ def main() -> int:
 
     write_encrypted_dashboard(dashboard_data)
 
-    # 5. ข้อความแจ้งเตือน Discord / LINE
+    # 5. บันทึกผลเปรียบเทียบ Divergence Monitor (Shadow Mode: Legacy V7.2 vs AlphaShield V8.1)
+    try:
+        log_daily_divergence(
+            run_date=now_th.strftime("%Y-%m-%d"),
+            assets_state=assets_state,
+            tip_mom=tip_mom,
+            canary_ok=canary_ok,
+            futures_guard=futures_triggered,
+        )
+        LOG.info("Divergence Monitor: Logged daily dual-engine comparison to logs/divergence_log.csv")
+    except Exception as exc:
+        LOG.error("Failed to log divergence comparison: %s", exc)
+
+    # 6. ข้อความแจ้งเตือน Discord / LINE
     report_sections = [
         render_header(now_th),
         render_executive_summary(
