@@ -46,6 +46,11 @@ from alphashield.strategy.signals import (
     TRANCHE_LABEL_MAP,
     STAGE_TO_POS,
 )
+from alphashield.execution.approval import (
+    GateOutcome,
+    evaluate_gate,
+    render_approval_alert,
+)
 from tools.divergence_log import log_daily_divergence
 
 # ------------------------------------------------------------------------------
@@ -135,6 +140,7 @@ class CFG:
 
     # SCB Order & Execution Limits
     SCB_MIN_SWITCH_THB = 1000.0       # Minimum order size required by SCB fund platform
+    DEFAULT_CAPITAL_THB = 100_000.0   # Default capital for order sizing if not provided
 
 
 def is_nan(val: Any) -> bool:
@@ -1837,6 +1843,16 @@ def main() -> int:
     apply_manual_override(state)
     assets_state: Dict[str, Any] = dict(state.get("assets", {}))
 
+    # Manual Confirmation Gate settings
+    require_manual_confirm: bool = state.get("require_manual_confirm", True)
+    pending_approvals: Dict[str, Any] = dict(state.get("pending_approvals", {}))
+    submitted_token = (os.getenv("APPROVE_TOKEN") or "").strip()
+    try:
+        capital_thb = float(os.getenv("CAPITAL_THB") or CFG.DEFAULT_CAPITAL_THB)
+    except (ValueError, TypeError):
+        capital_thb = CFG.DEFAULT_CAPITAL_THB
+    approval_alerts: List[str] = []
+
     detail_blocks: List[str] = []
     summary_rows: List[Tuple[str, float, str, str, str, str, int, str]] = []
     failures = 0
@@ -1846,6 +1862,7 @@ def main() -> int:
 
     for idx, asset in enumerate(UNIVERSE):
         try:
+            prev_st = assets_state.get(asset.fund, {}).get("tranche_stage", 0)
             block, entry, s_tuple = process_asset(
                 asset,
                 {"assets": assets_state},
@@ -1854,6 +1871,91 @@ def main() -> int:
                 run_date=run_date,
                 now_iso=now_iso,
             )
+
+            # ── Execution Approval Gate (Phase 1 & 2) ──────────────────────────
+            prop_stage = entry.get("tranche_stage", 0)
+            sig = entry.get("signal", "")
+
+            # Check if approval gate is required (first SWITCH IN: prev_stage == 0 -> target_stage == 1)
+            is_first_switch_in = (prev_st == 0 and prop_stage == 1 and sig == "SWITCH IN")
+            if is_first_switch_in and require_manual_confirm:
+                pending_dict = pending_approvals.get(asset.fund)
+                verdict = evaluate_gate(
+                    fund=asset.fund,
+                    prev_stage=prev_st,
+                    proposed_stage=prop_stage,
+                    signal=sig,
+                    capital_thb=capital_thb,
+                    require_manual_confirm=require_manual_confirm,
+                    pending=pending_dict,
+                    submitted_token=submitted_token,
+                    now=now_th,
+                )
+
+                if verdict.outcome == GateOutcome.APPROVED:
+                    LOG.info("Execution Gate: APPROVED for %s with token (committed_stage=%d)", asset.fund, verdict.committed_stage)
+                    entry["tranche_stage"] = verdict.committed_stage
+                    entry["target_exposure"] = (verdict.committed_stage / 3.0) * 0.20
+                    pending_approvals.pop(asset.fund, None)
+                    if verdict.unlock_auto:
+                        require_manual_confirm = False
+                        LOG.info("Execution Gate: Auto-mode unlocked (require_manual_confirm=False)")
+                elif verdict.outcome == GateOutcome.PENDING:
+                    LOG.warning("Execution Gate: PENDING for %s (Token: %s)", asset.fund, verdict.ticket.token if verdict.ticket else "N/A")
+                    entry["tranche_stage"] = verdict.committed_stage  # 0
+                    entry["target_exposure"] = 0.0
+                    entry["position"] = "OUT"
+                    entry["signal"] = "PENDING APPROVAL"
+                    entry["icon"] = "🔐"
+                    entry["action_detail"] = f"รอการยืนยันคำสั่งจากมนุษย์ (Token: {verdict.ticket.token if verdict.ticket else 'N/A'})"
+                    if verdict.ticket:
+                        pending_approvals[asset.fund] = verdict.ticket.to_state()
+                        alert_text = render_approval_alert(verdict, repo_url=os.getenv("GITHUB_SERVER_URL", "") + "/" + os.getenv("GITHUB_REPOSITORY", ""))
+                        if alert_text:
+                            approval_alerts.append(alert_text)
+                    # Update summary row tuple for pending state
+                    if s_tuple:
+                        s_tuple = (
+                            asset.fund,
+                            s_tuple[1],
+                            "PENDING APPROVAL",
+                            "OUT",
+                            "🔐",
+                            entry["action_detail"],
+                            0,
+                            "0% (Pending Confirmation)"
+                        )
+                elif verdict.outcome == GateOutcome.REJECTED_SIZE:
+                    LOG.warning("Execution Gate: REJECTED_SIZE for %s (%s)", asset.fund, verdict.reasons[0] if verdict.reasons else "")
+                    entry["tranche_stage"] = verdict.committed_stage  # 0
+                    entry["target_exposure"] = 0.0
+                    entry["position"] = "OUT"
+                    entry["action_detail"] = verdict.reasons[0] if verdict.reasons else "Order size too small"
+                elif verdict.outcome in (GateOutcome.EXPIRED, GateOutcome.SUPERSEDED):
+                    LOG.warning("Execution Gate: %s for %s (New Token: %s)", verdict.outcome, asset.fund, verdict.ticket.token if verdict.ticket else "N/A")
+                    entry["tranche_stage"] = verdict.committed_stage
+                    entry["target_exposure"] = 0.0
+                    entry["position"] = "OUT"
+                    entry["signal"] = "PENDING APPROVAL"
+                    entry["icon"] = "🔐"
+                    entry["action_detail"] = f"{verdict.outcome.value}: ออก Token ใหม่ ({verdict.ticket.token if verdict.ticket else 'N/A'})"
+                    if verdict.ticket:
+                        pending_approvals[asset.fund] = verdict.ticket.to_state()
+                        alert_text = render_approval_alert(verdict, repo_url=os.getenv("GITHUB_SERVER_URL", "") + "/" + os.getenv("GITHUB_REPOSITORY", ""))
+                        if alert_text:
+                            approval_alerts.append(alert_text)
+                    if s_tuple:
+                        s_tuple = (
+                            asset.fund,
+                            s_tuple[1],
+                            "PENDING APPROVAL",
+                            "OUT",
+                            "🔐",
+                            entry["action_detail"],
+                            0,
+                            "0% (Pending Confirmation)"
+                        )
+
             detail_blocks.append(block)
             assets_state[asset.fund] = entry
             if s_tuple:
@@ -1896,6 +1998,8 @@ def main() -> int:
         "version": 3.1,
         "last_run_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "last_run_ict": now_th.isoformat(timespec="seconds"),
+        "require_manual_confirm": require_manual_confirm,
+        "pending_approvals": pending_approvals,
         "canary": {
             "ticker": CFG.CANARY_TIP_TICKER,
             "tip_mom_13612_pct": tip_mom,
@@ -2007,6 +2111,14 @@ def main() -> int:
 
     final_report = "\n\n".join(report_sections)
     broadcast(final_report)
+
+    # Send separate critical approval alerts if any tickets are pending confirmation
+    for alert in approval_alerts:
+        try:
+            send_to_discord(alert)
+        except Exception as e:
+            LOG.error("Failed to send approval alert: %s", e)
+
     LOG.info("=== QUANT BOT COMPLETED (Failures: %d) ===", failures)
     return 1 if failures == len(UNIVERSE) else 0
 

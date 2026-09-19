@@ -13,6 +13,14 @@ on:
         description: "Shadow: คำนวณ + log แต่ไม่เขียน state / ไม่ส่ง order"
         type: boolean
         default: false
+      approve_token:
+        description: "Token อนุมัติคำสั่ง SWITCH IN ครั้งแรก (8 hex จาก Discord)"
+        required: false
+        default: ""
+      capital_thb:
+        description: "เงินต้นปัจจุบัน (บาท) สำหรับคำนวณขนาดไม้"
+        required: false
+        default: "0"
 
 # ⭐ กัน cron ชน manual dispatch — คิวรอ ไม่ kill run ที่กำลังเขียน state
 concurrency:
@@ -93,6 +101,8 @@ jobs:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID:              ${{ secrets.LINE_USER_ID }}
           SHADOW_MODE:               ${{ inputs.shadow_mode }}
+          APPROVE_TOKEN:             ${{ inputs.approve_token }}
+          CAPITAL_THB:               ${{ vars.CAPITAL_THB || inputs.capital_thb || 100000 }}
           PYTHONUNBUFFERED:          "1"
         run: python bot.py
 
