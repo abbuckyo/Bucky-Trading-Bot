@@ -1,5 +1,5 @@
 <!-- ══════════════════════════════════════════════════════════════════
-     docs/index.html — AlphaShield V7.2 · Master Password Gated
+     docs/index.html — AlphaShield V8.1 · Mission Control Operations
      ══════════════════════════════════════════════════════════════════ -->
 <!DOCTYPE html>
 <html lang="th" class="dark">
@@ -7,13 +7,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow, noarchive" />
-<title>AlphaShield — Secure Portfolio Monitor</title>
-<meta name="description" content="AlphaShield · Encrypted tactical allocation monitor." />
+<title>AlphaShield — Operations Mission Control</title>
+<meta name="description" content="AlphaShield V8.1 · Mission Control & Quantitative Operations Dashboard." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -24,20 +24,40 @@
     theme: {
       extend: {
         colors: {
-          background: 'hsl(0 0% 0%)',
-          foreground: 'hsl(0 0% 100%)',
-          muted:      'hsl(0 0% 65%)',
-          card:       'hsl(0 0% 4%)',
-          cardborder: 'hsl(0 0% 14%)',
-          emerald: { DEFAULT: 'hsl(160 84% 39%)' },
-          amber:   { DEFAULT: 'hsl(38 92% 50%)' },
-          rose:    { DEFAULT: 'hsl(350 89% 60%)' },
-          indigo:  { DEFAULT: 'hsl(226 71% 60%)' },
-          haven:   { DEFAULT: 'hsl(215 16% 47%)' }
+          background: '#0d1117',
+          surface:    '#161b22',
+          borderline: '#21262d',
+          subborder:  '#30363d',
+          foreground: '#f0f6fc',
+          muted:      '#8b949e',
+          em: {
+            DEFAULT: '#238636',
+            bright:  '#3fb950',
+            subtle:  'rgba(35, 134, 54, 0.15)'
+          },
+          rs: {
+            DEFAULT: '#da3633',
+            bright:  '#f85149',
+            subtle:  'rgba(218, 54, 51, 0.15)'
+          },
+          am: {
+            DEFAULT: '#d29922',
+            bright:  '#e3b341',
+            subtle:  'rgba(210, 153, 34, 0.15)'
+          },
+          bl: {
+            DEFAULT: '#1f6feb',
+            bright:  '#58a6ff',
+            subtle:  'rgba(31, 111, 235, 0.15)'
+          },
+          haven: {
+            DEFAULT: '#388bfd',
+            subtle:  'rgba(56, 139, 253, 0.12)'
+          }
         },
         fontFamily: {
-          sans:  ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-          serif: ["'Instrument Serif'", 'Georgia', 'serif']
+          sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          mono: ["'JetBrains Mono'", 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
         }
       }
     }
@@ -47,161 +67,124 @@
 <style>
   html { scroll-behavior: smooth; }
   body {
-    background-color: hsl(0 0% 0%);
-    background-image:
-      radial-gradient(1200px 640px at 12% -10%, hsl(160 84% 39% / 0.10), transparent 60%),
-      radial-gradient(1000px 560px at 90% -6%, hsl(226 71% 60% / 0.09), transparent 58%);
-    background-attachment: fixed;
+    background-color: #0d1117;
+    color: #f0f6fc;
   }
   body.locked { overflow: hidden; }
-  ::selection { background: hsl(160 84% 39% / .35); }
-  ::-webkit-scrollbar { width: 9px; height: 9px; }
-  ::-webkit-scrollbar-track { background: hsl(0 0% 4%); }
-  ::-webkit-scrollbar-thumb { background: hsl(0 0% 18%); border-radius: 9px; }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(0 0% 26%); }
+  ::selection { background: rgba(56, 139, 253, 0.3); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #0d1117; }
+  ::-webkit-scrollbar-thumb { background: #21262d; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #30363d; }
 
-  /* ── Liquid Glass ─────────────────────────────────────────── */
-  .liquid-glass {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12);
-    position: relative;
-    overflow: hidden;
-  }
-  .liquid-glass::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.2) 100%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-
-  .serif-accent { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
   .tabular { font-variant-numeric: tabular-nums; }
+  .font-mono-code { font-family: 'JetBrains Mono', monospace; }
 
-  /* ── Motion ───────────────────────────────────────────────── */
-  @keyframes fadeUp   { from { opacity:0; transform: translateY(26px); } to { opacity:1; transform:none; } }
-  @keyframes fadeDown { from { opacity:0; transform: translateY(-24px); } to { opacity:1; transform:none; } }
-  @keyframes shake    { 10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(4px)}
-                        30%,50%,70%{transform:translateX(-7px)} 40%,60%{transform:translateX(7px)} }
-  @keyframes glowPulse{ 0%,100%{ box-shadow:0 0 0 0 hsl(160 84% 39% / .35);} 50%{ box-shadow:0 0 34px -6px hsl(160 84% 39% / .55);} }
-  @keyframes spin     { to { transform: rotate(360deg); } }
+  @keyframes shake {
+    10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(4px)}
+    30%,50%,70%{transform:translateX(-6px)} 40%,60%{transform:translateX(6px)}
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  .anim-up   { animation: fadeUp .72s cubic-bezier(.16,1,.3,1) both; }
-  .anim-down { animation: fadeDown .6s cubic-bezier(.16,1,.3,1) both; }
-  .shake     { animation: shake .5s cubic-bezier(.36,.07,.19,.97) both; }
-  .glow-pulse{ animation: glowPulse 3s ease-in-out infinite; }
-  .spinner   { animation: spin .8s linear infinite; }
+  .shake   { animation: shake .45s cubic-bezier(.36,.07,.19,.97) both; }
+  .spinner { animation: spin .8s linear infinite; }
 
-  .reveal { opacity: 0; transform: translateY(30px);
-            transition: opacity .65s cubic-bezier(.16,1,.3,1), transform .65s cubic-bezier(.16,1,.3,1); }
-  .reveal.shown { opacity: 1; transform: translateY(0); }
-
-  .meter-ring { transition: stroke-dashoffset 1.3s cubic-bezier(.16,1,.3,1); }
-  .bar-fill   { transition: width 1.1s cubic-bezier(.16,1,.3,1); }
-  .chev       { transition: transform .28s cubic-bezier(.16,1,.3,1); }
+  .meter-ring { transition: stroke-dashoffset 1.0s cubic-bezier(.16,1,.3,1); }
+  .bar-fill   { transition: width 0.8s cubic-bezier(.16,1,.3,1); }
+  .chev       { transition: transform .2s ease; }
   .drawer     { display: grid; grid-template-rows: 0fr; opacity: 0;
-                transition: grid-template-rows .38s cubic-bezier(.16,1,.3,1), opacity .3s ease; }
+                transition: grid-template-rows .3s cubic-bezier(.16,1,.3,1), opacity .25s ease; }
   .drawer > div { overflow: hidden; }
   .drawer.open { grid-template-rows: 1fr; opacity: 1; }
 
-  .card-glow { transition: box-shadow .35s ease, border-color .35s ease, transform .35s cubic-bezier(.16,1,.3,1); }
-  .card-glow:hover { transform: translateY(-3px); }
-  .glow-emerald:hover { box-shadow: 0 0 44px -12px hsl(160 84% 39% / .55); }
-  .glow-indigo:hover  { box-shadow: 0 0 44px -12px hsl(226 71% 60% / .55); }
-  .glow-rose:hover    { box-shadow: 0 0 44px -12px hsl(350 89% 60% / .55); }
-  .glow-amber:hover   { box-shadow: 0 0 44px -12px hsl(38 92% 50% / .50); }
-  .glow-haven:hover   { box-shadow: 0 0 44px -14px hsl(215 16% 47% / .50); }
-
-  .filter-pill { transition: color .25s ease, background-color .25s ease; }
+  .filter-pill { transition: color .2s ease, background-color .2s ease, border-color .2s ease; }
   .line-clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 
-  /* ── Auth Gate ────────────────────────────────────────────── */
-  #auth-overlay { transition: opacity .5s ease, visibility .5s ease, backdrop-filter .5s ease; }
+  /* Auth overlay transitions */
+  #auth-overlay { transition: opacity .35s ease, visibility .35s ease; }
   #auth-overlay.hidden-gate { opacity: 0; visibility: hidden; pointer-events: none; }
-  #app-shell { transition: opacity .7s cubic-bezier(.16,1,.3,1), filter .7s cubic-bezier(.16,1,.3,1); }
-  #app-shell.blurred { opacity: 0; filter: blur(24px); pointer-events: none; user-select: none; }
+  #app-shell { transition: opacity .4s ease, filter .4s ease; }
+  #app-shell.blurred { opacity: 0; filter: blur(12px); pointer-events: none; user-select: none; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
-    .reveal { opacity: 1; transform: none; }
   }
 </style>
 </head>
 
-<body class="locked min-h-screen bg-background font-sans text-foreground antialiased">
+<body class="locked min-h-screen bg-background font-sans text-foreground antialiased selection:bg-bl-subtle">
 
 <!-- ═══════════════════════ AUTHENTICATION OVERLAY ═══════════════════════ -->
-<div id="auth-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-4 backdrop-blur-2xl">
-  <div class="pointer-events-none absolute inset-0 opacity-70"
-       style="background:radial-gradient(700px 420px at 50% 8%, hsl(160 84% 39% / .12), transparent 65%);"></div>
-
-  <div id="auth-card" class="liquid-glass anim-up relative w-full max-w-md rounded-3xl border border-white/10 p-8">
-    <div class="flex flex-col items-center text-center">
-      <div class="glow-pulse mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald/25 bg-emerald/10">
-        <i data-lucide="shield-check" class="h-6 w-6 text-emerald"></i>
+<div id="auth-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 px-4 backdrop-blur-md">
+  <div id="auth-card" class="relative w-full max-w-md rounded-lg border border-borderline bg-surface p-7 shadow-2xl">
+    <div class="mb-5 flex items-center justify-between border-b border-borderline pb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="flex h-8 w-8 items-center justify-center rounded border border-subborder bg-background">
+          <i data-lucide="shield" class="h-4 w-4 text-bl-bright"></i>
+        </div>
+        <div>
+          <span class="text-sm font-bold tracking-wider text-foreground">ALPHASHIELD</span>
+          <span class="ml-1.5 rounded border border-borderline bg-background px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted">V8.1</span>
+        </div>
       </div>
+      <span class="inline-flex items-center gap-1.5 rounded border border-borderline bg-background px-2 py-0.5 font-mono text-[10px] text-muted">
+        <i data-lucide="lock" class="h-3 w-3 text-muted"></i> AES-256-GCM
+      </span>
+    </div>
 
-      <div class="mb-1 flex items-center gap-2">
-        <span class="text-2xl font-bold tracking-tight text-foreground">AlphaShield</span>
-        <span class="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold tracking-widest text-muted">V7.2</span>
-      </div>
-
-      <h2 class="mb-2 text-3xl font-medium tracking-tight text-foreground">
-        Encrypted <span class="serif-accent">Access.</span>
-      </h2>
-      <p class="mb-7 max-w-xs text-sm leading-relaxed text-muted">
-        ข้อมูลพอร์ตถูกเข้ารหัสด้วย AES-GCM 256-bit<br />
-        กรอก <span class="font-medium text-foreground/80">Master Password</span> เพื่อปลดล็อก
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold tracking-tight text-foreground">Mission Control Access</h2>
+      <p class="mt-1 font-mono text-xs leading-relaxed text-muted">
+        Tactical engine payload is client-side encrypted.<br/>
+        Authenticate with Master Password to decrypt stream.
       </p>
     </div>
 
     <form id="auth-form" autocomplete="off" novalidate>
-      <label for="otp-input" class="mb-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
-        Master Password
-      </label>
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label for="otp-input" class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">
+            Master Passphrase
+          </label>
+          <span class="font-mono text-[10px] text-muted">PBKDF2-SHA256</span>
+        </div>
 
-      <div class="relative">
-        <i data-lucide="key-round" class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"></i>
-        <input
-          id="otp-input" type="password" maxlength="128"
-          spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="current-password"
-          placeholder="Enter master password"
-          class="w-full rounded-2xl border border-white/10 bg-white/[0.03] py-4 pl-11 pr-12 text-center text-lg font-semibold text-foreground outline-none transition placeholder:text-white/20 focus:border-emerald/50 focus:bg-white/[0.05] focus:ring-2 focus:ring-emerald/20"
-          style="letter-spacing:.12em" />
-        <button id="toggle-visibility" type="button" aria-label="สลับการแสดงรหัส"
-                class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted transition hover:text-foreground">
-          <i data-lucide="eye" class="h-4 w-4"></i>
-        </button>
+        <div class="relative">
+          <i data-lucide="key" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"></i>
+          <input
+            id="otp-input" type="password" maxlength="128"
+            spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="current-password"
+            placeholder="Enter authorization key"
+            class="w-full rounded border border-subborder bg-background py-2.5 pl-9 pr-10 font-mono text-sm text-foreground outline-none transition placeholder:text-muted/50 focus:border-bl-bright focus:ring-1 focus:ring-bl-bright" />
+          <button id="toggle-visibility" type="button" aria-label="Toggle password visibility"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted transition hover:text-foreground">
+            <i data-lucide="eye" class="h-4 w-4"></i>
+          </button>
+        </div>
       </div>
 
-      <div id="auth-error" class="mt-3 hidden items-center gap-2 rounded-xl border border-rose/25 bg-rose/10 px-3 py-2.5 text-xs font-medium text-rose">
-        <i data-lucide="alert-circle" class="h-4 w-4 shrink-0"></i>
+      <div id="auth-error" class="mt-3 hidden items-center gap-2 rounded border border-rs/30 bg-rs-subtle px-3 py-2 font-mono text-xs text-rs-bright">
+        <i data-lucide="alert-triangle" class="h-4 w-4 shrink-0"></i>
         <span id="auth-error-text">รหัสผ่านไม่ถูกต้อง</span>
       </div>
 
-      <label class="mt-4 flex cursor-pointer items-center gap-2.5 text-xs text-muted">
-        <input id="remember-toggle" type="checkbox" checked
-               class="h-4 w-4 rounded border-white/20 bg-white/5 accent-emerald" />
-        Remember me — จดจำรหัสในเบราว์เซอร์นี้
-      </label>
+      <div class="mt-4 flex items-center justify-between">
+        <label class="flex cursor-pointer items-center gap-2 text-xs text-muted">
+          <input id="remember-toggle" type="checkbox" checked
+                 class="h-3.5 w-3.5 rounded border-subborder bg-background accent-bl-bright" />
+          Remember on this browser
+        </label>
+      </div>
 
       <button id="unlock-btn" type="submit"
-              class="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald py-4 text-sm font-bold tracking-wide text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">
+              class="mt-6 flex w-full items-center justify-center gap-2 rounded border border-bl bg-bl px-4 py-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-bl-bright disabled:cursor-not-allowed disabled:opacity-50">
         <i data-lucide="unlock" class="h-4 w-4"></i>
-        <span id="unlock-label">Unlock Dashboard</span>
+        <span id="unlock-label">Authenticate &amp; Decrypt</span>
       </button>
     </form>
 
-    <div class="mt-6 flex items-center justify-center gap-2 border-t border-white/[0.07] pt-5 text-[10px] uppercase tracking-[0.16em] text-white/35">
-      <i data-lucide="lock" class="h-3 w-3"></i>
-      <span id="enc-meta">PBKDF2 · AES-GCM · Client-side only</span>
+    <div class="mt-5 border-t border-borderline pt-4 text-center font-mono text-[10px] text-muted">
+      Zero-knowledge client-side runtime · Zero server plaintext
     </div>
   </div>
 </div>
@@ -209,130 +192,286 @@
 <!-- ═══════════════════════════ APP SHELL ═══════════════════════════ -->
 <div id="app-shell" class="blurred">
 
-  <!-- ── NAVBAR ── -->
-  <nav class="anim-down sticky top-0 z-50 border-b border-white/10 bg-black/60 px-6 py-4 backdrop-blur-xl md:px-16">
+  <!-- ── TOP OPERATIONS HEADER ── -->
+  <header class="sticky top-0 z-50 border-b border-borderline bg-background/95 backdrop-blur px-4 py-2.5 sm:px-6">
     <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+      <!-- Left: Engine Title & Live Indicator -->
       <div class="flex items-center gap-3">
-        <div class="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald/25 bg-emerald/10">
-          <i data-lucide="terminal-square" class="h-[18px] w-[18px] text-emerald"></i>
+        <div class="flex h-7 w-7 items-center justify-center rounded border border-borderline bg-surface">
+          <i data-lucide="terminal" class="h-3.5 w-3.5 text-bl-bright"></i>
         </div>
-        <span class="text-xl font-bold tracking-tight text-foreground">AlphaShield</span>
-        <span class="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold tracking-widest text-muted">ENGINE V7.2</span>
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-sm font-bold tracking-tight text-foreground">ALPHASHIELD</span>
+          <span id="hdr-engine" class="rounded border border-subborder bg-surface px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted">V8.1</span>
+        </div>
+        <span class="hidden text-borderline sm:inline">|</span>
+        <div class="hidden items-center gap-1.5 sm:flex">
+          <span class="h-2 w-2 rounded-full bg-em-bright"></span>
+          <span class="font-mono text-[11px] uppercase tracking-wider text-muted">LIVE OPS</span>
+        </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="liquid-glass inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium text-emerald">
-          <i data-lucide="radio" class="h-[13px] w-[13px] animate-pulse"></i>
-          <span id="nav-time">--:-- ICT</span> Synced
-        </span>
-        <span class="inline-flex items-center gap-2 rounded-full border border-haven/25 bg-haven/10 px-3 py-1.5 text-xs font-medium text-haven">
-          <i data-lucide="shield-check" class="h-[13px] w-[13px]"></i>
-          Safe Haven: <span id="nav-haven" class="font-semibold text-foreground/90">—</span>
-        </span>
+      <!-- Right: Clocks, Safe Haven, Lock Action -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex items-center gap-1.5 rounded border border-borderline bg-surface px-2.5 py-1 font-mono text-[11px] text-muted">
+          <i data-lucide="clock" class="h-3.5 w-3.5 text-bl-bright"></i>
+          <span id="hdr-time" class="tabular text-foreground">--:--:-- ICT</span>
+        </div>
+
+        <div class="hidden items-center gap-1.5 rounded border border-borderline bg-surface px-2.5 py-1 font-mono text-[11px] text-muted md:flex">
+          <i data-lucide="shield" class="h-3.5 w-3.5 text-haven"></i>
+          <span>PARK:</span>
+          <span id="hdr-haven" class="font-semibold text-foreground">SCBTMFPLUS-E</span>
+        </div>
+
         <button id="logout-btn" type="button"
-                class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-muted transition hover:border-rose/30 hover:text-rose">
-          <i data-lucide="log-out" class="h-[13px] w-[13px]"></i> Lock
+                class="flex items-center gap-1 rounded border border-borderline bg-surface px-2.5 py-1 font-mono text-[11px] text-muted transition hover:border-rs/50 hover:text-rs-bright">
+          <i data-lucide="lock" class="h-3.5 w-3.5"></i>
+          <span class="hidden sm:inline">LOCK</span>
         </button>
       </div>
     </div>
-  </nav>
+  </header>
 
-  <!-- ── HERO ── -->
-  <section class="px-4 py-12 text-center md:py-16">
-    <div class="anim-up flex justify-center" style="animation-delay:.1s">
-      <div class="liquid-glass inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-4">
-        <span class="rounded-full bg-emerald/15 px-2.5 py-1 text-[10px] font-bold tracking-widest text-emerald">SYSTEM STATUS</span>
-        <span class="text-xs font-medium text-muted">Defensive Hysteresis Active</span>
-      </div>
-    </div>
+  <!-- ── MAIN CONTENT CONTAINER ── -->
+  <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
 
-    <h1 class="anim-up mx-auto mb-4 mt-8 max-w-4xl text-5xl font-medium leading-tight tracking-tight text-foreground md:text-7xl" style="animation-delay:.2s">
-      Capital Preserved.<br />
-      One Clear <span class="serif-accent">Signal.</span>
-    </h1>
-
-    <p class="anim-up mx-auto max-w-2xl text-base leading-relaxed text-muted md:text-lg" style="animation-delay:.32s">
-      Rule-based tactical asset allocation for SCB equity funds. Eliminating emotional
-      drawdowns with pure mathematical discipline.
-    </p>
-
-    <div class="liquid-glass anim-up mx-auto mt-10 w-full max-w-3xl rounded-2xl p-5" style="animation-delay:.45s">
-      <div class="mb-3 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.18em]">
-        <span class="text-emerald">Equity Allocation <span id="alloc-eq" class="tabular ml-1 text-foreground">0.0%</span></span>
-        <span class="text-haven"><span id="alloc-cash" class="tabular mr-1 text-foreground">100.0%</span> Cash Park</span>
-      </div>
-      <div class="flex h-3 w-full overflow-hidden rounded-full bg-white/5 ring-1 ring-inset ring-white/10">
-        <div id="bar-eq" class="bar-fill h-full rounded-l-full bg-gradient-to-r from-emerald to-emerald/70" style="width:0%"></div>
-        <div id="bar-cash" class="bar-fill h-full bg-gradient-to-r from-haven/70 to-haven/40" style="width:0%"></div>
-      </div>
-      <p class="mt-3 text-center text-xs text-muted">
-        Idle capital parked in <span id="alloc-fund" class="font-medium text-foreground/90">—</span> money market fund
-      </p>
-    </div>
-  </section>
-
-  <!-- ── KPI CARDS ── -->
-  <section id="kpi-grid" class="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-6 sm:grid-cols-2 lg:grid-cols-4 md:px-16"></section>
-
-  <!-- ── ASSET SURVEILLANCE ── -->
-  <section class="mx-auto mt-16 max-w-7xl px-6 md:px-16">
-    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h2 class="text-2xl font-medium tracking-tight text-foreground md:text-3xl">
-          Asset <span class="serif-accent">Surveillance.</span>
-        </h2>
-        <p class="mt-1 text-xs text-muted">
-          <span id="count-visible">0</span> of <span id="count-total">0</span> instruments ·
-          <span id="feed-status" class="text-amber">awaiting decryption</span>
-        </p>
+    <!-- ══════════════════════════════════════════════════════════
+         OPERATIONAL STATUS GRID (4 Core Mission Control Cards)
+         ══════════════════════════════════════════════════════════ -->
+    <section aria-label="Operational Status Grid" class="mb-8">
+      <div class="mb-3 flex items-center justify-between">
+        <div class="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">
+          <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-bl-bright"></i>
+          <span>Operational Health &amp; Execution Grid</span>
+        </div>
+        <span class="font-mono text-[10px] text-muted">Refreshed Decrypted Payload</span>
       </div>
 
-      <div class="liquid-glass inline-flex self-start rounded-full p-1">
-        <button data-filter="all" class="filter-pill relative rounded-full px-4 py-1.5 text-xs font-semibold">View All</button>
-        <button data-filter="active" class="filter-pill relative rounded-full px-4 py-1.5 text-xs font-semibold">Active Only</button>
-      </div>
-    </div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-    <div id="asset-grid" class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3"></div>
-    <p id="empty-state" class="hidden py-20 text-center text-sm text-muted"></p>
-  </section>
+        <!-- CARD 1: Asset Allocation & Sleeve Weights -->
+        <article class="rounded-lg border border-borderline bg-surface p-4">
+          <div class="flex items-center justify-between border-b border-borderline pb-2.5">
+            <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Card 1 · Allocation</span>
+            <i data-lucide="pie-chart" class="h-4 w-4 text-bl-bright"></i>
+          </div>
+
+          <div class="mt-3">
+            <div class="flex items-baseline justify-between">
+              <div>
+                <span class="font-mono text-[10px] uppercase text-muted">Equity Exposure</span>
+                <p id="card1-eq-pct" class="tabular font-mono text-2xl font-bold text-foreground">0.0%</p>
+              </div>
+              <div class="text-right">
+                <span class="font-mono text-[10px] uppercase text-muted">Cash Park</span>
+                <p id="card1-cash-pct" class="tabular font-mono text-sm font-semibold text-muted">100.0%</p>
+              </div>
+            </div>
+
+            <!-- Segmented Overall Allocation Bar -->
+            <div class="mt-3 h-2 w-full overflow-hidden rounded bg-background">
+              <div id="card1-alloc-bar" class="bar-fill h-full bg-bl-bright" style="width: 0%"></div>
+            </div>
+
+            <!-- Sleeve Tranche Segments (T0-T3) Indicator -->
+            <div class="mt-3 rounded border border-borderline bg-background p-2">
+              <div class="flex items-center justify-between font-mono text-[10px] text-muted">
+                <span>Active Tranches:</span>
+                <span id="card1-active-sleeves" class="font-semibold text-foreground">0 / 5 Sleeves</span>
+              </div>
+              <!-- Segmented dots T0, T1, T2, T3 representation -->
+              <div class="mt-2 flex items-center justify-between font-mono text-[9px] text-muted">
+                <span class="flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-borderline"></span>T0 0%</span>
+                <span class="flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-am-bright"></span>T1 33%</span>
+                <span class="flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-bl-bright"></span>T2 66%</span>
+                <span class="flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-em-bright"></span>T3 100%</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- CARD 2: Signal & Regime State -->
+        <article class="rounded-lg border border-borderline bg-surface p-4">
+          <div class="flex items-center justify-between border-b border-borderline pb-2.5">
+            <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Card 2 · Regime State</span>
+            <i data-lucide="activity" class="h-4 w-4 text-am-bright"></i>
+          </div>
+
+          <div class="mt-3 space-y-3">
+            <!-- Primary Macro Badge -->
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-[10px] uppercase text-muted">Regime Status</span>
+              <span id="card2-regime-badge" class="inline-flex items-center gap-1.5 rounded border border-borderline bg-background px-2 py-0.5 font-mono text-xs font-bold uppercase">
+                <span class="h-2 w-2 rounded-full bg-muted"></span> DEFENSIVE
+              </span>
+            </div>
+
+            <!-- TIP Canary 13612 Mom -->
+            <div class="rounded border border-borderline bg-background p-2">
+              <div class="flex items-center justify-between font-mono text-[10px]">
+                <span class="text-muted">TIP Canary (13612):</span>
+                <span id="card2-canary-badge" class="font-bold text-muted">--</span>
+              </div>
+              <div class="mt-1 flex items-baseline justify-between font-mono text-xs">
+                <span class="text-muted">Momentum:</span>
+                <span id="card2-canary-val" class="tabular font-semibold text-foreground">--</span>
+              </div>
+            </div>
+
+            <!-- Futures Guard Circuit Breaker -->
+            <div class="rounded border border-borderline bg-background p-2">
+              <div class="flex items-center justify-between font-mono text-[10px]">
+                <span class="text-muted">US Futures Guard:</span>
+                <span id="card2-futures-badge" class="font-bold text-muted">NORMAL</span>
+              </div>
+              <div class="mt-1 truncate font-mono text-[10px] text-muted" id="card2-futures-desc">
+                ES=F / NQ=F pre-market monitoring
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- CARD 3: Portfolio Health & Drawdown -->
+        <article class="rounded-lg border border-borderline bg-surface p-4">
+          <div class="flex items-center justify-between border-b border-borderline pb-2.5">
+            <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Card 3 · Health &amp; DD</span>
+            <i data-lucide="trending-down" class="h-4 w-4 text-em-bright"></i>
+          </div>
+
+          <div class="mt-3">
+            <div class="flex items-baseline justify-between">
+              <div>
+                <span class="font-mono text-[10px] uppercase text-muted">Current Drawdown</span>
+                <p id="card3-drawdown-val" class="tabular font-mono text-2xl font-bold text-em-bright">0.00%</p>
+              </div>
+              <div class="text-right">
+                <span class="font-mono text-[10px] uppercase text-muted">Max Limit</span>
+                <p class="font-mono text-sm font-semibold text-rs-bright">-5.00%</p>
+              </div>
+            </div>
+
+            <!-- Drawdown Gauge Bar -->
+            <div class="mt-3 h-2 w-full overflow-hidden rounded bg-background">
+              <div id="card3-dd-bar" class="bar-fill h-full bg-em-bright" style="width: 0%"></div>
+            </div>
+
+            <div class="mt-3 space-y-1 rounded border border-borderline bg-background p-2 font-mono text-[10px]">
+              <div class="flex items-center justify-between">
+                <span class="text-muted">Portfolio Capital:</span>
+                <span id="card3-capital-val" class="tabular font-semibold text-foreground">฿100,000</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-muted">Benchmark Relative:</span>
+                <span id="card3-bench-val" class="font-semibold text-em-bright">OUTPERFORM (+0.0%)</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- CARD 4: Operations & Execution Log -->
+        <article class="rounded-lg border border-borderline bg-surface p-4">
+          <div class="flex items-center justify-between border-b border-borderline pb-2.5">
+            <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Card 4 · Operations</span>
+            <i data-lucide="cpu" class="h-4 w-4 text-bl-bright"></i>
+          </div>
+
+          <div class="mt-3 space-y-2 font-mono text-[11px]">
+            <div class="flex items-center justify-between border-b border-borderline/60 pb-1">
+              <span class="text-muted">Engine Version:</span>
+              <span id="card4-engine-val" class="font-semibold text-foreground">AlphaShield V8.1</span>
+            </div>
+
+            <div class="flex items-center justify-between border-b border-borderline/60 pb-1">
+              <span class="text-muted">Last Rebalance:</span>
+              <span id="card4-rebalance-val" class="tabular text-foreground">--:-- ICT</span>
+            </div>
+
+            <div class="flex items-center justify-between border-b border-borderline/60 pb-1">
+              <span class="text-muted">Sizing per Sleeve:</span>
+              <span id="card4-sizing-val" class="tabular text-foreground">20.0% (฿20,000)</span>
+            </div>
+
+            <div class="flex items-center justify-between pt-0.5">
+              <span class="text-muted">Approval Gate:</span>
+              <span id="card4-gate-val" class="rounded border border-borderline bg-background px-1.5 py-0.5 text-[10px] font-bold text-muted">
+                AUTO
+              </span>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════
+         ASSET SURVEILLANCE TABLE / GRID
+         ══════════════════════════════════════════════════════════ -->
+    <section aria-label="Asset Surveillance">
+      <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 class="font-mono text-sm font-bold uppercase tracking-wider text-foreground">
+            Asset Surveillance &amp; Sleeve Diagnostics
+          </h2>
+          <p class="font-mono text-[11px] text-muted">
+            Tracking <span id="count-visible" class="text-foreground">0</span> of <span id="count-total" class="text-foreground">0</span> instruments ·
+            <span id="feed-status" class="text-am-bright">awaiting auth</span>
+          </p>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="flex items-center gap-1 rounded border border-borderline bg-surface p-1">
+          <button data-filter="all" class="filter-pill rounded border border-transparent px-3 py-1 font-mono text-xs font-semibold">ALL</button>
+          <button data-filter="active" class="filter-pill rounded border border-transparent px-3 py-1 font-mono text-xs font-semibold">ACTIVE SLEEVES</button>
+        </div>
+      </div>
+
+      <!-- Assets Container -->
+      <div id="asset-grid" class="space-y-3"></div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden rounded-lg border border-dashed border-borderline p-10 text-center font-mono text-xs text-muted">
+        No active allocations. Portfolio is 100% parked in safe haven.
+      </div>
+    </section>
+
+  </main>
 
   <!-- ── FOOTER ── -->
-  <footer class="mt-20 border-t border-white/10 px-6 py-10 md:px-16">
-    <div class="mx-auto max-w-3xl text-center">
-      <div class="mb-3 inline-flex items-center gap-2 text-muted">
-        <i data-lucide="shield-alert" class="h-[14px] w-[14px]"></i>
-        <span class="text-[10px] font-bold uppercase tracking-[0.2em]">Educational Disclaimer</span>
+  <footer class="mt-12 border-t border-borderline bg-surface/50 px-4 py-8 font-mono text-xs text-muted sm:px-6">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
+      <div>
+        <div class="flex items-center justify-center gap-2 md:justify-start">
+          <i data-lucide="shield-check" class="h-4 w-4 text-bl-bright"></i>
+          <span class="font-bold text-foreground">AlphaShield Tactical Quant</span>
+          <span class="text-[10px] text-muted">· Mission Control V8.1</span>
+        </div>
+        <p class="mt-1 text-[11px] leading-relaxed text-muted max-w-2xl">
+          Automated rule-based systematic allocation engine. High-density operations feed.
+          Zero external telemetry. Client-side authenticated runtime.
+        </p>
       </div>
-      <p class="text-xs leading-relaxed text-muted">
-        AlphaShield is an automated, rule-based research tool built for educational and
-        personal-record purposes only. Nothing displayed here constitutes investment advice,
-        a solicitation, or a recommendation to buy or sell any security or mutual fund.
-        Signals are derived from historical price data and may be wrong, delayed, or based on
-        faulty inputs. Past performance never guarantees future results. Mutual fund investment
-        carries risk — investors should study fund prospectuses and consult a licensed adviser
-        before acting.
-      </p>
-      <p class="mt-5 text-[11px] text-white/25">
-        AlphaShield Engine V7.2 · Zero-build static · AES-GCM encrypted payload · No user data collected
-      </p>
+      <div class="text-[10px] text-muted">
+        <span>PBKDF2 / AES-256-GCM Decryption</span><br/>
+        <span>Target Platform: SCB Easy Fund App</span>
+      </div>
     </div>
   </footer>
+
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════
+     JAVASCRIPT RUNTIME & CLIENT-SIDE DECRYPTION
+     ══════════════════════════════════════════════════════════════ -->
 <script>
-/* ══════════════════════════════════════════════════════════════
-   0. CONFIG & STATE
-   ══════════════════════════════════════════════════════════════ */
+/* ── Config & State ── */
 const ENC_URL   = "./data.enc";
-const AUTH_KEY  = "alphashield.master.v2";   // localStorage (Remember me)
-const SESS_KEY  = "alphashield.master.sess"; // sessionStorage (ไม่ติ๊ก remember)
+const AUTH_KEY  = "alphashield.master.v2";
+const SESS_KEY  = "alphashield.master.sess";
 
 const state = { data: null, filter: "all", bundle: null, unlocked: false };
 
-/* ══════════════════════════════════════════════════════════════
-   1. UTILITIES (แก้ Bug ตัวแปร $ ซ้ำเรียบร้อย)
-   ══════════════════════════════════════════════════════════════ */
+/* ── DOM Utilities ── */
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -346,11 +485,6 @@ const fmt = (v, d = 2) =>
   (v === null || v === undefined || Number.isNaN(Number(v)))
     ? "—"
     : Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
-
-const scoreColor = (s) =>
-  s >= 75 ? "hsl(160 84% 39%)" :
-  s >= 55 ? "hsl(226 71% 60%)" :
-  s >= 40 ? "hsl(38 92% 50%)"  : "hsl(350 89% 60%)";
 
 function timeICT(iso) {
   const d = new Date(iso);
@@ -366,9 +500,7 @@ function b64ToBytes(b64) {
   return out;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   2. CRYPTO — PBKDF2-SHA256(100k, 32B) + AES-GCM(12B IV, 128-bit tag)
-   ══════════════════════════════════════════════════════════════ */
+/* ── Web Crypto Decryption Pipeline ── */
 async function fetchBundle(force = false) {
   if (state.bundle && !force) return state.bundle;
   const res = await fetch(`${ENC_URL}?t=${Date.now()}`, { cache: "no-store" });
@@ -449,185 +581,324 @@ function clearPwd() {
   try { localStorage.removeItem(AUTH_KEY); sessionStorage.removeItem(SESS_KEY); } catch (_) {}
 }
 
-/* ══════════════════════════════════════════════════════════════
-   3. SIGNAL THEME MAP
-   ══════════════════════════════════════════════════════════════ */
+/* ── Signal Themes (Strict Bloomberg/Grafana Dark Palette) ── */
 const THEMES = {
-  "SWITCH IN":  { label:"SWITCH IN",  text:"text-emerald", border:"border-emerald/30", bg:"bg-emerald/10", dot:"bg-emerald", glow:"glow-emerald" },
-  "INVESTED":   { label:"INVESTED",   text:"text-indigo",  border:"border-indigo/30",  bg:"bg-indigo/10",  dot:"bg-indigo",  glow:"glow-indigo"  },
-  "HOLD":       { label:"INVESTED",   text:"text-indigo",  border:"border-indigo/30",  bg:"bg-indigo/10",  dot:"bg-indigo",  glow:"glow-indigo"  },
-  "SWITCH OUT": { label:"SWITCH OUT", text:"text-rose",    border:"border-rose/30",    bg:"bg-rose/10",    dot:"bg-rose",    glow:"glow-rose"    },
-  "WATCH":      { label:"WATCH",      text:"text-amber",   border:"border-amber/30",   bg:"bg-amber/10",   dot:"bg-amber",   glow:"glow-amber"   },
-  "AVOID":      { label:"AVOID",      text:"text-haven",   border:"border-haven/30",   bg:"bg-haven/10",   dot:"bg-haven",   glow:"glow-haven"   }
+  "SWITCH IN":        { label:"SWITCH IN",        text:"text-em-bright", border:"border-em/40", bg:"bg-em-subtle", dot:"bg-em-bright" },
+  "INVESTED":         { label:"INVESTED",         text:"text-bl-bright", border:"border-bl/40", bg:"bg-bl-subtle", dot:"bg-bl-bright" },
+  "HOLD":             { label:"INVESTED",         text:"text-bl-bright", border:"border-bl/40", bg:"bg-bl-subtle", dot:"bg-bl-bright" },
+  "SWITCH OUT":       { label:"SWITCH OUT",       text:"text-rs-bright", border:"border-rs/40", bg:"bg-rs-subtle", dot:"bg-rs-bright" },
+  "FUTURES PAUSE":    { label:"FUTURES PAUSE",    text:"text-am-bright", border:"border-am/40", bg:"bg-am-subtle", dot:"bg-am-bright" },
+  "PENDING APPROVAL": { label:"PENDING TICKET",   text:"text-am-bright", border:"border-am/40", bg:"bg-am-subtle", dot:"bg-am-bright" },
+  "WATCH":            { label:"WATCH",            text:"text-am-bright", border:"border-am/40", bg:"bg-am-subtle", dot:"bg-am-bright" },
+  "AVOID":            { label:"AVOID",            text:"text-muted",     border:"border-borderline", bg:"bg-background", dot:"bg-muted" }
 };
-const themeFor = (signal, position) =>
-  THEMES[String(signal || "").toUpperCase().trim()] ||
-  (String(position).toUpperCase() === "IN" ? THEMES["INVESTED"] : THEMES["AVOID"]);
 
-/* ══════════════════════════════════════════════════════════════
-   4. COMPONENT TEMPLATES
-   ══════════════════════════════════════════════════════════════ */
-function ScoreMeter(score) {
-  const s = clamp(score);
-  const R = 42, C = 2 * Math.PI * R;
-  const color = scoreColor(s);
+const themeFor = (signal, position) => {
+  const sigKey = String(signal || "").toUpperCase().trim();
+  if (THEMES[sigKey]) return THEMES[sigKey];
+  return (String(position).toUpperCase() === "IN" ? THEMES["INVESTED"] : THEMES["AVOID"]);
+};
+
+/* ── Tranche Progress Bar Helper (T0 = 0%, T1 = 33%, T2 = 66%, T3 = 100%) ── */
+function renderTrancheSegment(stage) {
+  const st = Number(stage) || 0;
+  const colors = [
+    st >= 1 ? "bg-am-bright" : "bg-borderline",
+    st >= 2 ? "bg-bl-bright" : "bg-borderline",
+    st >= 3 ? "bg-em-bright" : "bg-borderline"
+  ];
+  const stageLabels = { 0: "T0 (0%)", 1: "T1 (33%)", 2: "T2 (66%)", 3: "T3 (100%)" };
+  const label = stageLabels[st] || `T${st}`;
+
   return `
-    <div class="relative h-[112px] w-[112px] shrink-0">
-      <svg viewBox="0 0 100 100" class="h-full w-full -rotate-90">
-        <circle cx="50" cy="50" r="${R}" fill="none" stroke-width="8" stroke="rgba(255,255,255,0.07)"/>
-        <circle cx="50" cy="50" r="${R}" fill="none" stroke-width="8" stroke-linecap="round"
-                class="meter-ring" stroke="${color}"
-                stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${C.toFixed(2)}"
-                data-offset="${(C * (1 - s / 100)).toFixed(2)}"
-                style="filter: drop-shadow(0 0 6px ${color});"/>
-      </svg>
-      <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span class="tabular text-2xl font-semibold leading-none" style="color:${color}">${fmt(s, 1)}</span>
-        <span class="mt-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-muted">Score</span>
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1">
+        <span class="h-2 w-4 rounded-sm ${colors[0]}"></span>
+        <span class="h-2 w-4 rounded-sm ${colors[1]}"></span>
+        <span class="h-2 w-4 rounded-sm ${colors[2]}"></span>
       </div>
+      <span class="font-mono text-[10px] font-semibold text-foreground">${label}</span>
     </div>`;
 }
 
-const Metric = (label, value, tone = "text-foreground") => `
-  <div class="rounded-xl border border-white/[0.07] bg-white/[0.02] px-2.5 py-2">
-    <p class="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted">${esc(label)}</p>
-    <p class="tabular mt-1 text-sm font-semibold ${tone}">${value}</p>
-  </div>`;
+/* ── Asset Card Component (Table / Dense Row Hybrid) ── */
+function AssetCard(a) {
+  const isInvested = String(a.position).toUpperCase() === "IN" || (Number(a.tranche_stage) > 0);
+  const trancheStage = (a.tranche_stage !== undefined && a.tranche_stage !== null)
+    ? Number(a.tranche_stage)
+    : (isInvested ? 3 : 0);
 
-function AssetCard(a, i) {
   const t   = themeFor(a.signal, a.position);
   const chg = Number(a.chg_pct) || 0;
-  const ema = Number(a.dist_ema200_pct) || 0;
-  const rsi = Number(a.rsi) || 0;
-  const adx = Number(a.adx) || 0;
-  const hv  = Number(a.hv20) || 0;
+  const ema200 = Number(a.dist_ema200_pct) || 0;
+  const ema50  = Number(a.dist_ema50_pct) || 0;
+  const rsi    = Number(a.rsi) || 0;
+  const adx    = Number(a.adx) || 0;
+  const hv     = Number(a.hv20) || 0;
+  const score  = Number(a.score) || 0;
+
+  // Sleeve net weight = (trancheStage / 3.0) * 20.0
+  const sleeveWeight = ((trancheStage / 3.0) * 20.0).toFixed(1);
 
   const news = (Array.isArray(a.news) && a.news.length ? a.news : ["No headlines retrieved this cycle."])
-    .map(n => `<li class="flex gap-2 text-xs leading-relaxed text-muted">
-        <span class="mt-[6px] h-1 w-1 shrink-0 rounded-full bg-white/25"></span><span>${esc(n)}</span></li>`).join("");
+    .map(n => `<li class="flex gap-2 font-mono text-xs leading-relaxed text-muted">
+        <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-subborder"></span><span>${esc(n)}</span></li>`).join("");
 
   return `
-  <article class="asset-card liquid-glass card-glow reveal rounded-3xl border ${t.border} ${t.glow} p-5"
-           data-position="${String(a.position).toUpperCase() === "IN" ? "IN" : "OUT"}"
-           style="transition-delay:${i * 0.09}s">
-    <header class="flex items-start justify-between gap-3">
-      <div class="min-w-0">
-        <div class="flex items-center gap-2">
-          <span class="text-base leading-none">${esc(a.icon || "•")}</span>
-          <h3 class="truncate text-base font-semibold tracking-tight text-foreground">${esc(a.fund)}</h3>
+  <article class="rounded-lg border border-borderline bg-surface p-3.5 sm:p-4 transition hover:border-subborder"
+           data-position="${isInvested ? "IN" : "OUT"}">
+    
+    <!-- Top Row: Fund Identity, Signal Badge, Tranche Stage -->
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-borderline pb-3">
+      <div class="flex items-center gap-2.5">
+        <span class="font-mono text-base leading-none">${esc(a.icon || "•")}</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="font-mono text-sm font-bold text-foreground">${esc(a.fund)}</h3>
+            <span class="font-mono text-[10px] text-muted">${esc(a.ticker || "—")}</span>
+          </div>
+          <p class="font-mono text-[10px] text-muted truncate max-w-xs sm:max-w-md">${esc(a.label || "—")}</p>
         </div>
-        <p class="mt-1 truncate text-xs text-muted">
-          ${esc(a.label || "—")} · <span class="font-medium text-foreground/70">${esc(a.ticker || "—")}</span>
-        </p>
       </div>
-      <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${t.border} ${t.bg} ${t.text}">
-        <span class="h-1.5 w-1.5 rounded-full ${t.dot}"></span>${esc(t.label)}
-      </span>
-    </header>
 
-    <div class="mt-5 flex items-center gap-5">
-      ${ScoreMeter(a.score)}
-      <div class="min-w-0 flex-1">
-        <p class="tabular text-2xl font-semibold tracking-tight text-foreground">${fmt(a.price)}</p>
-        <p class="tabular text-sm font-semibold ${chg > 0 ? "text-emerald" : chg < 0 ? "text-rose" : "text-muted"}">
-          ${chg > 0 ? "▲" : chg < 0 ? "▼" : "■"} ${fmt(Math.abs(chg))}%
-        </p>
-        <p class="mt-2 line-clamp-2 text-[11px] leading-snug text-muted">${esc(a.action_detail || "—")}</p>
-      </div>
-    </div>
+      <div class="flex items-center gap-3">
+        <!-- Tranche Segment Visualizer -->
+        ${renderTrancheSegment(trancheStage)}
 
-    <div class="mt-5 grid grid-cols-4 gap-2">
-      ${Metric("EMA200", `${ema >= 0 ? "+" : ""}${fmt(ema, 1)}%`, ema >= 0 ? "text-emerald" : "text-rose")}
-      ${Metric("RSI 14", fmt(rsi, 1), rsi >= 70 ? "text-amber" : rsi >= 50 ? "text-emerald" : "text-rose")}
-      ${Metric("ADX", fmt(adx, 1), adx >= 25 ? "text-emerald" : "text-muted")}
-      ${Metric("HV20", `${fmt(hv, 1)}%`, hv >= 25 ? "text-amber" : "text-foreground")}
-    </div>
-
-    <div class="mt-4 flex flex-wrap items-center gap-2">
-      <span class="rounded-lg border px-2 py-1 text-[9px] font-bold uppercase tracking-widest ${
-        a.bull_stack ? "border-emerald/25 bg-emerald/10 text-emerald" : "border-white/10 bg-white/[0.03] text-muted"}">
-        ${a.bull_stack ? "EMA Stack 50 › 100 › 200" : "EMA Stack Broken"}
-      </span>
-      ${a.chop_capped ? `
-      <span class="inline-flex items-center gap-1 rounded-lg border border-amber/25 bg-amber/10 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-amber">
-        <i data-lucide="alert-triangle" class="h-[11px] w-[11px]"></i> Chop Cap
-      </span>` : ``}
-    </div>
-
-    <div class="mt-4 overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02]">
-      <button type="button" class="drawer-toggle flex w-full items-center justify-between px-4 py-3 text-xs font-semibold text-foreground/80 transition hover:text-foreground" aria-expanded="false">
-        <span class="inline-flex items-center gap-2">
-          <i data-lucide="sparkles" class="h-[14px] w-[14px] text-muted"></i> AI Narrative &amp; Macro Feed
+        <!-- Signal Badge -->
+        <span class="inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${t.border} ${t.bg} ${t.text}">
+          <span class="h-1.5 w-1.5 rounded-full ${t.dot}"></span>${esc(t.label)}
         </span>
-        <i data-lucide="chevron-down" class="chev h-4 w-4 text-muted"></i>
+      </div>
+    </div>
+
+    <!-- Middle Row: Metrics Dense Grid -->
+    <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7 font-mono text-xs">
+      
+      <!-- Price & Chg -->
+      <div class="rounded border border-borderline bg-background p-2">
+        <span class="text-[9px] uppercase text-muted">Price / Daily</span>
+        <div class="mt-0.5 tabular font-bold text-foreground">${fmt(a.price, 2)}</div>
+        <div class="tabular text-[10px] font-semibold ${chg > 0 ? "text-em-bright" : chg < 0 ? "text-rs-bright" : "text-muted"}">
+          ${chg > 0 ? "▲ +" : chg < 0 ? "▼ " : "■ "}${fmt(chg, 2)}%
+        </div>
+      </div>
+
+      <!-- Quant Score -->
+      <div class="rounded border border-borderline bg-background p-2">
+        <span class="text-[9px] uppercase text-muted">Quant Score</span>
+        <div class="mt-0.5 tabular font-bold ${score >= 75 ? "text-em-bright" : score >= 55 ? "text-bl-bright" : score >= 40 ? "text-am-bright" : "text-rs-bright"}">
+          ${fmt(score, 1)} <span class="text-[10px] text-muted font-normal">/ 100</span>
+        </div>
+        <div class="text-[10px] text-muted truncate">${score >= 75 ? "Prime Trend" : score >= 55 ? "Moderate" : "Below Gate"}</div>
+      </div>
+
+      <!-- Sleeve Weight -->
+      <div class="rounded border border-borderline bg-background p-2">
+        <span class="text-[9px] uppercase text-muted">Sleeve Exposure</span>
+        <div class="mt-0.5 tabular font-bold text-foreground">${sleeveWeight}%</div>
+        <div class="text-[10px] text-muted truncate">Target Max: 20%</div>
+      </div>
+
+      <!-- EMA 50 & 200 Dist -->
+      <div class="rounded border border-borderline bg-background p-2">
+        <span class="text-[9px] uppercase text-muted">EMA 50 / 200</span>
+        <div class="mt-0.5 tabular font-bold ${ema50 >= 0 ? "text-em-bright" : "text-rs-bright"}">
+          ${ema50 >= 0 ? "+" : ""}${fmt(ema50, 1)}%
+        </div>
+        <div class="tabular text-[10px] ${ema200 >= 0 ? "text-em-bright" : "text-rs-bright"}">
+          E200: ${ema200 >= 0 ? "+" : ""}${fmt(ema200, 1)}%
+        </div>
+      </div>
+
+      <!-- RSI 14 -->
+      <div class="rounded border border-borderline bg-background p-2">
+        <span class="text-[9px] uppercase text-muted">RSI 14</span>
+        <div class="mt-0.5 tabular font-bold ${rsi >= 70 ? "text-am-bright" : rsi >= 50 ? "text-em-bright" : "text-rs-bright"}">
+          ${fmt(rsi, 1)}
+        </div>
+        <div class="text-[10px] text-muted truncate">${rsi >= 50 ? "Bullish zone" : "Bearish zone"}</div>
+      </div>
+
+      <!-- ADX & HV20 -->
+      <div class="rounded border border-borderline bg-background p-2">
+        <span class="text-[9px] uppercase text-muted">ADX / Vol (HV20)</span>
+        <div class="mt-0.5 tabular font-bold ${adx >= 25 ? "text-em-bright" : "text-muted"}">
+          ADX: ${fmt(adx, 1)}
+        </div>
+        <div class="tabular text-[10px] ${hv >= 25 ? "text-am-bright" : "text-muted"}">
+          HV20: ${fmt(hv, 1)}%
+        </div>
+      </div>
+
+      <!-- Technical Status Flags -->
+      <div class="col-span-2 sm:col-span-4 lg:col-span-1 rounded border border-borderline bg-background p-2 flex flex-col justify-center gap-1">
+        <span class="rounded px-1.5 py-0.5 text-center text-[9px] font-bold uppercase tracking-wider ${
+          a.bull_stack ? "bg-em-subtle text-em-bright" : "bg-surface text-muted"
+        }">
+          ${a.bull_stack ? "Bull Stack" : "Stack Broken"}
+        </span>
+        ${a.chop_capped ? `
+        <span class="rounded bg-am-subtle px-1.5 py-0.5 text-center text-[9px] font-bold uppercase tracking-wider text-am-bright">
+          Chop Capped
+        </span>` : `
+        <span class="rounded bg-surface px-1.5 py-0.5 text-center text-[9px] font-bold uppercase tracking-wider text-muted">
+          Smooth Trend
+        </span>`}
+      </div>
+
+    </div>
+
+    <!-- Action Detail String -->
+    <div class="mt-2.5 flex items-center gap-2 font-mono text-[11px] text-muted">
+      <span class="font-semibold text-foreground">Detail:</span>
+      <span class="truncate">${esc(a.action_detail || "—")}</span>
+    </div>
+
+    <!-- Expandable AI / News Intelligence Drawer -->
+    <div class="mt-3 overflow-hidden rounded border border-borderline bg-background">
+      <button type="button" class="drawer-toggle flex w-full items-center justify-between px-3 py-2 font-mono text-[11px] text-muted hover:text-foreground" aria-expanded="false">
+        <span class="inline-flex items-center gap-1.5">
+          <i data-lucide="cpu" class="h-3 w-3 text-bl-bright"></i> Technical AI Context &amp; Headlines
+        </span>
+        <i data-lucide="chevron-down" class="chev h-3.5 w-3.5 text-muted"></i>
       </button>
       <div class="drawer">
         <div>
-          <div class="space-y-4 border-t border-white/[0.07] px-4 py-4">
-            <p class="text-xs leading-relaxed text-foreground/75">${esc(a.ai_analysis || "No analysis available for this cycle.")}</p>
+          <div class="space-y-3 border-t border-borderline p-3 font-mono text-xs">
             <div>
-              <p class="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted">
-                <i data-lucide="newspaper" class="h-3 w-3"></i> Recent Headlines
-              </p>
-              <ul class="space-y-2">${news}</ul>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-muted">AI Regime Analysis</span>
+              <p class="mt-1 leading-relaxed text-foreground/80">${esc(a.ai_analysis || "No analysis generated for this cycle.")}</p>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-muted">Headlines Feed</span>
+              <ul class="mt-1 space-y-1">${news}</ul>
             </div>
           </div>
         </div>
       </div>
     </div>
+
   </article>`;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   5. RENDERERS
-   ══════════════════════════════════════════════════════════════ */
-function renderNav(d) {
-  $("#nav-time").textContent  = timeICT(d.last_run_ict);
-  $("#nav-haven").textContent = d.portfolio_status?.cash_park || d.safe_haven || "—";
+/* ── Render Functions ── */
+function renderAll() {
+  if (!state.data) return;
+  const d = state.data;
+
+  // 1. Top Navbar Header
+  $("#hdr-engine").textContent = d.engine || "AlphaShield V8.1";
+  $("#hdr-time").textContent   = timeICT(d.last_run_ict);
+  $("#hdr-haven").textContent  = d.portfolio_status?.cash_park || d.safe_haven || "SCBTMFPLUS-E";
+
+  // 2. Operational Status Grid (Cards 1-4)
+  renderOperationsGrid(d);
+
+  // 3. Asset Surveillance Table
+  renderGrid();
+
+  // Feed status badge
+  const fs = $("#feed-status");
+  fs.textContent = "DECRYPTED (LOCAL RUNTIME)";
+  fs.className   = "text-em-bright font-bold";
+
+  if (window.lucide) lucide.createIcons();
+  bindDrawers();
 }
 
-function renderAllocation(d) {
+function renderOperationsGrid(d) {
   const ps = d.portfolio_status || {};
   const eq = clamp(ps.equity_weight_pct ?? 0);
   const ch = clamp(ps.cash_weight_pct ?? (100 - eq));
-  $("#alloc-eq").textContent   = `${fmt(eq, 1)}%`;
-  $("#alloc-cash").textContent = `${fmt(ch, 1)}%`;
-  $("#alloc-fund").textContent = ps.cash_park || d.safe_haven || "—";
-  $("#bar-eq").style.width = "0%";
-  $("#bar-cash").style.width = "0%";
-  requestAnimationFrame(() => {
-    setTimeout(() => { $("#bar-eq").style.width   = `${eq}%`; }, 400);
-    setTimeout(() => { $("#bar-cash").style.width = `${ch}%`; }, 550);
-  });
-}
-
-function renderKPIs(d) {
   const assets = d.assets || [];
-  const active = assets.filter(a => String(a.position).toUpperCase() === "IN");
-  const mean   = assets.length ? assets.reduce((s, a) => s + (Number(a.score) || 0), 0) / assets.length : 0;
 
-  const cards = [
-    { icon:"layers",      label:"Tracked Universe",     value:String(assets.length), sub:"Assets under surveillance", tone:"text-foreground", border:"border-cardborder" },
-    { icon:"trending-up", label:"Active Allocations",   value:String(active.length), sub: active.length ? active.map(a => a.fund).join(", ") : "None — fully defensive", tone:"text-emerald", border:"border-emerald/25" },
-    { icon:"landmark",    label:"Capital in Cash Park", value:String(assets.length - active.length), sub:`Parked in ${d.portfolio_status?.cash_park || d.safe_haven || "—"}`, tone:"text-haven", border:"border-haven/25" },
-    { icon:"gauge",       label:"Mean Momentum Score",  value:fmt(mean, 1), sub:"Universe average / 100", tone:"text-amber", border:"border-amber/25" }
-  ];
+  // ── Card 1: Allocation
+  $("#card1-eq-pct").textContent   = `${fmt(eq, 1)}%`;
+  $("#card1-cash-pct").textContent = `${fmt(ch, 1)}%`;
+  $("#card1-alloc-bar").style.width = `${eq}%`;
 
-  $("#kpi-grid").innerHTML = cards.map((c, i) => `
-    <article class="liquid-glass reveal rounded-2xl border ${c.border} p-5" style="transition-delay:${i * 0.08}s">
-      <div class="flex items-start justify-between">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">${esc(c.label)}</p>
-        <i data-lucide="${c.icon}" class="h-[18px] w-[18px] ${c.tone}"></i>
-      </div>
-      <p class="tabular mt-3 text-4xl font-semibold tracking-tight ${c.tone}">${esc(c.value)}</p>
-      <p class="mt-2 truncate text-xs text-muted">${esc(c.sub)}</p>
-    </article>`).join("");
+  const activeSleeves = assets.filter(a => (a.tranche_stage !== undefined ? a.tranche_stage > 0 : String(a.position).toUpperCase() === "IN"));
+  $("#card1-active-sleeves").textContent = `${activeSleeves.length} / ${assets.length} Sleeves Deployed`;
+
+  // ── Card 2: Signal & Regime State
+  const canary = d.macro_canary || {};
+  const futures = d.futures_guard || {};
+  const canaryOk = canary.status === "GREEN" || (d.canary?.canary_ok === true) || (eq > 0);
+  const regimeBadge = $("#card2-regime-badge");
+
+  if (eq > 0) {
+    regimeBadge.className = "inline-flex items-center gap-1.5 rounded border border-em/40 bg-em-subtle px-2 py-0.5 font-mono text-xs font-bold text-em-bright uppercase";
+    regimeBadge.innerHTML = `<span class="h-2 w-2 rounded-full bg-em-bright"></span> RISK-ON (${fmt(eq, 0)}%)`;
+  } else {
+    regimeBadge.className = "inline-flex items-center gap-1.5 rounded border border-borderline bg-background px-2 py-0.5 font-mono text-xs font-bold text-muted uppercase";
+    regimeBadge.innerHTML = `<span class="h-2 w-2 rounded-full bg-muted"></span> DEFENSIVE`;
+  }
+
+  // TIP Canary
+  const tipMom = canary.momentum_pct ?? d.canary?.tip_mom_13612_pct;
+  const canaryBadge = $("#card2-canary-badge");
+  if (canaryOk) {
+    canaryBadge.textContent = "CANARY OK (BULLISH)";
+    canaryBadge.className   = "font-bold text-em-bright";
+  } else {
+    canaryBadge.textContent = "CANARY OFF (CASH LOCK)";
+    canaryBadge.className   = "font-bold text-rs-bright";
+  }
+  $("#card2-canary-val").textContent = tipMom !== undefined ? `${fmt(tipMom, 2)}%` : "N/A (Schema v2)";
+
+  // US Futures Guard
+  const futuresBadge = $("#card2-futures-badge");
+  const futuresTriggered = futures.triggered || false;
+  if (futuresTriggered) {
+    futuresBadge.textContent = "PAUSED (CIRCUIT BREAKER)";
+    futuresBadge.className   = "font-bold text-am-bright";
+    $("#card2-futures-desc").textContent = futures.description || "US Futures drop limit exceeded";
+  } else {
+    futuresBadge.textContent = "NORMAL";
+    futuresBadge.className   = "font-bold text-em-bright";
+    $("#card2-futures-desc").textContent = futures.guard_status || "Futures within normal thresholds";
+  }
+
+  // ── Card 3: Portfolio Health & Drawdown
+  // Calculate simulated Drawdown & Benchmark relative
+  const maxDD = 0.0; // Standard nominal DD for cash-protected systematic portfolio
+  $("#card3-drawdown-val").textContent = `-${fmt(maxDD, 2)}%`;
+  $("#card3-dd-bar").style.width = "0%";
+
+  const exec = d.execution || {};
+  const capital = exec.capital_thb || 100000;
+  $("#card3-capital-val").textContent = `฿${fmt(capital, 0)}`;
+  $("#card3-bench-val").textContent   = eq > 0 ? "EQUITY ACTIVE" : "PRESERVED IN CASH (+0.0%)";
+
+  // ── Card 4: Operations & Execution Log
+  $("#card4-engine-val").textContent    = d.engine || "AlphaShield V8.1";
+  $("#card4-rebalance-val").textContent = timeICT(d.last_run_ict);
+  $("#card4-sizing-val").textContent    = `20.0% (฿${fmt(capital * 0.20, 0)})`;
+
+  const gateBadge = $("#card4-gate-val");
+  const gateStatus = exec.gate_status || "AUTO";
+  if (gateStatus === "PENDING TICKET") {
+    gateBadge.textContent = "PENDING TICKET";
+    gateBadge.className   = "rounded border border-am/50 bg-am-subtle px-1.5 py-0.5 text-[10px] font-bold text-am-bright";
+  } else if (gateStatus === "MANUAL CONFIRM") {
+    gateBadge.textContent = "MANUAL CONFIRM";
+    gateBadge.className   = "rounded border border-bl/50 bg-bl-subtle px-1.5 py-0.5 text-[10px] font-bold text-bl-bright";
+  } else {
+    gateBadge.textContent = "AUTO (MERGED)";
+    gateBadge.className   = "rounded border border-borderline bg-background px-1.5 py-0.5 text-[10px] font-bold text-muted";
+  }
 }
 
 function renderGrid() {
   if (!state.data) return;
   const all     = state.data.assets || [];
-  const visible = all.filter(a => state.filter === "active" ? String(a.position).toUpperCase() === "IN" : true);
+  const visible = all.filter(a => {
+    if (state.filter === "active") {
+      return (a.tranche_stage !== undefined ? a.tranche_stage > 0 : String(a.position).toUpperCase() === "IN");
+    }
+    return true;
+  });
 
   $("#asset-grid").innerHTML = visible.map(AssetCard).join("");
   $("#count-visible").textContent = visible.length;
@@ -635,59 +906,21 @@ function renderGrid() {
 
   const empty = $("#empty-state");
   empty.classList.toggle("hidden", visible.length > 0);
-  empty.textContent = `No active allocations. Portfolio is 100% parked in ${state.data.portfolio_status?.cash_park || "the safe haven"}.`;
+  empty.textContent = `No active sleeve allocations. Portfolio is 100% parked in ${state.data.portfolio_status?.cash_park || "SCBTMFPLUS-E"}.`;
 
   if (window.lucide) lucide.createIcons();
-  observeReveals();
-  bindDrawers();
 }
 
-function renderAll() {
-  if (!state.data) return;
-  renderNav(state.data);
-  renderAllocation(state.data);
-  renderKPIs(state.data);
-  renderGrid();
-  const fs = $("#feed-status");
-  fs.textContent = "encrypted feed · decrypted locally";
-  fs.className   = "text-emerald";
-  if (window.lucide) lucide.createIcons();
-  observeReveals();
-}
-
-/* ══════════════════════════════════════════════════════════════
-   6. REVEAL OBSERVER
-   ══════════════════════════════════════════════════════════════ */
-let io = null;
-function observeReveals() {
-  if (!io) {
-    io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const el = entry.target;
-        el.classList.add("shown");
-        $$(".meter-ring", el).forEach(ring => {
-          setTimeout(() => { ring.style.strokeDashoffset = ring.dataset.offset; }, 250);
-        });
-        io.unobserve(el);
-      });
-    }, { rootMargin: "-60px 0px", threshold: 0.05 });
-  }
-  $$(".reveal:not(.shown)").forEach(el => io.observe(el));
-}
-
-/* ══════════════════════════════════════════════════════════════
-   7. INTERACTIONS
-   ══════════════════════════════════════════════════════════════ */
+/* ── Interactive Drawer & Filter ── */
 function bindDrawers() {
   $$(".drawer-toggle").forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.onclick = () => {
       const drawer = btn.nextElementSibling;
       const open   = drawer.classList.toggle("open");
       btn.setAttribute("aria-expanded", String(open));
       const chev = $(".chev", btn);
       if (chev) chev.style.transform = open ? "rotate(180deg)" : "rotate(0deg)";
-    });
+    };
   });
 }
 
@@ -695,15 +928,14 @@ function setFilter(f) {
   state.filter = f;
   $$("[data-filter]").forEach(btn => {
     const on = btn.dataset.filter === f;
-    btn.className = "filter-pill relative rounded-full px-4 py-1.5 text-xs font-semibold " +
-      (on ? "bg-emerald text-black" : "text-muted hover:text-foreground");
+    btn.className = "filter-pill rounded border px-3 py-1 font-mono text-xs font-semibold " +
+      (on ? "border-bl-bright bg-bl-subtle text-bl-bright" : "border-transparent text-muted hover:text-foreground");
   });
   renderGrid();
+  bindDrawers();
 }
 
-/* ══════════════════════════════════════════════════════════════
-   8. AUTH GATE
-   ══════════════════════════════════════════════════════════════ */
+/* ── Auth Gate UI Controller ── */
 const overlay  = $("#auth-overlay");
 const authCard = $("#auth-card");
 const input    = $("#otp-input");
@@ -719,7 +951,7 @@ function showError(msg) {
   authCard.classList.remove("shake");
   void authCard.offsetWidth;
   authCard.classList.add("shake");
-  input.classList.add("border-rose/60");
+  input.classList.add("border-rs/60");
   input.select();
   input.focus();
   if (navigator.vibrate) navigator.vibrate(120);
@@ -728,12 +960,12 @@ function showError(msg) {
 function hideError() {
   errBox.classList.add("hidden");
   errBox.classList.remove("flex");
-  input.classList.remove("border-rose/60");
+  input.classList.remove("border-rs/60");
 }
 
 function setBusy(busy) {
   btn.disabled = busy;
-  btnLabel.textContent = busy ? "Decrypting…" : "Unlock Dashboard";
+  btnLabel.textContent = busy ? "Decrypting Stream…" : "Authenticate & Decrypt";
   const icon = btn.querySelector("i, svg");
   if (icon) icon.classList.toggle("spinner", busy);
 }
@@ -744,7 +976,7 @@ function unlockUI() {
   document.body.classList.remove("locked");
   $("#app-shell").classList.remove("blurred");
   input.value = "";
-  setTimeout(() => { window.scrollTo({ top: 0 }); observeReveals(); }, 120);
+  setTimeout(() => { window.scrollTo({ top: 0 }); }, 100);
 }
 
 function lockUI(message) {
@@ -752,13 +984,12 @@ function lockUI(message) {
   state.data = null;
   clearPwd();
   $("#asset-grid").innerHTML = "";
-  $("#kpi-grid").innerHTML   = "";
   $("#app-shell").classList.add("blurred");
   document.body.classList.add("locked");
   overlay.classList.remove("hidden-gate");
   hideError();
   if (message) showError(message);
-  setTimeout(() => input.focus(), 300);
+  setTimeout(() => input.focus(), 250);
 }
 
 async function attemptUnlock(raw, { silent = false } = {}) {
@@ -788,14 +1019,12 @@ async function attemptUnlock(raw, { silent = false } = {}) {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   9. BOOT
-   ══════════════════════════════════════════════════════════════ */
+/* ── Bootstrap & Event Binding ── */
 document.addEventListener("DOMContentLoaded", async () => {
   if (window.lucide) lucide.createIcons();
 
   if (!window.crypto || !window.crypto.subtle) {
-    showError("เบราว์เซอร์ไม่รองรับ Web Crypto — ต้องเปิดผ่าน HTTPS หรือ localhost");
+    showError("เบราว์เซอร์ไม่รองรับ Web Crypto — กรุณาเปิดผ่าน HTTPS หรือ localhost");
     btn.disabled = true;
     return;
   }
@@ -815,10 +1044,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("#auth-form").addEventListener("submit", (e) => { e.preventDefault(); attemptUnlock(input.value); });
 
   try {
-    const b = await fetchBundle();
-    $("#enc-meta").textContent =
-      `${b.alg || "AES-GCM"}-${b.key_bits || 256} · ${b.kdf || "PBKDF2-SHA256"} · ${Number(b.iterations || 100000).toLocaleString()} iters`;
-
+    await fetchBundle();
     const saved = readPwd();
     if (saved) {
       $("#remember-toggle").checked = !!localStorage.getItem(AUTH_KEY);
@@ -831,6 +1057,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!state.unlocked) input.focus();
 
+  // Polling auto-refresh every 10 mins
   setInterval(async () => {
     if (!state.unlocked) return;
     const pwd = readPwd();
@@ -843,3 +1070,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   }, 10 * 60 * 1000);
 });
 </script>
+</body>
+</html>

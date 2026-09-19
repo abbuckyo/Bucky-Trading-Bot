@@ -2040,6 +2040,12 @@ def main() -> int:
             "data": futures_data,
             "description": futures_desc,
         },
+        "execution": {
+            "require_manual_confirm": require_manual_confirm,
+            "pending_approvals": pending_approvals,
+            "capital_thb": capital_thb,
+            "gate_status": "PENDING TICKET" if pending_approvals else ("MANUAL CONFIRM" if require_manual_confirm else "AUTO"),
+        },
         "portfolio_status": {
             "invested_funds": invested_funds,
             "cash_park": CFG.CASH_FUND,
