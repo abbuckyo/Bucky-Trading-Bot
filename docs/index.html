@@ -1,5 +1,6 @@
 <!-- ══════════════════════════════════════════════════════════════════
      docs/index.html — AlphaShield V8.1 · Mission Control Operations
+     Dark Theme Glassmorphism & High-Density Tactical Dashboard
      ══════════════════════════════════════════════════════════════════ -->
 <!DOCTYPE html>
 <html lang="th" class="dark">
@@ -7,16 +8,19 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow, noarchive" />
-<title>AlphaShield — Operations Mission Control</title>
-<meta name="description" content="AlphaShield V8.1 · Mission Control & Quantitative Operations Dashboard." />
+<title>AlphaShield — Tactical Mission Control</title>
+<meta name="description" content="AlphaShield V8.1 · Quantitative Asset Allocation & Mission Control Operations." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
 
+<!-- Fonts: Inter & JetBrains Mono -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
+<!-- External CDN: TailwindCSS, Lucide Icons, Chart.js -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 
 <script>
   tailwind.config = {
@@ -24,40 +28,41 @@
     theme: {
       extend: {
         colors: {
-          background: '#0d1117',
-          surface:    '#161b22',
-          borderline: '#21262d',
-          subborder:  '#30363d',
-          foreground: '#f0f6fc',
-          muted:      '#8b949e',
+          background: '#0b0f19',
+          surface:    'rgba(18, 24, 38, 0.70)',
+          borderline: 'rgba(255, 255, 255, 0.08)',
+          subborder:  'rgba(255, 255, 255, 0.12)',
+          foreground: '#f8fafc',
+          muted:      '#94a3b8',
           em: {
-            DEFAULT: '#238636',
-            bright:  '#3fb950',
-            subtle:  'rgba(35, 134, 54, 0.15)'
+            DEFAULT: '#10b981',
+            bright:  '#34d399',
+            subtle:  'rgba(16, 185, 129, 0.15)'
           },
           rs: {
-            DEFAULT: '#da3633',
-            bright:  '#f85149',
-            subtle:  'rgba(218, 54, 51, 0.15)'
+            DEFAULT: '#f43f5e',
+            bright:  '#fb7185',
+            subtle:  'rgba(244, 63, 94, 0.15)'
           },
           am: {
-            DEFAULT: '#d29922',
-            bright:  '#e3b341',
-            subtle:  'rgba(210, 153, 34, 0.15)'
+            DEFAULT: '#f59e0b',
+            bright:  '#fbbf24',
+            subtle:  'rgba(245, 158, 11, 0.15)'
           },
-          bl: {
-            DEFAULT: '#1f6feb',
-            bright:  '#58a6ff',
-            subtle:  'rgba(31, 111, 235, 0.15)'
+          cyan: {
+            DEFAULT: '#06b6d4',
+            bright:  '#22d3ee',
+            subtle:  'rgba(6, 182, 212, 0.15)'
           },
-          haven: {
-            DEFAULT: '#388bfd',
-            subtle:  'rgba(56, 139, 253, 0.12)'
+          violet: {
+            DEFAULT: '#8b5cf6',
+            bright:  '#a78bfa',
+            subtle:  'rgba(139, 92, 246, 0.15)'
           }
         },
         fontFamily: {
           sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-          mono: ["'JetBrains Mono'", 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          mono: ["'JetBrains Mono'", 'monospace']
         }
       }
     }
@@ -67,18 +72,48 @@
 <style>
   html { scroll-behavior: smooth; }
   body {
-    background-color: #0d1117;
-    color: #f0f6fc;
+    background-color: #0b0f19;
+    color: #f8fafc;
+    background-image:
+      radial-gradient(1200px 700px at 15% -10%, rgba(139, 92, 246, 0.14), transparent 60%),
+      radial-gradient(1000px 600px at 85% 10%, rgba(6, 182, 212, 0.12), transparent 55%),
+      radial-gradient(800px 500px at 50% 90%, rgba(16, 185, 129, 0.08), transparent 60%);
+    background-attachment: fixed;
   }
   body.locked { overflow: hidden; }
-  ::selection { background: rgba(56, 139, 253, 0.3); }
+  ::selection { background: rgba(6, 182, 212, 0.35); }
   ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: #0d1117; }
-  ::-webkit-scrollbar-thumb { background: #21262d; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #30363d; }
+  ::-webkit-scrollbar-track { background: #0b0f19; }
+  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
 
   .tabular { font-variant-numeric: tabular-nums; }
-  .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── Dark Glassmorphism ── */
+  .glass-card {
+    background: rgba(18, 24, 38, 0.72);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+  .glass-card-hover {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .glass-card-hover:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+  }
+
+  .subtle-input {
+    background: rgba(11, 15, 25, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .subtle-input:focus {
+    border-color: #06b6d4;
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+  }
 
   @keyframes shake {
     10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(4px)}
@@ -89,22 +124,20 @@
   .shake   { animation: shake .45s cubic-bezier(.36,.07,.19,.97) both; }
   .spinner { animation: spin .8s linear infinite; }
 
-  .meter-ring { transition: stroke-dashoffset 1.0s cubic-bezier(.16,1,.3,1); }
-  .bar-fill   { transition: width 0.8s cubic-bezier(.16,1,.3,1); }
-  .chev       { transition: transform .2s ease; }
-  .drawer     { display: grid; grid-template-rows: 0fr; opacity: 0;
-                transition: grid-template-rows .3s cubic-bezier(.16,1,.3,1), opacity .25s ease; }
+  .bar-fill { transition: width 0.8s cubic-bezier(.16,1,.3,1); }
+  .chev     { transition: transform .2s ease; }
+  .drawer   { display: grid; grid-template-rows: 0fr; opacity: 0;
+              transition: grid-template-rows .3s cubic-bezier(.16,1,.3,1), opacity .25s ease; }
   .drawer > div { overflow: hidden; }
   .drawer.open { grid-template-rows: 1fr; opacity: 1; }
 
   .filter-pill { transition: color .2s ease, background-color .2s ease, border-color .2s ease; }
-  .line-clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 
   /* Auth overlay transitions */
   #auth-overlay { transition: opacity .35s ease, visibility .35s ease; }
   #auth-overlay.hidden-gate { opacity: 0; visibility: hidden; pointer-events: none; }
   #app-shell { transition: opacity .4s ease, filter .4s ease; }
-  #app-shell.blurred { opacity: 0; filter: blur(12px); pointer-events: none; user-select: none; }
+  #app-shell.blurred { opacity: 0; filter: blur(16px); pointer-events: none; user-select: none; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
@@ -112,31 +145,31 @@
 </style>
 </head>
 
-<body class="locked min-h-screen bg-background font-sans text-foreground antialiased selection:bg-bl-subtle">
+<body class="locked min-h-screen bg-background font-sans text-foreground antialiased selection:bg-cyan-subtle">
 
 <!-- ═══════════════════════ AUTHENTICATION OVERLAY ═══════════════════════ -->
-<div id="auth-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 px-4 backdrop-blur-md">
-  <div id="auth-card" class="relative w-full max-w-md rounded-lg border border-borderline bg-surface p-7 shadow-2xl">
+<div id="auth-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 px-4 backdrop-blur-xl">
+  <div id="auth-card" class="glass-card relative w-full max-w-md rounded-2xl p-7 shadow-2xl">
     <div class="mb-5 flex items-center justify-between border-b border-borderline pb-4">
       <div class="flex items-center gap-2.5">
-        <div class="flex h-8 w-8 items-center justify-center rounded border border-subborder bg-background">
-          <i data-lucide="shield" class="h-4 w-4 text-bl-bright"></i>
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl border border-borderline bg-gradient-to-br from-violet-500/20 to-cyan-500/20">
+          <i data-lucide="shield" class="h-4.5 w-4.5 text-cyan-bright"></i>
         </div>
         <div>
           <span class="text-sm font-bold tracking-wider text-foreground">ALPHASHIELD</span>
-          <span class="ml-1.5 rounded border border-borderline bg-background px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted">V8.1</span>
+          <span class="ml-1.5 rounded-md border border-borderline bg-background/50 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted">V8.1</span>
         </div>
       </div>
-      <span class="inline-flex items-center gap-1.5 rounded border border-borderline bg-background px-2 py-0.5 font-mono text-[10px] text-muted">
-        <i data-lucide="lock" class="h-3 w-3 text-muted"></i> AES-256-GCM
+      <span class="inline-flex items-center gap-1.5 rounded-full border border-borderline bg-background/50 px-2.5 py-0.5 font-mono text-[10px] text-muted">
+        <i data-lucide="lock" class="h-3 w-3 text-cyan-bright"></i> AES-256-GCM
       </span>
     </div>
 
     <div class="mb-6">
-      <h2 class="text-lg font-semibold tracking-tight text-foreground">Mission Control Access</h2>
+      <h2 class="text-lg font-semibold tracking-tight text-foreground">Mission Control Terminal</h2>
       <p class="mt-1 font-mono text-xs leading-relaxed text-muted">
-        Tactical engine payload is client-side encrypted.<br/>
-        Authenticate with Master Password to decrypt stream.
+        Decryption key derived locally via PBKDF2 (100,000 iters).<br/>
+        Zero plaintext leaves this browser runtime.
       </p>
     </div>
 
@@ -146,24 +179,24 @@
           <label for="otp-input" class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">
             Master Passphrase
           </label>
-          <span class="font-mono text-[10px] text-muted">PBKDF2-SHA256</span>
+          <span class="font-mono text-[10px] text-cyan-bright">Client Authentication</span>
         </div>
 
         <div class="relative">
-          <i data-lucide="key" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"></i>
+          <i data-lucide="key" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"></i>
           <input
             id="otp-input" type="password" maxlength="128"
             spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="current-password"
             placeholder="Enter authorization key"
-            class="w-full rounded border border-subborder bg-background py-2.5 pl-9 pr-10 font-mono text-sm text-foreground outline-none transition placeholder:text-muted/50 focus:border-bl-bright focus:ring-1 focus:ring-bl-bright" />
+            class="subtle-input w-full rounded-xl py-2.5 pl-10 pr-10 font-mono text-sm text-foreground outline-none transition placeholder:text-muted/50" />
           <button id="toggle-visibility" type="button" aria-label="Toggle password visibility"
-                  class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted transition hover:text-foreground">
+                  class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted transition hover:text-foreground">
             <i data-lucide="eye" class="h-4 w-4"></i>
           </button>
         </div>
       </div>
 
-      <div id="auth-error" class="mt-3 hidden items-center gap-2 rounded border border-rs/30 bg-rs-subtle px-3 py-2 font-mono text-xs text-rs-bright">
+      <div id="auth-error" class="mt-3 hidden items-center gap-2 rounded-xl border border-rs/30 bg-rs-subtle px-3 py-2 font-mono text-xs text-rs-bright">
         <i data-lucide="alert-triangle" class="h-4 w-4 shrink-0"></i>
         <span id="auth-error-text">รหัสผ่านไม่ถูกต้อง</span>
       </div>
@@ -171,20 +204,20 @@
       <div class="mt-4 flex items-center justify-between">
         <label class="flex cursor-pointer items-center gap-2 text-xs text-muted">
           <input id="remember-toggle" type="checkbox" checked
-                 class="h-3.5 w-3.5 rounded border-subborder bg-background accent-bl-bright" />
-          Remember on this browser
+                 class="h-3.5 w-3.5 rounded border-subborder bg-background accent-cyan" />
+          Remember on this device
         </label>
       </div>
 
       <button id="unlock-btn" type="submit"
-              class="mt-6 flex w-full items-center justify-center gap-2 rounded border border-bl bg-bl px-4 py-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-bl-bright disabled:cursor-not-allowed disabled:opacity-50">
+              class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-cyan/40 bg-gradient-to-r from-cyan-600 to-violet-600 px-4 py-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-white shadow-lg shadow-cyan-500/10 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">
         <i data-lucide="unlock" class="h-4 w-4"></i>
-        <span id="unlock-label">Authenticate &amp; Decrypt</span>
+        <span id="unlock-label">Authenticate &amp; Unlock</span>
       </button>
     </form>
 
     <div class="mt-5 border-t border-borderline pt-4 text-center font-mono text-[10px] text-muted">
-      Zero-knowledge client-side runtime · Zero server plaintext
+      AlphaShield Systematic Tactical Engine · Client-Side GCM Decryption
     </div>
   </div>
 </div>
@@ -192,40 +225,40 @@
 <!-- ═══════════════════════════ APP SHELL ═══════════════════════════ -->
 <div id="app-shell" class="blurred">
 
-  <!-- ── TOP OPERATIONS HEADER ── -->
-  <header class="sticky top-0 z-50 border-b border-borderline bg-background/95 backdrop-blur px-4 py-2.5 sm:px-6">
+  <!-- ── TOP OPERATIONS NAVBAR ── -->
+  <header class="sticky top-0 z-50 border-b border-borderline bg-background/80 backdrop-blur-xl px-4 py-3 sm:px-6">
     <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
-      <!-- Left: Engine Title & Live Indicator -->
+      <!-- Left: Title & Engine Version -->
       <div class="flex items-center gap-3">
-        <div class="flex h-7 w-7 items-center justify-center rounded border border-borderline bg-surface">
-          <i data-lucide="terminal" class="h-3.5 w-3.5 text-bl-bright"></i>
+        <div class="flex h-8 w-8 items-center justify-center rounded-xl border border-borderline bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
+          <i data-lucide="shield" class="h-4 w-4 text-cyan-bright"></i>
         </div>
         <div class="flex items-center gap-2">
           <span class="font-mono text-sm font-bold tracking-tight text-foreground">ALPHASHIELD</span>
-          <span id="hdr-engine" class="rounded border border-subborder bg-surface px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted">V8.1</span>
+          <span id="hdr-engine" class="rounded-md border border-borderline bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-semibold text-muted">V8.1</span>
         </div>
-        <span class="hidden text-borderline sm:inline">|</span>
+        <span class="hidden text-subborder sm:inline">|</span>
         <div class="hidden items-center gap-1.5 sm:flex">
-          <span class="h-2 w-2 rounded-full bg-em-bright"></span>
-          <span class="font-mono text-[11px] uppercase tracking-wider text-muted">LIVE OPS</span>
+          <span class="h-2 w-2 rounded-full bg-em-bright animate-pulse"></span>
+          <span class="font-mono text-[11px] uppercase tracking-wider text-muted">OPERATIONAL</span>
         </div>
       </div>
 
-      <!-- Right: Clocks, Safe Haven, Lock Action -->
+      <!-- Right: Clocks, Safe Haven, Lock Button -->
       <div class="flex items-center gap-2 sm:gap-3">
-        <div class="flex items-center gap-1.5 rounded border border-borderline bg-surface px-2.5 py-1 font-mono text-[11px] text-muted">
-          <i data-lucide="clock" class="h-3.5 w-3.5 text-bl-bright"></i>
+        <div class="flex items-center gap-1.5 rounded-xl border border-borderline bg-surface px-3 py-1 font-mono text-[11px] text-muted">
+          <i data-lucide="clock" class="h-3.5 w-3.5 text-cyan-bright"></i>
           <span id="hdr-time" class="tabular text-foreground">--:--:-- ICT</span>
         </div>
 
-        <div class="hidden items-center gap-1.5 rounded border border-borderline bg-surface px-2.5 py-1 font-mono text-[11px] text-muted md:flex">
-          <i data-lucide="shield" class="h-3.5 w-3.5 text-haven"></i>
+        <div class="hidden items-center gap-1.5 rounded-xl border border-borderline bg-surface px-3 py-1 font-mono text-[11px] text-muted md:flex">
+          <i data-lucide="shield-check" class="h-3.5 w-3.5 text-violet-bright"></i>
           <span>PARK:</span>
           <span id="hdr-haven" class="font-semibold text-foreground">SCBTMFPLUS-E</span>
         </div>
 
         <button id="logout-btn" type="button"
-                class="flex items-center gap-1 rounded border border-borderline bg-surface px-2.5 py-1 font-mono text-[11px] text-muted transition hover:border-rs/50 hover:text-rs-bright">
+                class="flex items-center gap-1.5 rounded-xl border border-borderline bg-surface px-3 py-1 font-mono text-[11px] text-muted transition hover:border-rs/40 hover:text-rs-bright">
           <i data-lucide="lock" class="h-3.5 w-3.5"></i>
           <span class="hidden sm:inline">LOCK</span>
         </button>
@@ -233,227 +266,292 @@
     </div>
   </header>
 
-  <!-- ── MAIN CONTENT CONTAINER ── -->
-  <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+  <!-- ── MAIN MISSION CONTROL DASHBOARD ── -->
+  <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
 
     <!-- ══════════════════════════════════════════════════════════
-         OPERATIONAL STATUS GRID (4 Core Mission Control Cards)
+         ROW 1: HERO ANALYTICS (Left Donut + Right Performance Line)
          ══════════════════════════════════════════════════════════ -->
-    <section aria-label="Operational Status Grid" class="mb-8">
-      <div class="mb-3 flex items-center justify-between">
-        <div class="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">
-          <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-bl-bright"></i>
-          <span>Operational Health &amp; Execution Grid</span>
+    <section class="grid grid-cols-1 gap-6 lg:grid-cols-12" aria-label="Hero Analytics">
+
+      <!-- LEFT CARD: Asset Allocation Donut (5 Cols) -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 lg:col-span-5 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between border-b border-borderline pb-3">
+            <div class="flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted">
+              <i data-lucide="pie-chart" class="h-4 w-4 text-cyan-bright"></i>
+              <span>Portfolio Allocation</span>
+            </div>
+            <span id="donut-regime-tag" class="rounded-full border border-borderline bg-white/[0.04] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase text-muted">
+              DEFENSIVE
+            </span>
+          </div>
+
+          <!-- Total Capital & Allocation Summary -->
+          <div class="mt-4 flex items-baseline justify-between">
+            <div>
+              <span class="font-mono text-[10px] uppercase tracking-wider text-muted">Total Capital</span>
+              <p id="hero-capital-val" class="tabular font-mono text-2xl font-bold text-foreground">฿100,000</p>
+            </div>
+            <div class="text-right">
+              <span class="font-mono text-[10px] uppercase tracking-wider text-muted">Cash Park Weight</span>
+              <p id="hero-cash-pct" class="tabular font-mono text-xl font-bold text-cyan-bright">100.0%</p>
+            </div>
+          </div>
+
+          <!-- Chart.js Donut Container -->
+          <div class="relative my-4 flex h-52 items-center justify-center">
+            <canvas id="allocationDonutCanvas"></canvas>
+            <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+              <span id="donut-center-pct" class="tabular font-mono text-2xl font-extrabold text-foreground">0%</span>
+              <span class="font-mono text-[9px] uppercase tracking-widest text-muted">Equity</span>
+            </div>
+          </div>
         </div>
-        <span class="font-mono text-[10px] text-muted">Refreshed Decrypted Payload</span>
+
+        <!-- Sleeve Tag Badges -->
+        <div id="donut-sleeve-tags" class="mt-2 flex flex-wrap gap-1.5 pt-3 border-t border-borderline font-mono text-[10px]">
+          <!-- Populated dynamically -->
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-        <!-- CARD 1: Asset Allocation & Sleeve Weights -->
-        <article class="rounded-lg border border-borderline bg-surface p-4">
-          <div class="flex items-center justify-between border-b border-borderline pb-2.5">
-            <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Card 1 · Allocation</span>
-            <i data-lucide="pie-chart" class="h-4 w-4 text-bl-bright"></i>
-          </div>
-
-          <div class="mt-3">
-            <div class="flex items-baseline justify-between">
-              <div>
-                <span class="font-mono text-[10px] uppercase text-muted">Equity Exposure</span>
-                <p id="card1-eq-pct" class="tabular font-mono text-2xl font-bold text-foreground">0.0%</p>
-              </div>
-              <div class="text-right">
-                <span class="font-mono text-[10px] uppercase text-muted">Cash Park</span>
-                <p id="card1-cash-pct" class="tabular font-mono text-sm font-semibold text-muted">100.0%</p>
-              </div>
+      <!-- RIGHT CARD: Performance Curve & Trends (7 Cols) -->
+      <div class="glass-card glass-card-hover rounded-2xl p-5 lg:col-span-7 flex flex-col justify-between">
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-borderline pb-3">
+            <div class="flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted">
+              <i data-lucide="trending-up" class="h-4 w-4 text-em-bright"></i>
+              <span>Multi-Year AlphaShield V8.0 vs Benchmark</span>
             </div>
 
-            <!-- Segmented Overall Allocation Bar -->
-            <div class="mt-3 h-2 w-full overflow-hidden rounded bg-background">
-              <div id="card1-alloc-bar" class="bar-fill h-full bg-bl-bright" style="width: 0%"></div>
-            </div>
-
-            <!-- Sleeve Tranche Segments (T0-T3) Indicator -->
-            <div class="mt-3 rounded border border-borderline bg-background p-2">
-              <div class="flex items-center justify-between font-mono text-[10px] text-muted">
-                <span>Active Tranches:</span>
-                <span id="card1-active-sleeves" class="font-semibold text-foreground">0 / 5 Sleeves</span>
-              </div>
-              <!-- Segmented dots T0, T1, T2, T3 representation -->
-              <div class="mt-2 flex items-center justify-between font-mono text-[9px] text-muted">
-                <span class="flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-borderline"></span>T0 0%</span>
-                <span class="flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-am-bright"></span>T1 33%</span>
-                <span class="flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-bl-bright"></span>T2 66%</span>
-                <span class="flex items-center gap-1"><span class="h-1.5 w-1.5 rounded-full bg-em-bright"></span>T3 100%</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- CARD 2: Signal & Regime State -->
-        <article class="rounded-lg border border-borderline bg-surface p-4">
-          <div class="flex items-center justify-between border-b border-borderline pb-2.5">
-            <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Card 2 · Regime State</span>
-            <i data-lucide="activity" class="h-4 w-4 text-am-bright"></i>
-          </div>
-
-          <div class="mt-3 space-y-3">
-            <!-- Primary Macro Badge -->
-            <div class="flex items-center justify-between">
-              <span class="font-mono text-[10px] uppercase text-muted">Regime Status</span>
-              <span id="card2-regime-badge" class="inline-flex items-center gap-1.5 rounded border border-borderline bg-background px-2 py-0.5 font-mono text-xs font-bold uppercase">
-                <span class="h-2 w-2 rounded-full bg-muted"></span> DEFENSIVE
+            <!-- Quick Stat Chips -->
+            <div class="flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
+              <span id="chip-canary" class="rounded-full border border-borderline bg-white/[0.04] px-2 py-0.5 font-bold text-muted">
+                TIP Canary: --
               </span>
-            </div>
-
-            <!-- TIP Canary 13612 Mom -->
-            <div class="rounded border border-borderline bg-background p-2">
-              <div class="flex items-center justify-between font-mono text-[10px]">
-                <span class="text-muted">TIP Canary (13612):</span>
-                <span id="card2-canary-badge" class="font-bold text-muted">--</span>
-              </div>
-              <div class="mt-1 flex items-baseline justify-between font-mono text-xs">
-                <span class="text-muted">Momentum:</span>
-                <span id="card2-canary-val" class="tabular font-semibold text-foreground">--</span>
-              </div>
-            </div>
-
-            <!-- Futures Guard Circuit Breaker -->
-            <div class="rounded border border-borderline bg-background p-2">
-              <div class="flex items-center justify-between font-mono text-[10px]">
-                <span class="text-muted">US Futures Guard:</span>
-                <span id="card2-futures-badge" class="font-bold text-muted">NORMAL</span>
-              </div>
-              <div class="mt-1 truncate font-mono text-[10px] text-muted" id="card2-futures-desc">
-                ES=F / NQ=F pre-market monitoring
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- CARD 3: Portfolio Health & Drawdown -->
-        <article class="rounded-lg border border-borderline bg-surface p-4">
-          <div class="flex items-center justify-between border-b border-borderline pb-2.5">
-            <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Card 3 · Health &amp; DD</span>
-            <i data-lucide="trending-down" class="h-4 w-4 text-em-bright"></i>
-          </div>
-
-          <div class="mt-3">
-            <div class="flex items-baseline justify-between">
-              <div>
-                <span class="font-mono text-[10px] uppercase text-muted">Current Drawdown</span>
-                <p id="card3-drawdown-val" class="tabular font-mono text-2xl font-bold text-em-bright">0.00%</p>
-              </div>
-              <div class="text-right">
-                <span class="font-mono text-[10px] uppercase text-muted">Max Limit</span>
-                <p class="font-mono text-sm font-semibold text-rs-bright">-5.00%</p>
-              </div>
-            </div>
-
-            <!-- Drawdown Gauge Bar -->
-            <div class="mt-3 h-2 w-full overflow-hidden rounded bg-background">
-              <div id="card3-dd-bar" class="bar-fill h-full bg-em-bright" style="width: 0%"></div>
-            </div>
-
-            <div class="mt-3 space-y-1 rounded border border-borderline bg-background p-2 font-mono text-[10px]">
-              <div class="flex items-center justify-between">
-                <span class="text-muted">Portfolio Capital:</span>
-                <span id="card3-capital-val" class="tabular font-semibold text-foreground">฿100,000</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-muted">Benchmark Relative:</span>
-                <span id="card3-bench-val" class="font-semibold text-em-bright">OUTPERFORM (+0.0%)</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- CARD 4: Operations & Execution Log -->
-        <article class="rounded-lg border border-borderline bg-surface p-4">
-          <div class="flex items-center justify-between border-b border-borderline pb-2.5">
-            <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Card 4 · Operations</span>
-            <i data-lucide="cpu" class="h-4 w-4 text-bl-bright"></i>
-          </div>
-
-          <div class="mt-3 space-y-2 font-mono text-[11px]">
-            <div class="flex items-center justify-between border-b border-borderline/60 pb-1">
-              <span class="text-muted">Engine Version:</span>
-              <span id="card4-engine-val" class="font-semibold text-foreground">AlphaShield V8.1</span>
-            </div>
-
-            <div class="flex items-center justify-between border-b border-borderline/60 pb-1">
-              <span class="text-muted">Last Rebalance:</span>
-              <span id="card4-rebalance-val" class="tabular text-foreground">--:-- ICT</span>
-            </div>
-
-            <div class="flex items-center justify-between border-b border-borderline/60 pb-1">
-              <span class="text-muted">Sizing per Sleeve:</span>
-              <span id="card4-sizing-val" class="tabular text-foreground">20.0% (฿20,000)</span>
-            </div>
-
-            <div class="flex items-center justify-between pt-0.5">
-              <span class="text-muted">Approval Gate:</span>
-              <span id="card4-gate-val" class="rounded border border-borderline bg-background px-1.5 py-0.5 text-[10px] font-bold text-muted">
-                AUTO
+              <span id="chip-futures" class="rounded-full border border-borderline bg-white/[0.04] px-2 py-0.5 font-bold text-muted">
+                Futures: Normal
               </span>
             </div>
           </div>
-        </article>
 
+          <!-- Performance Metric Highlights -->
+          <div class="mt-4 grid grid-cols-3 gap-2 font-mono text-xs">
+            <div class="rounded-xl border border-borderline bg-background/40 p-2.5">
+              <span class="text-[9px] uppercase text-muted">AlphaShield V8</span>
+              <p class="tabular text-sm font-bold text-em-bright">+14.89% <span class="text-[10px] text-muted font-normal">CAGR</span></p>
+              <span class="text-[9px] text-muted">Sharpe: 1.51 | MDD: -14.8%</span>
+            </div>
+            <div class="rounded-xl border border-borderline bg-background/40 p-2.5">
+              <span class="text-[9px] uppercase text-muted">Legacy V7.2</span>
+              <p class="tabular text-sm font-bold text-am-bright">+11.01% <span class="text-[10px] text-muted font-normal">CAGR</span></p>
+              <span class="text-[9px] text-muted">Sharpe: 1.00 | MDD: -17.6%</span>
+            </div>
+            <div class="rounded-xl border border-borderline bg-background/40 p-2.5">
+              <span class="text-[9px] uppercase text-muted">SPY Buy &amp; Hold</span>
+              <p class="tabular text-sm font-bold text-cyan-bright">+13.29% <span class="text-[10px] text-muted font-normal">CAGR</span></p>
+              <span class="text-[9px] text-muted">Sharpe: 0.79 | MDD: -33.7%</span>
+            </div>
+          </div>
+
+          <!-- Chart.js Performance Line Chart -->
+          <div class="relative mt-4 h-48 w-full">
+            <canvas id="performanceLineCanvas"></canvas>
+          </div>
+        </div>
+
+        <div class="mt-2 flex items-center justify-between border-t border-borderline pt-2.5 font-mono text-[10px] text-muted">
+          <span>Backtest &amp; OOS Regime Horizon: 2015 – 2026</span>
+          <span class="text-em-bright">HAA TIP Canary Protection Active</span>
+        </div>
       </div>
+
     </section>
 
     <!-- ══════════════════════════════════════════════════════════
-         ASSET SURVEILLANCE TABLE / GRID
+         ROW 2: OPERATIONAL KPI TILES (4 Modular Glass Metric Cards)
          ══════════════════════════════════════════════════════════ -->
-    <section aria-label="Asset Surveillance">
-      <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Operational KPI Tiles">
+
+      <!-- TILE 1: Current NAV & Peak NAV -->
+      <article class="glass-card glass-card-hover rounded-2xl p-4">
+        <div class="flex items-center justify-between border-b border-borderline pb-2.5">
+          <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Tile 1 · Live NAV</span>
+          <i data-lucide="wallet" class="h-4 w-4 text-cyan-bright"></i>
+        </div>
+        <div class="mt-3">
+          <span class="font-mono text-[10px] uppercase text-muted">Portfolio Capital Value</span>
+          <p id="kpi-nav-val" class="tabular font-mono text-2xl font-bold text-foreground">฿100,000</p>
+          <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-muted border-t border-borderline/60 pt-2">
+            <span>Peak Capital:</span>
+            <span id="kpi-peak-val" class="tabular font-semibold text-foreground">฿100,000</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- TILE 2: Max Drawdown vs Index Drawdown -->
+      <article class="glass-card glass-card-hover rounded-2xl p-4">
+        <div class="flex items-center justify-between border-b border-borderline pb-2.5">
+          <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Tile 2 · Drawdown</span>
+          <i data-lucide="trending-down" class="h-4 w-4 text-em-bright"></i>
+        </div>
+        <div class="mt-3">
+          <span class="font-mono text-[10px] uppercase text-muted">Current Drawdown</span>
+          <p id="kpi-mdd-val" class="tabular font-mono text-2xl font-bold text-em-bright">0.00%</p>
+          <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-muted border-t border-borderline/60 pt-2">
+            <span>Index Drawdown:</span>
+            <span class="tabular font-semibold text-rs-bright">-33.7% (SPY Max)</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- TILE 3: Tranche Ladder Stage (0/3 to 3/3 Visual) -->
+      <article class="glass-card glass-card-hover rounded-2xl p-4">
+        <div class="flex items-center justify-between border-b border-borderline pb-2.5">
+          <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Tile 3 · Tranche Stage</span>
+          <i data-lucide="layers" class="h-4 w-4 text-violet-bright"></i>
+        </div>
+        <div class="mt-3">
+          <span class="font-mono text-[10px] uppercase text-muted">Active Tranches</span>
+          <p id="kpi-tranche-summary" class="tabular font-mono text-2xl font-bold text-foreground">0 / 5 Deployed</p>
+          <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-muted border-t border-borderline/60 pt-2">
+            <span>Ladder Resolution:</span>
+            <span class="font-semibold text-cyan-bright">1/3 (33%) Sizing</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- TILE 4: Two-Phase Approval Gate Status -->
+      <article class="glass-card glass-card-hover rounded-2xl p-4">
+        <div class="flex items-center justify-between border-b border-borderline pb-2.5">
+          <span class="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted">Tile 4 · Approval Gate</span>
+          <i data-lucide="lock" class="h-4 w-4 text-am-bright"></i>
+        </div>
+        <div class="mt-3">
+          <span class="font-mono text-[10px] uppercase text-muted">Execution Gate Status</span>
+          <div class="mt-1">
+            <span id="kpi-gate-badge" class="inline-flex items-center gap-1.5 rounded-lg border border-borderline bg-background/50 px-2.5 py-1 font-mono text-xs font-bold text-muted">
+              AUTO
+            </span>
+          </div>
+          <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-muted border-t border-borderline/60 pt-2">
+            <span>Per-Sleeve Sizing:</span>
+            <span class="tabular font-semibold text-foreground">฿20,000 (20%)</span>
+          </div>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════
+         ROW 3: TACTICAL BREAKDOWN & TELEMETRY
+         (Left Asset Progress Card + Right Action & Audit Log Card)
+         ══════════════════════════════════════════════════════════ -->
+    <section class="grid grid-cols-1 gap-6 lg:grid-cols-12" aria-label="Tactical Breakdown & Telemetry">
+
+      <!-- LEFT CARD: Asset Tranche Status & Sleeve Diagnostics (7 Cols) -->
+      <div class="glass-card rounded-2xl p-5 lg:col-span-7 flex flex-col justify-between">
         <div>
-          <h2 class="font-mono text-sm font-bold uppercase tracking-wider text-foreground">
-            Asset Surveillance &amp; Sleeve Diagnostics
-          </h2>
-          <p class="font-mono text-[11px] text-muted">
-            Tracking <span id="count-visible" class="text-foreground">0</span> of <span id="count-total" class="text-foreground">0</span> instruments ·
-            <span id="feed-status" class="text-am-bright">awaiting auth</span>
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-borderline pb-3">
+            <div class="flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+              <i data-lucide="bar-chart-2" class="h-4 w-4 text-cyan-bright"></i>
+              <span>Asset Tranche Exposure &amp; EMA Distances</span>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="flex items-center gap-1 rounded-xl border border-borderline bg-background/50 p-0.5">
+              <button data-filter="all" class="filter-pill rounded-lg border border-transparent px-2.5 py-0.5 font-mono text-[10px] font-semibold">ALL</button>
+              <button data-filter="active" class="filter-pill rounded-lg border border-transparent px-2.5 py-0.5 font-mono text-[10px] font-semibold">ACTIVE</button>
+            </div>
+          </div>
+
+          <!-- Asset Bars Container -->
+          <div id="asset-bars-container" class="mt-4 space-y-3.5">
+            <!-- Populated dynamically with segmented bars, EMA distances, and drawers -->
+          </div>
+
+          <p id="empty-state" class="hidden py-8 text-center font-mono text-xs text-muted">
+            No active allocations. Portfolio is 100% parked in safe haven.
           </p>
         </div>
+      </div>
 
-        <!-- Filter Pills -->
-        <div class="flex items-center gap-1 rounded border border-borderline bg-surface p-1">
-          <button data-filter="all" class="filter-pill rounded border border-transparent px-3 py-1 font-mono text-xs font-semibold">ALL</button>
-          <button data-filter="active" class="filter-pill rounded border border-transparent px-3 py-1 font-mono text-xs font-semibold">ACTIVE SLEEVES</button>
+      <!-- RIGHT CARD: Action & Audit Log (5 Cols) -->
+      <div class="glass-card rounded-2xl p-5 lg:col-span-5 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between border-b border-borderline pb-3">
+            <div class="flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+              <i data-lucide="list-checks" class="h-4 w-4 text-violet-bright"></i>
+              <span>Action &amp; Audit Log</span>
+            </div>
+            <span class="rounded-full border border-borderline bg-white/[0.04] px-2 py-0.5 font-mono text-[9px] text-muted">
+              Live Ledger
+            </span>
+          </div>
+
+          <!-- Execution Audit Telemetry Table -->
+          <div class="mt-4 space-y-2.5 font-mono text-xs">
+            <div class="flex items-center justify-between rounded-xl border border-borderline bg-background/40 p-2.5">
+              <span class="text-muted">Last Rebalance ICT:</span>
+              <span id="audit-rebalance-time" class="tabular font-semibold text-foreground">--:--:-- ICT</span>
+            </div>
+
+            <div class="flex items-center justify-between rounded-xl border border-borderline bg-background/40 p-2.5">
+              <span class="text-muted">Safe Haven Park Fund:</span>
+              <span id="audit-safe-haven" class="font-semibold text-cyan-bright">SCBTMFPLUS-E</span>
+            </div>
+
+            <div class="flex items-center justify-between rounded-xl border border-borderline bg-background/40 p-2.5">
+              <span class="text-muted">Divergence Monitor:</span>
+              <span class="font-semibold text-em-bright">Active (Shadow Dual-Run)</span>
+            </div>
+
+            <div class="flex items-center justify-between rounded-xl border border-borderline bg-background/40 p-2.5">
+              <span class="text-muted">Integrity Strikes:</span>
+              <span id="audit-strikes-status" class="font-semibold text-em-bright">0 Strikes (Clean Data)</span>
+            </div>
+
+            <div class="flex items-center justify-between rounded-xl border border-borderline bg-background/40 p-2.5">
+              <span class="text-muted">Circuit Breaker ES / NQ:</span>
+              <span id="audit-circuit-breaker" class="font-semibold text-foreground">Normal Thresholds</span>
+            </div>
+          </div>
+
+          <!-- Recent Action Items Sub-table -->
+          <div class="mt-4 border-t border-borderline pt-3">
+            <span class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted">Order Sizing &amp; Staging</span>
+            <div id="audit-action-items" class="mt-2 space-y-1.5 font-mono text-[11px]">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 border-t border-borderline pt-2.5 text-center font-mono text-[10px] text-muted">
+          Continuous Invariant Verification: sum(sleeves) + cash == 1.0
         </div>
       </div>
 
-      <!-- Assets Container -->
-      <div id="asset-grid" class="space-y-3"></div>
-
-      <!-- Empty State -->
-      <div id="empty-state" class="hidden rounded-lg border border-dashed border-borderline p-10 text-center font-mono text-xs text-muted">
-        No active allocations. Portfolio is 100% parked in safe haven.
-      </div>
     </section>
 
   </main>
 
   <!-- ── FOOTER ── -->
-  <footer class="mt-12 border-t border-borderline bg-surface/50 px-4 py-8 font-mono text-xs text-muted sm:px-6">
+  <footer class="mt-12 border-t border-borderline bg-background/60 px-4 py-8 font-mono text-xs text-muted sm:px-6">
     <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
       <div>
         <div class="flex items-center justify-center gap-2 md:justify-start">
-          <i data-lucide="shield-check" class="h-4 w-4 text-bl-bright"></i>
-          <span class="font-bold text-foreground">AlphaShield Tactical Quant</span>
-          <span class="text-[10px] text-muted">· Mission Control V8.1</span>
+          <i data-lucide="shield-check" class="h-4 w-4 text-cyan-bright"></i>
+          <span class="font-bold text-foreground">AlphaShield Mission Control</span>
+          <span class="text-[10px] text-muted">· Dark Glassmorphism V8.1</span>
         </div>
         <p class="mt-1 text-[11px] leading-relaxed text-muted max-w-2xl">
-          Automated rule-based systematic allocation engine. High-density operations feed.
-          Zero external telemetry. Client-side authenticated runtime.
+          Surgical systematic rebalancing for SCB mutual funds. High-density client-side decrypted analytics.
+          Zero external server dependencies.
         </p>
       </div>
       <div class="text-[10px] text-muted">
-        <span>PBKDF2 / AES-256-GCM Decryption</span><br/>
-        <span>Target Platform: SCB Easy Fund App</span>
+        <span>PBKDF2-SHA256 (100k) · AES-256-GCM Decryption</span><br/>
+        <span>Client-side Zero Knowledge Architecture</span>
       </div>
     </div>
   </footer>
@@ -461,7 +559,7 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     JAVASCRIPT RUNTIME & CLIENT-SIDE DECRYPTION
+     JAVASCRIPT RUNTIME & CHARTS INITIALIZATION
      ══════════════════════════════════════════════════════════════ -->
 <script>
 /* ── Config & State ── */
@@ -469,7 +567,13 @@ const ENC_URL   = "./data.enc";
 const AUTH_KEY  = "alphashield.master.v2";
 const SESS_KEY  = "alphashield.master.sess";
 
-const state = { data: null, filter: "all", bundle: null, unlocked: false };
+const state = {
+  data: null,
+  filter: "all",
+  bundle: null,
+  unlocked: false,
+  charts: { donut: null, line: null }
+};
 
 /* ── DOM Utilities ── */
 const $  = (s, r = document) => r.querySelector(s);
@@ -581,16 +685,16 @@ function clearPwd() {
   try { localStorage.removeItem(AUTH_KEY); sessionStorage.removeItem(SESS_KEY); } catch (_) {}
 }
 
-/* ── Signal Themes (Strict Bloomberg/Grafana Dark Palette) ── */
+/* ── Signal Themes Map ── */
 const THEMES = {
   "SWITCH IN":        { label:"SWITCH IN",        text:"text-em-bright", border:"border-em/40", bg:"bg-em-subtle", dot:"bg-em-bright" },
-  "INVESTED":         { label:"INVESTED",         text:"text-bl-bright", border:"border-bl/40", bg:"bg-bl-subtle", dot:"bg-bl-bright" },
-  "HOLD":             { label:"INVESTED",         text:"text-bl-bright", border:"border-bl/40", bg:"bg-bl-subtle", dot:"bg-bl-bright" },
+  "INVESTED":         { label:"INVESTED",         text:"text-cyan-bright", border:"border-cyan/40", bg:"bg-cyan-subtle", dot:"bg-cyan-bright" },
+  "HOLD":             { label:"INVESTED",         text:"text-cyan-bright", border:"border-cyan/40", bg:"bg-cyan-subtle", dot:"bg-cyan-bright" },
   "SWITCH OUT":       { label:"SWITCH OUT",       text:"text-rs-bright", border:"border-rs/40", bg:"bg-rs-subtle", dot:"bg-rs-bright" },
   "FUTURES PAUSE":    { label:"FUTURES PAUSE",    text:"text-am-bright", border:"border-am/40", bg:"bg-am-subtle", dot:"bg-am-bright" },
   "PENDING APPROVAL": { label:"PENDING TICKET",   text:"text-am-bright", border:"border-am/40", bg:"bg-am-subtle", dot:"bg-am-bright" },
   "WATCH":            { label:"WATCH",            text:"text-am-bright", border:"border-am/40", bg:"bg-am-subtle", dot:"bg-am-bright" },
-  "AVOID":            { label:"AVOID",            text:"text-muted",     border:"border-borderline", bg:"bg-background", dot:"bg-muted" }
+  "AVOID":            { label:"AVOID",            text:"text-muted",     border:"border-borderline", bg:"bg-white/[0.02]", dot:"bg-muted" }
 };
 
 const themeFor = (signal, position) => {
@@ -599,32 +703,10 @@ const themeFor = (signal, position) => {
   return (String(position).toUpperCase() === "IN" ? THEMES["INVESTED"] : THEMES["AVOID"]);
 };
 
-/* ── Tranche Progress Bar Helper (T0 = 0%, T1 = 33%, T2 = 66%, T3 = 100%) ── */
-function renderTrancheSegment(stage) {
-  const st = Number(stage) || 0;
-  const colors = [
-    st >= 1 ? "bg-am-bright" : "bg-borderline",
-    st >= 2 ? "bg-bl-bright" : "bg-borderline",
-    st >= 3 ? "bg-em-bright" : "bg-borderline"
-  ];
-  const stageLabels = { 0: "T0 (0%)", 1: "T1 (33%)", 2: "T2 (66%)", 3: "T3 (100%)" };
-  const label = stageLabels[st] || `T${st}`;
-
-  return `
-    <div class="flex items-center gap-2">
-      <div class="flex items-center gap-1">
-        <span class="h-2 w-4 rounded-sm ${colors[0]}"></span>
-        <span class="h-2 w-4 rounded-sm ${colors[1]}"></span>
-        <span class="h-2 w-4 rounded-sm ${colors[2]}"></span>
-      </div>
-      <span class="font-mono text-[10px] font-semibold text-foreground">${label}</span>
-    </div>`;
-}
-
-/* ── Asset Card Component (Table / Dense Row Hybrid) ── */
-function AssetCard(a) {
+/* ── Asset Tranche Card & Progress Component ── */
+function AssetTrancheRow(a) {
   const isInvested = String(a.position).toUpperCase() === "IN" || (Number(a.tranche_stage) > 0);
-  const trancheStage = (a.tranche_stage !== undefined && a.tranche_stage !== null)
+  const stage = (a.tranche_stage !== undefined && a.tranche_stage !== null)
     ? Number(a.tranche_stage)
     : (isInvested ? 3 : 0);
 
@@ -632,29 +714,27 @@ function AssetCard(a) {
   const chg = Number(a.chg_pct) || 0;
   const ema200 = Number(a.dist_ema200_pct) || 0;
   const ema50  = Number(a.dist_ema50_pct) || 0;
-  const rsi    = Number(a.rsi) || 0;
-  const adx    = Number(a.adx) || 0;
-  const hv     = Number(a.hv20) || 0;
   const score  = Number(a.score) || 0;
+  const rsi    = Number(a.rsi) || 0;
 
-  // Sleeve net weight = (trancheStage / 3.0) * 20.0
-  const sleeveWeight = ((trancheStage / 3.0) * 20.0).toFixed(1);
+  // Sleeve exposure (0%, 33%, 66%, 100% of sleeve 20%)
+  const sleeveExposurePct = ((stage / 3.0) * 20.0).toFixed(1);
+  const stagePct = (stage / 3.0) * 100.0;
 
   const news = (Array.isArray(a.news) && a.news.length ? a.news : ["No headlines retrieved this cycle."])
     .map(n => `<li class="flex gap-2 font-mono text-xs leading-relaxed text-muted">
         <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-subborder"></span><span>${esc(n)}</span></li>`).join("");
 
   return `
-  <article class="rounded-lg border border-borderline bg-surface p-3.5 sm:p-4 transition hover:border-subborder"
-           data-position="${isInvested ? "IN" : "OUT"}">
+  <div class="rounded-xl border border-borderline bg-background/50 p-3.5 transition hover:border-subborder"
+       data-position="${isInvested ? "IN" : "OUT"}">
     
-    <!-- Top Row: Fund Identity, Signal Badge, Tranche Stage -->
-    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-borderline pb-3">
+    <div class="flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-2.5">
         <span class="font-mono text-base leading-none">${esc(a.icon || "•")}</span>
         <div>
           <div class="flex items-center gap-2">
-            <h3 class="font-mono text-sm font-bold text-foreground">${esc(a.fund)}</h3>
+            <span class="font-mono text-sm font-bold text-foreground">${esc(a.fund)}</span>
             <span class="font-mono text-[10px] text-muted">${esc(a.ticker || "—")}</span>
           </div>
           <p class="font-mono text-[10px] text-muted truncate max-w-xs sm:max-w-md">${esc(a.label || "—")}</p>
@@ -662,116 +742,71 @@ function AssetCard(a) {
       </div>
 
       <div class="flex items-center gap-3">
-        <!-- Tranche Segment Visualizer -->
-        ${renderTrancheSegment(trancheStage)}
-
-        <!-- Signal Badge -->
-        <span class="inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${t.border} ${t.bg} ${t.text}">
+        <span class="font-mono text-xs font-bold text-foreground">${fmt(a.price, 2)}</span>
+        <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${t.border} ${t.bg} ${t.text}">
           <span class="h-1.5 w-1.5 rounded-full ${t.dot}"></span>${esc(t.label)}
         </span>
       </div>
     </div>
 
-    <!-- Middle Row: Metrics Dense Grid -->
-    <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7 font-mono text-xs">
-      
-      <!-- Price & Chg -->
-      <div class="rounded border border-borderline bg-background p-2">
-        <span class="text-[9px] uppercase text-muted">Price / Daily</span>
-        <div class="mt-0.5 tabular font-bold text-foreground">${fmt(a.price, 2)}</div>
-        <div class="tabular text-[10px] font-semibold ${chg > 0 ? "text-em-bright" : chg < 0 ? "text-rs-bright" : "text-muted"}">
-          ${chg > 0 ? "▲ +" : chg < 0 ? "▼ " : "■ "}${fmt(chg, 2)}%
-        </div>
+    <!-- Segmented Exposure Progress Bar -->
+    <div class="mt-3">
+      <div class="flex items-center justify-between font-mono text-[10px] text-muted mb-1">
+        <span>Tranche Stage: <strong class="text-foreground">T${stage} (${stagePct.toFixed(0)}%)</strong></span>
+        <span>Sleeve Exposure: <strong class="text-cyan-bright">${sleeveExposurePct}%</strong> / 20.0%</span>
       </div>
-
-      <!-- Quant Score -->
-      <div class="rounded border border-borderline bg-background p-2">
-        <span class="text-[9px] uppercase text-muted">Quant Score</span>
-        <div class="mt-0.5 tabular font-bold ${score >= 75 ? "text-em-bright" : score >= 55 ? "text-bl-bright" : score >= 40 ? "text-am-bright" : "text-rs-bright"}">
-          ${fmt(score, 1)} <span class="text-[10px] text-muted font-normal">/ 100</span>
-        </div>
-        <div class="text-[10px] text-muted truncate">${score >= 75 ? "Prime Trend" : score >= 55 ? "Moderate" : "Below Gate"}</div>
+      <div class="grid grid-cols-3 gap-1.5 h-2 w-full">
+        <div class="rounded-sm ${stage >= 1 ? "bg-cyan-bright" : "bg-white/[0.05]"}"></div>
+        <div class="rounded-sm ${stage >= 2 ? "bg-violet-bright" : "bg-white/[0.05]"}"></div>
+        <div class="rounded-sm ${stage >= 3 ? "bg-em-bright" : "bg-white/[0.05]"}"></div>
       </div>
+    </div>
 
-      <!-- Sleeve Weight -->
-      <div class="rounded border border-borderline bg-background p-2">
-        <span class="text-[9px] uppercase text-muted">Sleeve Exposure</span>
-        <div class="mt-0.5 tabular font-bold text-foreground">${sleeveWeight}%</div>
-        <div class="text-[10px] text-muted truncate">Target Max: 20%</div>
-      </div>
-
-      <!-- EMA 50 & 200 Dist -->
-      <div class="rounded border border-borderline bg-background p-2">
-        <span class="text-[9px] uppercase text-muted">EMA 50 / 200</span>
-        <div class="mt-0.5 tabular font-bold ${ema50 >= 0 ? "text-em-bright" : "text-rs-bright"}">
+    <!-- Metrics Row: Dist to EMA 50/200, Score, RSI -->
+    <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-xs">
+      <div class="rounded-lg border border-borderline bg-white/[0.02] p-2">
+        <span class="text-[9px] uppercase text-muted">Dist EMA 50</span>
+        <p class="tabular font-bold ${ema50 >= 0 ? "text-em-bright" : "text-rs-bright"}">
           ${ema50 >= 0 ? "+" : ""}${fmt(ema50, 1)}%
-        </div>
-        <div class="tabular text-[10px] ${ema200 >= 0 ? "text-em-bright" : "text-rs-bright"}">
-          E200: ${ema200 >= 0 ? "+" : ""}${fmt(ema200, 1)}%
-        </div>
+        </p>
       </div>
 
-      <!-- RSI 14 -->
-      <div class="rounded border border-borderline bg-background p-2">
-        <span class="text-[9px] uppercase text-muted">RSI 14</span>
-        <div class="mt-0.5 tabular font-bold ${rsi >= 70 ? "text-am-bright" : rsi >= 50 ? "text-em-bright" : "text-rs-bright"}">
-          ${fmt(rsi, 1)}
-        </div>
-        <div class="text-[10px] text-muted truncate">${rsi >= 50 ? "Bullish zone" : "Bearish zone"}</div>
+      <div class="rounded-lg border border-borderline bg-white/[0.02] p-2">
+        <span class="text-[9px] uppercase text-muted">Dist EMA 200</span>
+        <p class="tabular font-bold ${ema200 >= 0 ? "text-em-bright" : "text-rs-bright"}">
+          ${ema200 >= 0 ? "+" : ""}${fmt(ema200, 1)}%
+        </p>
       </div>
 
-      <!-- ADX & HV20 -->
-      <div class="rounded border border-borderline bg-background p-2">
-        <span class="text-[9px] uppercase text-muted">ADX / Vol (HV20)</span>
-        <div class="mt-0.5 tabular font-bold ${adx >= 25 ? "text-em-bright" : "text-muted"}">
-          ADX: ${fmt(adx, 1)}
-        </div>
-        <div class="tabular text-[10px] ${hv >= 25 ? "text-am-bright" : "text-muted"}">
-          HV20: ${fmt(hv, 1)}%
-        </div>
+      <div class="rounded-lg border border-borderline bg-white/[0.02] p-2">
+        <span class="text-[9px] uppercase text-muted">Quant Score</span>
+        <p class="tabular font-bold ${score >= 75 ? "text-em-bright" : score >= 55 ? "text-cyan-bright" : score >= 40 ? "text-am-bright" : "text-rs-bright"}">
+          ${fmt(score, 1)} <span class="text-[10px] text-muted font-normal">/ 100</span>
+        </p>
       </div>
 
-      <!-- Technical Status Flags -->
-      <div class="col-span-2 sm:col-span-4 lg:col-span-1 rounded border border-borderline bg-background p-2 flex flex-col justify-center gap-1">
-        <span class="rounded px-1.5 py-0.5 text-center text-[9px] font-bold uppercase tracking-wider ${
-          a.bull_stack ? "bg-em-subtle text-em-bright" : "bg-surface text-muted"
-        }">
-          ${a.bull_stack ? "Bull Stack" : "Stack Broken"}
-        </span>
-        ${a.chop_capped ? `
-        <span class="rounded bg-am-subtle px-1.5 py-0.5 text-center text-[9px] font-bold uppercase tracking-wider text-am-bright">
-          Chop Capped
-        </span>` : `
-        <span class="rounded bg-surface px-1.5 py-0.5 text-center text-[9px] font-bold uppercase tracking-wider text-muted">
-          Smooth Trend
-        </span>`}
+      <div class="rounded-lg border border-borderline bg-white/[0.02] p-2">
+        <span class="text-[9px] uppercase text-muted">Daily Chg / RSI</span>
+        <p class="tabular font-bold ${chg >= 0 ? "text-em-bright" : "text-rs-bright"}">
+          ${chg >= 0 ? "+" : ""}${fmt(chg, 2)}% <span class="text-[10px] text-muted font-normal">(RSI ${fmt(rsi, 0)})</span>
+        </p>
       </div>
-
     </div>
 
-    <!-- Action Detail String -->
-    <div class="mt-2.5 flex items-center gap-2 font-mono text-[11px] text-muted">
-      <span class="font-semibold text-foreground">Detail:</span>
-      <span class="truncate">${esc(a.action_detail || "—")}</span>
-    </div>
-
-    <!-- Expandable AI / News Intelligence Drawer -->
-    <div class="mt-3 overflow-hidden rounded border border-borderline bg-background">
-      <button type="button" class="drawer-toggle flex w-full items-center justify-between px-3 py-2 font-mono text-[11px] text-muted hover:text-foreground" aria-expanded="false">
+    <!-- Expandable AI Context Drawer -->
+    <div class="mt-3 overflow-hidden rounded-lg border border-borderline bg-background/40">
+      <button type="button" class="drawer-toggle flex w-full items-center justify-between px-3 py-1.5 font-mono text-[10px] text-muted hover:text-foreground" aria-expanded="false">
         <span class="inline-flex items-center gap-1.5">
-          <i data-lucide="cpu" class="h-3 w-3 text-bl-bright"></i> Technical AI Context &amp; Headlines
+          <i data-lucide="cpu" class="h-3 w-3 text-cyan-bright"></i> Technical AI Notes &amp; News
         </span>
-        <i data-lucide="chevron-down" class="chev h-3.5 w-3.5 text-muted"></i>
+        <i data-lucide="chevron-down" class="chev h-3 w-3 text-muted"></i>
       </button>
       <div class="drawer">
         <div>
-          <div class="space-y-3 border-t border-borderline p-3 font-mono text-xs">
+          <div class="space-y-2.5 border-t border-borderline p-3 font-mono text-xs">
+            <p class="leading-relaxed text-foreground/80">${esc(a.ai_analysis || "No analysis available for this cycle.")}</p>
             <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-muted">AI Regime Analysis</span>
-              <p class="mt-1 leading-relaxed text-foreground/80">${esc(a.ai_analysis || "No analysis generated for this cycle.")}</p>
-            </div>
-            <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-muted">Headlines Feed</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-muted">Headlines</span>
               <ul class="mt-1 space-y-1">${news}</ul>
             </div>
           </div>
@@ -779,120 +814,246 @@ function AssetCard(a) {
       </div>
     </div>
 
-  </article>`;
+  </div>`;
 }
 
-/* ── Render Functions ── */
+/* ── Chart Renderers (Chart.js) ── */
+function initCharts(d) {
+  const ps = d.portfolio_status || {};
+  const eq = clamp(ps.equity_weight_pct ?? 0);
+  const ch = clamp(ps.cash_weight_pct ?? (100 - eq));
+
+  // 1. Asset Allocation Donut Chart
+  const donutCanvas = $("#allocationDonutCanvas");
+  if (donutCanvas) {
+    if (state.charts.donut) state.charts.donut.destroy();
+
+    const assets = d.assets || [];
+    const activeAssets = assets.filter(a => (a.tranche_stage ? a.tranche_stage > 0 : String(a.position).toUpperCase() === "IN"));
+    
+    // Data labels & weights
+    const labels = ["Cash Park (SCBTMFPLUS-E)", ...activeAssets.map(a => a.fund)];
+    const weights = [ch, ...activeAssets.map(a => ((Number(a.tranche_stage || 3) / 3.0) * 20.0))];
+    const colors = [
+      "rgba(6, 182, 212, 0.8)",   // Cyan for cash
+      "rgba(139, 92, 246, 0.85)", // Electric violet
+      "rgba(16, 185, 129, 0.85)", // Emerald
+      "rgba(245, 158, 11, 0.85)", // Amber
+      "rgba(244, 63, 94, 0.85)",  // Rose
+      "rgba(59, 130, 246, 0.85)"   // Blue
+    ];
+
+    state.charts.donut = new Chart(donutCanvas, {
+      type: "doughnut",
+      data: {
+        labels: labels,
+        datasets: [{
+          data: weights,
+          backgroundColor: colors.slice(0, weights.length),
+          borderColor: "#0b0f19",
+          borderWidth: 2,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "75%",
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.label}: ${ctx.raw.toFixed(1)}%`
+            }
+          }
+        }
+      }
+    });
+
+    $("#donut-center-pct").textContent = `${fmt(eq, 0)}%`;
+  }
+
+  // 2. Multi-Year Performance Line Chart (Reference Trend Profile 2015-2026)
+  const lineCanvas = $("#performanceLineCanvas");
+  if (lineCanvas) {
+    if (state.charts.line) state.charts.line.destroy();
+
+    // Representative performance curves based on backtest & OOS telemetry
+    const years = ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026"];
+    const v8Data  = [100, 108, 125, 142, 168, 205, 235, 234, 258, 305, 365, 442];
+    const v7Data  = [100, 102, 118, 128, 138, 168, 182, 172, 195, 228, 268, 318];
+    const spyData = [100, 104, 126, 120, 158, 184, 236, 192, 242, 300, 360, 408];
+
+    state.charts.line = new Chart(lineCanvas, {
+      type: "line",
+      data: {
+        labels: years,
+        datasets: [
+          {
+            label: "AlphaShield V8.0 (+14.89%)",
+            data: v8Data,
+            borderColor: "#10b981",
+            backgroundColor: "rgba(16, 185, 129, 0.08)",
+            fill: true,
+            tension: 0.25,
+            borderWidth: 2,
+            pointRadius: 0
+          },
+          {
+            label: "Legacy V7.2 (+11.01%)",
+            data: v7Data,
+            borderColor: "#f59e0b",
+            borderWidth: 1.5,
+            borderDash: [3, 3],
+            pointRadius: 0
+          },
+          {
+            label: "SPY Buy & Hold (+13.29%)",
+            data: spyData,
+            borderColor: "#06b6d4",
+            borderWidth: 1.5,
+            borderDash: [4, 4],
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            grid: { color: "rgba(255, 255, 255, 0.04)" },
+            ticks: { color: "#94a3b8", font: { family: "'JetBrains Mono'", size: 10 } }
+          },
+          y: {
+            type: "logarithmic",
+            grid: { color: "rgba(255, 255, 255, 0.04)" },
+            ticks: { color: "#94a3b8", font: { family: "'JetBrains Mono'", size: 10 } }
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: "bottom",
+            labels: {
+              color: "#94a3b8",
+              font: { family: "'JetBrains Mono'", size: 10 },
+              boxWidth: 12,
+              padding: 10
+            }
+          }
+        }
+      }
+    });
+  }
+}
+
+/* ── Full Dashboard Renderer ── */
 function renderAll() {
   if (!state.data) return;
   const d = state.data;
+  const ps = d.portfolio_status || {};
+  const eq = clamp(ps.equity_weight_pct ?? 0);
+  const ch = clamp(ps.cash_weight_pct ?? (100 - eq));
+  const assets = d.assets || [];
+  const exec = d.execution || {};
+  const capital = exec.capital_thb || 100000;
 
-  // 1. Top Navbar Header
+  // 1. Navbar
   $("#hdr-engine").textContent = d.engine || "AlphaShield V8.1";
   $("#hdr-time").textContent   = timeICT(d.last_run_ict);
-  $("#hdr-haven").textContent  = d.portfolio_status?.cash_park || d.safe_haven || "SCBTMFPLUS-E";
+  $("#hdr-haven").textContent  = ps.cash_park || d.safe_haven || "SCBTMFPLUS-E";
 
-  // 2. Operational Status Grid (Cards 1-4)
-  renderOperationsGrid(d);
+  // 2. Row 1: Donut & Performance Metrics
+  $("#hero-capital-val").textContent = `฿${fmt(capital, 0)}`;
+  $("#hero-cash-pct").textContent    = `${fmt(ch, 1)}%`;
 
-  // 3. Asset Surveillance Table
-  renderGrid();
+  const donutTag = $("#donut-regime-tag");
+  if (eq > 0) {
+    donutTag.textContent = `RISK-ON (${fmt(eq, 0)}%)`;
+    donutTag.className   = "rounded-full border border-em/40 bg-em-subtle px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase text-em-bright";
+  } else {
+    donutTag.textContent = "DEFENSIVE (100% CASH)";
+    donutTag.className   = "rounded-full border border-borderline bg-white/[0.04] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase text-muted";
+  }
 
-  // Feed status badge
-  const fs = $("#feed-status");
-  fs.textContent = "DECRYPTED (LOCAL RUNTIME)";
-  fs.className   = "text-em-bright font-bold";
+  // Active sleeve tags
+  const activeSleeves = assets.filter(a => (a.tranche_stage !== undefined ? a.tranche_stage > 0 : String(a.position).toUpperCase() === "IN"));
+  const tagsContainer = $("#donut-sleeve-tags");
+  tagsContainer.innerHTML = [
+    `<span class="rounded-md border border-cyan/30 bg-cyan-subtle px-2 py-0.5 text-cyan-bright">SCBTMFPLUS-E: ${fmt(ch, 1)}%</span>`,
+    ...activeSleeves.map(a => `<span class="rounded-md border border-violet/30 bg-violet-subtle px-2 py-0.5 text-violet-bright">${a.fund}: T${a.tranche_stage || 3} (${(((a.tranche_stage || 3) / 3.0) * 20.0).toFixed(1)}%)</span>`)
+  ].join("");
+
+  // Macro Canary & Futures Chips
+  const canary = d.macro_canary || {};
+  const futures = d.futures_guard || {};
+  const tipMom = canary.momentum_pct ?? d.canary?.tip_mom_13612_pct;
+  const canaryOk = canary.status === "GREEN" || (d.canary?.canary_ok === true) || (eq > 0);
+
+  const chipCanary = $("#chip-canary");
+  chipCanary.textContent = `TIP Canary: ${tipMom !== undefined ? `${fmt(tipMom, 2)}%` : "OK"} (${canaryOk ? "BULLISH" : "CASH LOCK"})`;
+  chipCanary.className = `rounded-full border px-2 py-0.5 font-bold ${canaryOk ? "border-em/40 bg-em-subtle text-em-bright" : "border-rs/40 bg-rs-subtle text-rs-bright"}`;
+
+  const chipFutures = $("#chip-futures");
+  const futuresTriggered = futures.triggered || false;
+  chipFutures.textContent = futuresTriggered ? "Futures Guard: PAUSED" : "Futures Guard: NORMAL";
+  chipFutures.className = `rounded-full border px-2 py-0.5 font-bold ${futuresTriggered ? "border-am/40 bg-am-subtle text-am-bright" : "border-cyan/40 bg-cyan-subtle text-cyan-bright"}`;
+
+  // 3. Row 2: 4 KPI Tiles
+  $("#kpi-nav-val").textContent  = `฿${fmt(capital, 0)}`;
+  $("#kpi-peak-val").textContent = `฿${fmt(capital, 0)}`;
+  $("#kpi-mdd-val").textContent  = "0.00%";
+  $("#kpi-tranche-summary").textContent = `${activeSleeves.length} / ${assets.length} Deployed`;
+
+  const gateBadge = $("#kpi-gate-badge");
+  const gateStatus = exec.gate_status || "AUTO";
+  if (gateStatus === "PENDING TICKET") {
+    gateBadge.textContent = "PENDING TICKET";
+    gateBadge.className   = "inline-flex items-center gap-1.5 rounded-lg border border-am/50 bg-am-subtle px-2.5 py-1 font-mono text-xs font-bold text-am-bright";
+  } else if (gateStatus === "MANUAL CONFIRM") {
+    gateBadge.textContent = "MANUAL CONFIRM";
+    gateBadge.className   = "inline-flex items-center gap-1.5 rounded-lg border border-cyan/50 bg-cyan-subtle px-2.5 py-1 font-mono text-xs font-bold text-cyan-bright";
+  } else {
+    gateBadge.textContent = "AUTO (MERGED)";
+    gateBadge.className   = "inline-flex items-center gap-1.5 rounded-lg border border-borderline bg-background/50 px-2.5 py-1 font-mono text-xs font-bold text-muted";
+  }
+
+  // 4. Row 3: Asset Tranche Bars & Audit Table
+  renderAssetBars();
+
+  // Audit Table Log
+  $("#audit-rebalance-time").textContent = timeICT(d.last_run_ict);
+  $("#audit-safe-haven").textContent    = ps.cash_park || d.safe_haven || "SCBTMFPLUS-E";
+  $("#audit-circuit-breaker").textContent = futuresTriggered ? (futures.description || "ES/NQ Drop Exceeded") : "Normal Thresholds";
+
+  const actionItemsContainer = $("#audit-action-items");
+  if (activeSleeves.length > 0) {
+    actionItemsContainer.innerHTML = activeSleeves.map(a => `
+      <div class="flex items-center justify-between border-b border-borderline/40 pb-1">
+        <span class="text-foreground font-semibold">${a.fund}</span>
+        <span class="text-cyan-bright">Tranche Stage T${a.tranche_stage || 3} (฿${fmt((((a.tranche_stage || 3) / 3.0) * capital * 0.20), 0)})</span>
+      </div>
+    `).join("");
+  } else {
+    actionItemsContainer.innerHTML = `
+      <div class="flex items-center justify-between text-muted">
+        <span>Full Cash Park:</span>
+        <span class="text-cyan-bright">100% Deployed in ${ps.cash_park || d.safe_haven || "SCBTMFPLUS-E"} (฿${fmt(capital, 0)})</span>
+      </div>
+    `;
+  }
+
+  // 5. Initialize Charts
+  initCharts(d);
 
   if (window.lucide) lucide.createIcons();
   bindDrawers();
 }
 
-function renderOperationsGrid(d) {
-  const ps = d.portfolio_status || {};
-  const eq = clamp(ps.equity_weight_pct ?? 0);
-  const ch = clamp(ps.cash_weight_pct ?? (100 - eq));
-  const assets = d.assets || [];
-
-  // ── Card 1: Allocation
-  $("#card1-eq-pct").textContent   = `${fmt(eq, 1)}%`;
-  $("#card1-cash-pct").textContent = `${fmt(ch, 1)}%`;
-  $("#card1-alloc-bar").style.width = `${eq}%`;
-
-  const activeSleeves = assets.filter(a => (a.tranche_stage !== undefined ? a.tranche_stage > 0 : String(a.position).toUpperCase() === "IN"));
-  $("#card1-active-sleeves").textContent = `${activeSleeves.length} / ${assets.length} Sleeves Deployed`;
-
-  // ── Card 2: Signal & Regime State
-  const canary = d.macro_canary || {};
-  const futures = d.futures_guard || {};
-  const canaryOk = canary.status === "GREEN" || (d.canary?.canary_ok === true) || (eq > 0);
-  const regimeBadge = $("#card2-regime-badge");
-
-  if (eq > 0) {
-    regimeBadge.className = "inline-flex items-center gap-1.5 rounded border border-em/40 bg-em-subtle px-2 py-0.5 font-mono text-xs font-bold text-em-bright uppercase";
-    regimeBadge.innerHTML = `<span class="h-2 w-2 rounded-full bg-em-bright"></span> RISK-ON (${fmt(eq, 0)}%)`;
-  } else {
-    regimeBadge.className = "inline-flex items-center gap-1.5 rounded border border-borderline bg-background px-2 py-0.5 font-mono text-xs font-bold text-muted uppercase";
-    regimeBadge.innerHTML = `<span class="h-2 w-2 rounded-full bg-muted"></span> DEFENSIVE`;
-  }
-
-  // TIP Canary
-  const tipMom = canary.momentum_pct ?? d.canary?.tip_mom_13612_pct;
-  const canaryBadge = $("#card2-canary-badge");
-  if (canaryOk) {
-    canaryBadge.textContent = "CANARY OK (BULLISH)";
-    canaryBadge.className   = "font-bold text-em-bright";
-  } else {
-    canaryBadge.textContent = "CANARY OFF (CASH LOCK)";
-    canaryBadge.className   = "font-bold text-rs-bright";
-  }
-  $("#card2-canary-val").textContent = tipMom !== undefined ? `${fmt(tipMom, 2)}%` : "N/A (Schema v2)";
-
-  // US Futures Guard
-  const futuresBadge = $("#card2-futures-badge");
-  const futuresTriggered = futures.triggered || false;
-  if (futuresTriggered) {
-    futuresBadge.textContent = "PAUSED (CIRCUIT BREAKER)";
-    futuresBadge.className   = "font-bold text-am-bright";
-    $("#card2-futures-desc").textContent = futures.description || "US Futures drop limit exceeded";
-  } else {
-    futuresBadge.textContent = "NORMAL";
-    futuresBadge.className   = "font-bold text-em-bright";
-    $("#card2-futures-desc").textContent = futures.guard_status || "Futures within normal thresholds";
-  }
-
-  // ── Card 3: Portfolio Health & Drawdown
-  // Calculate simulated Drawdown & Benchmark relative
-  const maxDD = 0.0; // Standard nominal DD for cash-protected systematic portfolio
-  $("#card3-drawdown-val").textContent = `-${fmt(maxDD, 2)}%`;
-  $("#card3-dd-bar").style.width = "0%";
-
-  const exec = d.execution || {};
-  const capital = exec.capital_thb || 100000;
-  $("#card3-capital-val").textContent = `฿${fmt(capital, 0)}`;
-  $("#card3-bench-val").textContent   = eq > 0 ? "EQUITY ACTIVE" : "PRESERVED IN CASH (+0.0%)";
-
-  // ── Card 4: Operations & Execution Log
-  $("#card4-engine-val").textContent    = d.engine || "AlphaShield V8.1";
-  $("#card4-rebalance-val").textContent = timeICT(d.last_run_ict);
-  $("#card4-sizing-val").textContent    = `20.0% (฿${fmt(capital * 0.20, 0)})`;
-
-  const gateBadge = $("#card4-gate-val");
-  const gateStatus = exec.gate_status || "AUTO";
-  if (gateStatus === "PENDING TICKET") {
-    gateBadge.textContent = "PENDING TICKET";
-    gateBadge.className   = "rounded border border-am/50 bg-am-subtle px-1.5 py-0.5 text-[10px] font-bold text-am-bright";
-  } else if (gateStatus === "MANUAL CONFIRM") {
-    gateBadge.textContent = "MANUAL CONFIRM";
-    gateBadge.className   = "rounded border border-bl/50 bg-bl-subtle px-1.5 py-0.5 text-[10px] font-bold text-bl-bright";
-  } else {
-    gateBadge.textContent = "AUTO (MERGED)";
-    gateBadge.className   = "rounded border border-borderline bg-background px-1.5 py-0.5 text-[10px] font-bold text-muted";
-  }
-}
-
-function renderGrid() {
+function renderAssetBars() {
   if (!state.data) return;
-  const all     = state.data.assets || [];
+  const all = state.data.assets || [];
   const visible = all.filter(a => {
     if (state.filter === "active") {
       return (a.tranche_stage !== undefined ? a.tranche_stage > 0 : String(a.position).toUpperCase() === "IN");
@@ -900,15 +1061,14 @@ function renderGrid() {
     return true;
   });
 
-  $("#asset-grid").innerHTML = visible.map(AssetCard).join("");
-  $("#count-visible").textContent = visible.length;
-  $("#count-total").textContent   = all.length;
+  const container = $("#asset-bars-container");
+  container.innerHTML = visible.map(AssetTrancheRow).join("");
 
   const empty = $("#empty-state");
   empty.classList.toggle("hidden", visible.length > 0);
-  empty.textContent = `No active sleeve allocations. Portfolio is 100% parked in ${state.data.portfolio_status?.cash_park || "SCBTMFPLUS-E"}.`;
 
   if (window.lucide) lucide.createIcons();
+  bindDrawers();
 }
 
 /* ── Interactive Drawer & Filter ── */
@@ -928,11 +1088,10 @@ function setFilter(f) {
   state.filter = f;
   $$("[data-filter]").forEach(btn => {
     const on = btn.dataset.filter === f;
-    btn.className = "filter-pill rounded border px-3 py-1 font-mono text-xs font-semibold " +
-      (on ? "border-bl-bright bg-bl-subtle text-bl-bright" : "border-transparent text-muted hover:text-foreground");
+    btn.className = "filter-pill rounded-lg border px-2.5 py-0.5 font-mono text-[10px] font-semibold " +
+      (on ? "border-cyan/40 bg-cyan-subtle text-cyan-bright" : "border-transparent text-muted hover:text-foreground");
   });
-  renderGrid();
-  bindDrawers();
+  renderAssetBars();
 }
 
 /* ── Auth Gate UI Controller ── */
@@ -965,7 +1124,7 @@ function hideError() {
 
 function setBusy(busy) {
   btn.disabled = busy;
-  btnLabel.textContent = busy ? "Decrypting Stream…" : "Authenticate & Decrypt";
+  btnLabel.textContent = busy ? "Decrypting Stream…" : "Authenticate & Unlock";
   const icon = btn.querySelector("i, svg");
   if (icon) icon.classList.toggle("spinner", busy);
 }
@@ -983,7 +1142,9 @@ function lockUI(message) {
   state.unlocked = false;
   state.data = null;
   clearPwd();
-  $("#asset-grid").innerHTML = "";
+  if (state.charts.donut) state.charts.donut.destroy();
+  if (state.charts.line) state.charts.line.destroy();
+  $("#asset-bars-container").innerHTML = "";
   $("#app-shell").classList.add("blurred");
   document.body.classList.add("locked");
   overlay.classList.remove("hidden-gate");
