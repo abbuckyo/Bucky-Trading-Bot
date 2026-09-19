@@ -6,6 +6,7 @@
 <html lang="th" class="dark">
 <head>
 <meta charset="UTF-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow, noarchive" />
 <title>AlphaShield — Tactical Mission Control</title>
@@ -128,7 +129,7 @@
   .chev     { transition: transform .2s ease; }
   .drawer   { display: grid; grid-template-rows: 0fr; opacity: 0;
               transition: grid-template-rows .3s cubic-bezier(.16,1,.3,1), opacity .25s ease; }
-  .drawer > div { overflow: hidden; }
+  .drawer > div { overflow: hidden; word-break: break-word; overflow-wrap: anywhere; white-space: normal; line-height: 1.5; height: auto; }
   .drawer.open { grid-template-rows: 1fr; opacity: 1; }
 
   .filter-pill { transition: color .2s ease, background-color .2s ease, border-color .2s ease; }
@@ -291,7 +292,7 @@
           <div class="mt-4 flex items-baseline justify-between">
             <div>
               <span class="font-mono text-[10px] uppercase tracking-wider text-muted">Total Capital</span>
-              <p id="hero-capital-val" class="tabular font-mono text-2xl font-bold text-foreground">฿100,000</p>
+              <p id="hero-capital-val" class="tabular font-mono text-2xl font-bold text-foreground">&#3647;100,000</p>
             </div>
             <div class="text-right">
               <span class="font-mono text-[10px] uppercase tracking-wider text-muted">Cash Park Weight</span>
@@ -321,7 +322,7 @@
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-borderline pb-3">
             <div class="flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted">
               <i data-lucide="trending-up" class="h-4 w-4 text-em-bright"></i>
-              <span>Multi-Year AlphaShield V8.0 vs Benchmark</span>
+              <span>Multi-Year AlphaShield V8.1 vs Benchmark</span>
             </div>
 
             <!-- Quick Stat Chips -->
@@ -338,7 +339,7 @@
           <!-- Performance Metric Highlights -->
           <div class="mt-4 grid grid-cols-3 gap-2 font-mono text-xs">
             <div class="rounded-xl border border-borderline bg-background/40 p-2.5">
-              <span class="text-[9px] uppercase text-muted">AlphaShield V8</span>
+              <span class="text-[9px] uppercase text-muted">AlphaShield V8.1</span>
               <p class="tabular text-sm font-bold text-em-bright">+14.89% <span class="text-[10px] text-muted font-normal">CAGR</span></p>
               <span class="text-[9px] text-muted">Sharpe: 1.51 | MDD: -14.8%</span>
             </div>
@@ -381,10 +382,10 @@
         </div>
         <div class="mt-3">
           <span class="font-mono text-[10px] uppercase text-muted">Portfolio Capital Value</span>
-          <p id="kpi-nav-val" class="tabular font-mono text-2xl font-bold text-foreground">฿100,000</p>
+          <p id="kpi-nav-val" class="tabular font-mono text-2xl font-bold text-foreground">&#3647;100,000</p>
           <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-muted border-t border-borderline/60 pt-2">
             <span>Peak Capital:</span>
-            <span id="kpi-peak-val" class="tabular font-semibold text-foreground">฿100,000</span>
+            <span id="kpi-peak-val" class="tabular font-semibold text-foreground">&#3647;100,000</span>
           </div>
         </div>
       </article>
@@ -436,7 +437,7 @@
           </div>
           <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-muted border-t border-borderline/60 pt-2">
             <span>Per-Sleeve Sizing:</span>
-            <span class="tabular font-semibold text-foreground">฿20,000 (20%)</span>
+            <span class="tabular font-semibold text-foreground">&#3647;20,000 (20%)</span>
           </div>
         </div>
       </article>
@@ -589,6 +590,11 @@ const fmt = (v, d = 2) =>
   (v === null || v === undefined || Number.isNaN(Number(v)))
     ? "—"
     : Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+const fmtBaht = (v, d = 0) =>
+  (v === null || v === undefined || Number.isNaN(Number(v)))
+    ? "—"
+    : "\u0E3F" + Number(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
 
 function timeICT(iso) {
   const d = new Date(iso);
@@ -806,7 +812,7 @@ function AssetTrancheRow(a) {
       <div class="drawer">
         <div>
           <div class="space-y-2.5 border-t border-borderline p-3 font-mono text-xs">
-            <p class="leading-relaxed text-foreground/80">${esc(a.ai_analysis || "No analysis available for this cycle.")}</p>
+            <p class="leading-relaxed text-foreground/80 break-words whitespace-normal" style="word-break: break-word; overflow-wrap: anywhere; white-space: normal; line-height: 1.5;">${esc(a.ai_analysis || "No analysis available for this cycle.")}</p>
             <div>
               <span class="text-[10px] font-bold uppercase tracking-wider text-muted">Headlines</span>
               <ul class="mt-1 space-y-1">${news}</ul>
@@ -892,7 +898,7 @@ function initCharts(d) {
         labels: years,
         datasets: [
           {
-            label: "AlphaShield V8.0 (+14.89%)",
+            label: "AlphaShield V8.1 (+14.89%)",
             data: v8Data,
             borderColor: "#10b981",
             backgroundColor: "rgba(16, 185, 129, 0.08)",
@@ -967,7 +973,7 @@ function renderAll() {
   $("#hdr-haven").textContent  = ps.cash_park || d.safe_haven || "SCBTMFPLUS-E";
 
   // 2. Row 1: Donut & Performance Metrics
-  $("#hero-capital-val").textContent = `฿${fmt(capital, 0)}`;
+  $("#hero-capital-val").textContent = fmtBaht(capital, 0);
   $("#hero-cash-pct").textContent    = `${fmt(ch, 1)}%`;
 
   const donutTag = $("#donut-regime-tag");
@@ -1003,8 +1009,8 @@ function renderAll() {
   chipFutures.className = `rounded-full border px-2 py-0.5 font-bold ${futuresTriggered ? "border-am/40 bg-am-subtle text-am-bright" : "border-cyan/40 bg-cyan-subtle text-cyan-bright"}`;
 
   // 3. Row 2: 4 KPI Tiles
-  $("#kpi-nav-val").textContent  = `฿${fmt(capital, 0)}`;
-  $("#kpi-peak-val").textContent = `฿${fmt(capital, 0)}`;
+  $("#kpi-nav-val").textContent  = fmtBaht(capital, 0);
+  $("#kpi-peak-val").textContent = fmtBaht(capital, 0);
   $("#kpi-mdd-val").textContent  = "0.00%";
   $("#kpi-tranche-summary").textContent = `${activeSleeves.length} / ${assets.length} Deployed`;
 
@@ -1034,14 +1040,14 @@ function renderAll() {
     actionItemsContainer.innerHTML = activeSleeves.map(a => `
       <div class="flex items-center justify-between border-b border-borderline/40 pb-1">
         <span class="text-foreground font-semibold">${a.fund}</span>
-        <span class="text-cyan-bright">Tranche Stage T${a.tranche_stage || 3} (฿${fmt((((a.tranche_stage || 3) / 3.0) * capital * 0.20), 0)})</span>
+        <span class="text-cyan-bright">Tranche Stage T${a.tranche_stage || 3} (${fmtBaht((((a.tranche_stage || 3) / 3.0) * capital * 0.20), 0)})</span>
       </div>
     `).join("");
   } else {
     actionItemsContainer.innerHTML = `
       <div class="flex items-center justify-between text-muted">
         <span>Full Cash Park:</span>
-        <span class="text-cyan-bright">100% Deployed in ${ps.cash_park || d.safe_haven || "SCBTMFPLUS-E"} (฿${fmt(capital, 0)})</span>
+        <span class="text-cyan-bright">100% Deployed in ${ps.cash_park || d.safe_haven || "SCBTMFPLUS-E"} (${fmtBaht(capital, 0)})</span>
       </div>
     `;
   }
