@@ -1,20 +1,20 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-09-12T17:00:00Z",
-  "last_run_ict": "2026-09-13T00:00:00+07:00",
+  "last_run_utc": "2026-09-21T12:35:16+00:00",
+  "last_run_ict": "2026-09-21T19:30:16+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": 0.0,
-    "canary_ok": true,
-    "description": "Baseline Initial State (Cold Start / Reset)"
+    "tip_mom_13612_pct": -1.94,
+    "canary_ok": false,
+    "description": "TIP 13612 Mom: -1.94% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
-    "guard_status": "ok",
+    "guard_status": "degraded",
     "data": {},
-    "description": "Initial State (No circuit breaker)"
+    "description": "DEGRADED: ไม่สามารถดึงข้อมูล US Futures ได้ (ทำงานตามตรรกะปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -30,58 +30,220 @@
   "assets": {
     "SCBWORLDE": {
       "fund": "SCBWORLDE",
+      "label": "MSCI World",
+      "ticker": "URTH",
       "position": "OUT",
+      "signal": "CASH PARK",
+      "icon": "⚪",
+      "action_detail": "HAA TIP Canary สั่งล็อกหลบภัย 100% (Clean Macro Signal)",
+      "target_exposure": 0.0,
       "tranche_stage": 0,
       "tranche_label": "0% (Cash Park)",
       "integrity": {
         "corrupt_strike": 0,
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
-      }
+      },
+      "score": 62.0,
+      "raw_score": 62.0,
+      "price": 206.77,
+      "chg_pct": -0.21,
+      "dist_ema50_pct": 0.24,
+      "dist_ema200_pct": 5.83,
+      "bull_stack": true,
+      "rsi": 48.0,
+      "adx": 15.3,
+      "hv20": 10.0,
+      "chop_capped": false,
+      "breakdown": false,
+      "breakdown_reason": "",
+      "news": [],
+      "ai_analysis": "ต้องทำตามคำสั่ง **CANARY CASH** เพื่อล็อกหลบภัย 100% ทันที แม้ราคาจะอยู่เหนือ EMA20",
+      "data_source": "yahoo_v8",
+      "components": {
+        "trend_structure": 35.0,
+        "trend_strength": 3.0,
+        "momentum_macd": 4.0,
+        "momentum_rsi": 5.0,
+        "volatility": 15.0
+      },
+      "updated_at": "2026-09-21T19:31:34+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
+      "label": "S&P 500",
+      "ticker": "CSPX.L",
       "position": "OUT",
+      "signal": "CASH PARK",
+      "icon": "⚪",
+      "action_detail": "HAA TIP Canary สั่งล็อกหลบภัย 100% (Clean Macro Signal)",
+      "target_exposure": 0.0,
       "tranche_stage": 0,
       "tranche_label": "0% (Cash Park)",
       "integrity": {
         "corrupt_strike": 0,
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
-      }
+      },
+      "score": 65.0,
+      "raw_score": 72.0,
+      "price": 830.43,
+      "chg_pct": 0.93,
+      "dist_ema50_pct": 1.19,
+      "dist_ema200_pct": 6.84,
+      "bull_stack": true,
+      "rsi": 55.0,
+      "adx": 14.3,
+      "hv20": 9.8,
+      "chop_capped": true,
+      "breakdown": false,
+      "breakdown_reason": "",
+      "news": [],
+      "ai_analysis": "ระบบสั่งล็อกหลบภัยเงินสด 100% เพื่อรักษาเงินต้นตามสัญญาณมหภาค TIP Canary แม้ราคาจะอยู่เหนือ EMA200 แต่ตลาดเข้าสู่ภาวะแกว่งตัวไร้ทิศทางชัดเจน (ADX 14.3) จึงต้องคุมความเสี่ยงเข้มงวด\n\n**เงื่อนไขที่ต้องจับตา:** รอสัญญาณ Canary พลิกกลับเป็นบวกและค่า ADX เร่งตัวเหนือ 20 เพื่อยืนยันโมเมนตัมขาขึ้นรอบใหม่ก่อนกลับเข้าสะสม",
+      "data_source": "yahoo_v8",
+      "components": {
+        "trend_structure": 35.0,
+        "trend_strength": 3.0,
+        "momentum_macd": 4.0,
+        "momentum_rsi": 15.0,
+        "volatility": 15.0
+      },
+      "updated_at": "2026-09-21T19:32:26+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
+      "label": "Nasdaq 100",
+      "ticker": "QQQ",
       "position": "OUT",
+      "signal": "CASH PARK",
+      "icon": "⚪",
+      "action_detail": "HAA TIP Canary สั่งล็อกหลบภัย 100% (Clean Macro Signal)",
+      "target_exposure": 0.0,
       "tranche_stage": 0,
       "tranche_label": "0% (Cash Park)",
       "integrity": {
         "corrupt_strike": 0,
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
-      }
+      },
+      "score": 65.0,
+      "raw_score": 83.0,
+      "price": 721.45,
+      "chg_pct": 0.63,
+      "dist_ema50_pct": 1.46,
+      "dist_ema200_pct": 8.02,
+      "bull_stack": true,
+      "rsi": 55.9,
+      "adx": 9.8,
+      "hv20": 13.2,
+      "chop_capped": true,
+      "breakdown": false,
+      "breakdown_reason": "",
+      "news": [
+        "Biotech Week Ahead: XLV Beats The Market — Here Are The Stocks, Readouts And Events To Watch Next",
+        "If the AI Bubble Bursts as the Dot-Com Did, History Says the QQQ Might Not Recover Until 2042",
+        "AI's Power Bottleneck Is Here, Profiting Is The Hard Part"
+      ],
+      "ai_analysis": "ระบบสั่งล็อกหลบภัยถือเงินสด 100% ตามสัญญาณมหภาค HAA TIP Canary เพื่อรักษาเงินต้น แม้ราคาอยู่เหนือ EMA200 แต่ ADX ต่ำเพียง 9.8 ชี้ว่าตลาดไร้ทิศทางชัดเจนและมีความเสี่ยงจากฟองสบู่ AI\n\n**เงื่อนไขสำคัญที่ต้องจับตา:** สัญญาณ Canary พลิกกลับมาเป็นบวก และค่า ADX เร่งตัวทะลุ 20 เพื่อยืนยันโมเมนตัมขาขึ้นรอบใหม่ก่อนกลับเข้าตลาด",
+      "data_source": "yahoo_v8",
+      "components": {
+        "trend_structure": 35.0,
+        "trend_strength": 3.0,
+        "momentum_macd": 15.0,
+        "momentum_rsi": 15.0,
+        "volatility": 15.0
+      },
+      "updated_at": "2026-09-21T19:32:50+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
+      "label": "Gold",
+      "ticker": "GLD",
       "position": "OUT",
+      "signal": "CASH PARK",
+      "icon": "⚪",
+      "action_detail": "HAA TIP Canary สั่งล็อกหลบภัย 100% (Clean Macro Signal)",
+      "target_exposure": 0.0,
       "tranche_stage": 0,
       "tranche_label": "0% (Cash Park)",
       "integrity": {
         "corrupt_strike": 0,
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
-      }
+      },
+      "score": 56.0,
+      "raw_score": 56.0,
+      "price": 401.17,
+      "chg_pct": 0.71,
+      "dist_ema50_pct": 0.65,
+      "dist_ema200_pct": 1.25,
+      "bull_stack": false,
+      "rsi": 50.6,
+      "adx": 14.1,
+      "hv20": 24.5,
+      "chop_capped": false,
+      "breakdown": false,
+      "breakdown_reason": "",
+      "news": [
+        "Weekly Commentary: Walked The Walk",
+        "Bitcoin Tops $80,000, S&P 500 Slips as Yields Reclaim 5%: Stock Market Today",
+        "Chart Of The Day: Precious Metals At A 'Prove It' Point"
+      ],
+      "ai_analysis": "must follow the CANARY CASH order to lock 100% cash immediately to preserve capital. Gold is weakening, barely holding above the EMA20",
+      "data_source": "yahoo_v8",
+      "components": {
+        "trend_structure": 27.0,
+        "trend_strength": 3.0,
+        "momentum_macd": 4.0,
+        "momentum_rsi": 10.0,
+        "volatility": 12.0
+      },
+      "updated_at": "2026-09-21T19:34:07+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
+      "label": "Semiconductors",
+      "ticker": "SMH",
       "position": "OUT",
+      "signal": "CASH PARK",
+      "icon": "⚪",
+      "action_detail": "HAA TIP Canary สั่งล็อกหลบภัย 100% (Clean Macro Signal)",
+      "target_exposure": 0.0,
       "tranche_stage": 0,
       "tranche_label": "0% (Cash Park)",
       "integrity": {
         "corrupt_strike": 0,
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
-      }
+      },
+      "score": 65.0,
+      "raw_score": 72.0,
+      "price": 573.0,
+      "chg_pct": 2.21,
+      "dist_ema50_pct": 1.53,
+      "dist_ema200_pct": 15.26,
+      "bull_stack": true,
+      "rsi": 54.3,
+      "adx": 11.2,
+      "hv20": 34.3,
+      "chop_capped": true,
+      "breakdown": false,
+      "breakdown_reason": "",
+      "news": [
+        "History Says This Chip ETF Keeps Beating the S&P 500. It Has Trailed the Index Only Twice Since 2016.",
+        "Semis: Market Has Completely Misunderstood The Potential AI Slowdown",
+        "Big Phase Transition Of AI Alpha"
+      ],
+      "ai_analysis": "ต้องทำตามคำสั่ง **CANARY CASH** เพื่อล็อกหลบภัย 100% ทันที แม้ราคาจะอยู่เหนือ",
+      "data_source": "yahoo_v8",
+      "components": {
+        "trend_structure": 35.0,
+        "trend_strength": 3.0,
+        "momentum_macd": 12.0,
+        "momentum_rsi": 10.0,
+        "volatility": 12.0
+      },
+      "updated_at": "2026-09-21T19:35:16+07:00"
     }
   }
 }
