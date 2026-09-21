@@ -31,6 +31,7 @@ import numpy as np
 import pandas as pd
 import requests
 
+from alphashield.data.provider import MarketDataProvider
 from alphashield.strategy.data_integrity import (
     DataHealth,
     IntegrityAction,
@@ -229,14 +230,13 @@ OVERRIDE_POSITION = env("OVERRIDE_POSITION", "NO_CHANGE")
 
 
 # ------------------------------------------------------------------------------
-# SECTION 3 -- HARDENED DATA PIPELINE (curl_cffi + Multi-Source)
+# SECTION 3 -- HARDENED DATA PIPELINE (MarketDataProvider Deep Module)
 # ------------------------------------------------------------------------------
 
 REQUIRED_COLS = ["open", "high", "low", "close", "volume"]
 
-
 def _get_curl_session():
-    """Create a browser-fingerprinted session to bypass Cloudflare/Yahoo 429."""
+    """Compatibility hook for curl session (preserves existing test patch points)."""
     try:
         from curl_cffi import requests as cureq
         return cureq.Session(impersonate="chrome124")
@@ -246,235 +246,49 @@ def _get_curl_session():
         return sess
 
 
+DATA_PROVIDER = MarketDataProvider(
+    finnhub_key=SECRETS["FINNHUB_API_KEY"],
+    http_timeout=CFG.HTTP_TIMEOUT,
+    history_period=CFG.HISTORY_PERIOD,
+    session_factory=lambda: _get_curl_session(),
+)
+
+
 def _normalize_frame(df: pd.DataFrame, source: str) -> Optional[pd.DataFrame]:
-    if df is None or not isinstance(df, pd.DataFrame) or df.empty:
-        return None
-
-    df = df.copy()
-
-    if isinstance(df.columns, pd.MultiIndex):
-        flat = []
-        for tup in df.columns:
-            parts = [str(p) for p in tup if p is not None and str(p) != ""]
-            chosen = parts[0] if parts else ""
-            for p in parts:
-                if p.lower().replace(" ", "_") in REQUIRED_COLS + ["adj_close"]:
-                    chosen = p
-                    break
-            flat.append(chosen)
-        df.columns = flat
-
-    df.columns = [
-        str(c).strip().lower().replace(" ", "_").replace("-", "_")
-        for c in df.columns
-    ]
-
-    if "close" not in df.columns and "adj_close" in df.columns:
-        df["close"] = df["adj_close"]
-
-    if not isinstance(df.index, pd.DatetimeIndex):
-        for cand in ("date", "datetime", "index"):
-            if cand in df.columns:
-                df.index = pd.to_datetime(df[cand], errors="coerce")
-                df = df.drop(columns=[cand])
-                break
-        else:
-            df.index = pd.to_datetime(df.index, errors="coerce")
-
-    df.index = pd.to_datetime(df.index, errors="coerce")
-    try:
-        if getattr(df.index, "tz", None) is not None:
-            df.index = df.index.tz_convert(None)
-    except (TypeError, AttributeError):
-        try:
-            df.index = df.index.tz_localize(None)
-        except Exception:
-            pass
-
-    df = df[~df.index.isna()]
-    df = df[~df.index.duplicated(keep="last")].sort_index()
-
-    if "close" not in df.columns:
-        LOG.warning("[%s] normalization failed: no close column", source)
-        return None
-    for col in ("open", "high", "low"):
-        if col not in df.columns:
-            df[col] = df["close"]
-    if "volume" not in df.columns:
-        df["volume"] = 0.0
-
-    df = df[REQUIRED_COLS]
-    for col in REQUIRED_COLS:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-
-    df = df.dropna(subset=["close"])
-    df = df[df["close"] > 0]
-
-    return df if not df.empty else None
+    return DATA_PROVIDER.normalize_frame(df, source)
 
 
 def _is_fresh(df: pd.DataFrame) -> bool:
-    last = df.index[-1].to_pydatetime()
-    age = (datetime.utcnow() - last).days
-    if age > CFG.STALE_DAYS_MAX:
-        LOG.warning("Stale data: last bar %s (%d days old)", last.date(), age)
-        return False
-    return True
+    return DATA_PROVIDER.is_fresh(df, stale_days_max=CFG.STALE_DAYS_MAX)
 
 
 def _validate(df: Optional[pd.DataFrame], source: str, ticker: str) -> Optional[pd.DataFrame]:
-    if df is None:
-        return None
-    if len(df) < CFG.MIN_ROWS:
-        LOG.warning("[%s] %s rejected: %d rows < %d", source, ticker, len(df), CFG.MIN_ROWS)
-        return None
-    if not _is_fresh(df):
-        return None
-    LOG.info("[%s] %s OK -> %d rows, last=%s", source, ticker, len(df), df.index[-1].date())
-    return df
+    return DATA_PROVIDER.validate(df, source, ticker, min_rows=CFG.MIN_ROWS, stale_days_max=CFG.STALE_DAYS_MAX)
 
 
 def fetch_yahoo_chart_api(ticker: str) -> Optional[pd.DataFrame]:
-    """Primary: Direct v8 Chart API using curl_cffi Chrome impersonation (no crumbs/cookies required)."""
-    session = _get_curl_session()
-    endpoints = [
-        f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range=3y&interval=1d",
-        f"https://query2.finance.yahoo.com/v8/finance/chart/{ticker}?range=3y&interval=1d",
-    ]
-
-    for url in endpoints:
-        try:
-            resp = session.get(url, timeout=CFG.HTTP_TIMEOUT)
-            if resp.status_code != 200:
-                continue
-            data = resp.json()
-            result = data.get("chart", {}).get("result", [])
-            if not result:
-                continue
-            res = result[0]
-            timestamps = res.get("timestamp", [])
-            quote = res.get("indicators", {}).get("quote", [{}])[0]
-            adjclose = res.get("indicators", {}).get("adjclose", [{}])[0].get("adjclose", quote.get("close", []))
-
-            if not timestamps or not quote.get("close"):
-                continue
-
-            df = pd.DataFrame({
-                "open": quote.get("open", []),
-                "high": quote.get("high", []),
-                "low": quote.get("low", []),
-                "close": adjclose if adjclose else quote.get("close", []),
-                "volume": quote.get("volume", [0] * len(timestamps)),
-            }, index=pd.to_datetime(timestamps, unit="s"))
-
-            norm = _normalize_frame(df, "yahoo_chart_api")
-            valid = _validate(norm, "yahoo_chart_api", ticker)
-            if valid is not None:
-                return valid
-        except Exception as exc:
-            LOG.debug("Yahoo v8 failed for %s on %s: %s", ticker, url, exc)
-
-    return None
+    return DATA_PROVIDER.fetch_yahoo_chart_api(ticker, min_rows=CFG.MIN_ROWS, stale_days_max=CFG.STALE_DAYS_MAX)
 
 
 def fetch_yfinance_lib(ticker: str) -> Optional[pd.DataFrame]:
-    """Secondary: yfinance standard download."""
-    try:
-        import yfinance as yf
-        raw = yf.download(
-            tickers=ticker,
-            period=CFG.HISTORY_PERIOD,
-            interval="1d",
-            auto_adjust=True,
-            progress=False,
-            threads=False,
-            group_by="column",
-        )
-        norm = _normalize_frame(raw, "yfinance_lib")
-        return _validate(norm, "yfinance_lib", ticker)
-    except Exception:
-        return None
+    return DATA_PROVIDER.fetch_yfinance_lib(ticker, min_rows=CFG.MIN_ROWS, stale_days_max=CFG.STALE_DAYS_MAX)
 
 
 def fetch_stooq(symbol: str) -> Optional[pd.DataFrame]:
-    """Tertiary: Stooq CSV via curl_cffi with anti-HTML validation."""
-    session = _get_curl_session()
-    url = f"https://stooq.com/q/d/l/?s={symbol.lower()}&i=d"
-    try:
-        resp = session.get(url, timeout=CFG.HTTP_TIMEOUT)
-        if resp.status_code != 200:
-            return None
-        text = resp.text.strip()
-        if not text or text.startswith(("<", "<!DOCTYPE", "<html")) or "No data" in text[:200]:
-            LOG.warning("[stooq] blocked or empty response for %s", symbol)
-            return None
-        raw = pd.read_csv(io.StringIO(text))
-        norm = _normalize_frame(raw, "stooq")
-        return _validate(norm, "stooq", symbol)
-    except Exception as exc:
-        LOG.warning("[stooq] fetch failed for %s: %s", symbol, exc)
-        return None
+    return DATA_PROVIDER.fetch_stooq(symbol, min_rows=CFG.MIN_ROWS, stale_days_max=CFG.STALE_DAYS_MAX)
 
 
 def fetch_finnhub_candles(ticker: str) -> Optional[pd.DataFrame]:
-    """Quaternary: Finnhub daily candles for US ETFs."""
-    key = SECRETS["FINNHUB_API_KEY"]
-    if not key:
-        return None
-
-    clean_sym = ticker.split(".")[0].upper()
-    now_ts = int(time.time())
-    start_ts = now_ts - (3 * 365 * 86400)
-    url = f"https://finnhub.io/api/v1/stock/candle?symbol={clean_sym}&resolution=D&from={start_ts}&to={now_ts}&token={key}"
-
-    try:
-        resp = requests.get(url, timeout=CFG.HTTP_TIMEOUT)
-        if resp.status_code != 200:
-            return None
-        data = resp.json()
-        if data.get("s") != "ok" or not data.get("t"):
-            return None
-
-        df = pd.DataFrame({
-            "open": data["o"],
-            "high": data["h"],
-            "low": data["l"],
-            "close": data["c"],
-            "volume": data.get("v", [0] * len(data["t"])),
-        }, index=pd.to_datetime(data["t"], unit="s"))
-
-        norm = _normalize_frame(df, "finnhub_candles")
-        return _validate(norm, "finnhub_candles", ticker)
-    except Exception as exc:
-        LOG.warning("[finnhub] candles failed for %s: %s", clean_sym, exc)
-        return None
+    return DATA_PROVIDER.fetch_finnhub_candles(ticker, min_rows=CFG.MIN_ROWS, stale_days_max=CFG.STALE_DAYS_MAX)
 
 
 def get_price_history(asset: Asset) -> Tuple[Optional[pd.DataFrame], str]:
-    # 1. Direct Yahoo v8 Chart API (Bypasses 429 via curl_cffi)
-    df = fetch_yahoo_chart_api(asset.yahoo)
-    if df is not None:
-        return df, "yahoo_v8"
-
-    # 2. Standard yfinance
-    df = fetch_yfinance_lib(asset.yahoo)
-    if df is not None:
-        return df, "yfinance"
-
-    # 3. Stooq
-    LOG.info("Falling back to Stooq for %s (%s)", asset.fund, asset.stooq)
-    df = fetch_stooq(asset.stooq)
-    if df is not None:
-        return df, "stooq"
-
-    # 4. Finnhub Candles
-    LOG.info("Falling back to Finnhub Candles for %s (%s)", asset.fund, asset.yahoo)
-    df = fetch_finnhub_candles(asset.yahoo)
-    if df is not None:
-        return df, "finnhub"
-
-    LOG.error("ALL 4 DATA SOURCES FAILED for %s", asset.fund)
-    return None, "none"
+    return DATA_PROVIDER.get_series(
+        ticker=asset.yahoo,
+        stooq_symbol=asset.stooq,
+        min_rows=CFG.MIN_ROWS,
+        stale_days_max=CFG.STALE_DAYS_MAX,
+    )
 
 
 # ------------------------------------------------------------------------------
@@ -611,65 +425,10 @@ def evaluate_us_futures_guard() -> Tuple[bool, Dict[str, float], str, str]:
     try:
         tickers = [CFG.FUTURES_ES_TICKER, CFG.FUTURES_NQ_TICKER]
 
-        # Primary: Direct Yahoo Chart API via curl_cffi (Chrome impersonation bypasses rate limits)
-        session = _get_curl_session()
         for t_sym in tickers:
-            try:
-                endpoints = [
-                    f"https://query1.finance.yahoo.com/v8/finance/chart/{t_sym}?range=2d&interval=1d",
-                    f"https://query2.finance.yahoo.com/v8/finance/chart/{t_sym}?range=2d&interval=1d",
-                ]
-                for url in endpoints:
-                    try:
-                        resp = session.get(url, timeout=CFG.HTTP_TIMEOUT)
-                        if resp.status_code != 200:
-                            continue
-                        data = resp.json()
-                        res = data.get("chart", {}).get("result", [])
-                        if not res:
-                            continue
-                        meta = res[0].get("meta", {})
-                        last_p = meta.get("regularMarketPrice")
-                        prev_c = meta.get("chartPreviousClose") or meta.get("previousClose")
-
-                        if last_p is not None and prev_c is not None and prev_c > 0:
-                            pct = ((last_p / prev_c) - 1.0) * 100.0
-                            if not is_nan(pct):
-                                futures_data[t_sym] = round(pct, 2)
-                                break
-                    except Exception:
-                        continue
-            except Exception as e:
-                LOG.warning("Failed to fetch futures quote via curl_cffi for %s: %s", t_sym, e)
-
-        # Secondary: Fallback to yfinance if curl_cffi failed to get all tickers
-        missing_tickers = [t for t in tickers if t not in futures_data]
-        if missing_tickers:
-            try:
-                import yfinance as yf
-                for t_sym in missing_tickers:
-                    try:
-                        t = yf.Ticker(t_sym)
-                        info = getattr(t, "fast_info", None)
-                        last_p = getattr(info, "last_price", None)
-                        prev_c = getattr(info, "previous_close", None)
-                        if last_p is None or prev_c is None or prev_c <= 0:
-                            h = t.history(period="2d")
-                            if len(h) >= 2:
-                                prev_c = float(h["Close"].iloc[-2])
-                                last_p = float(h["Close"].iloc[-1])
-                            elif len(h) == 1:
-                                prev_c = float(h["Open"].iloc[0])
-                                last_p = float(h["Close"].iloc[-1])
-
-                        if last_p is not None and prev_c is not None and prev_c > 0:
-                            pct = ((last_p / prev_c) - 1.0) * 100.0
-                            if not is_nan(pct):
-                                futures_data[t_sym] = round(pct, 2)
-                    except Exception as e:
-                        LOG.warning("yfinance fallback failed for futures %s: %s", t_sym, e)
-            except Exception as exc:
-                LOG.warning("yfinance module error during futures fallback: %s", exc)
+            quote_info = DATA_PROVIDER.get_quote(t_sym)
+            if quote_info and not is_nan(quote_info.get("chg_pct")):
+                futures_data[t_sym] = round(float(quote_info["chg_pct"]), 2)
 
         if not futures_data:
             guard_status = "degraded"
