@@ -609,32 +609,67 @@ def evaluate_us_futures_guard() -> Tuple[bool, Dict[str, float], str, str]:
     guard_status = "ok"
 
     try:
-        import yfinance as yf
         tickers = [CFG.FUTURES_ES_TICKER, CFG.FUTURES_NQ_TICKER]
+
+        # Primary: Direct Yahoo Chart API via curl_cffi (Chrome impersonation bypasses rate limits)
+        session = _get_curl_session()
         for t_sym in tickers:
             try:
-                t = yf.Ticker(t_sym)
-                info = getattr(t, "fast_info", None)
-                last_p = getattr(info, "last_price", None)
-                prev_c = getattr(info, "previous_close", None)
-                if last_p is None or prev_c is None or prev_c <= 0:
-                    # Fallback to history 2d
-                    h = t.history(period="2d")
-                    if len(h) >= 2:
-                        prev_c = float(h["Close"].iloc[-2])
-                        last_p = float(h["Close"].iloc[-1])
-                    elif len(h) == 1:
-                        prev_c = float(h["Open"].iloc[0])
-                        last_p = float(h["Close"].iloc[-1])
+                endpoints = [
+                    f"https://query1.finance.yahoo.com/v8/finance/chart/{t_sym}?range=2d&interval=1d",
+                    f"https://query2.finance.yahoo.com/v8/finance/chart/{t_sym}?range=2d&interval=1d",
+                ]
+                for url in endpoints:
+                    try:
+                        resp = session.get(url, timeout=CFG.HTTP_TIMEOUT)
+                        if resp.status_code != 200:
+                            continue
+                        data = resp.json()
+                        res = data.get("chart", {}).get("result", [])
+                        if not res:
+                            continue
+                        meta = res[0].get("meta", {})
+                        last_p = meta.get("regularMarketPrice")
+                        prev_c = meta.get("chartPreviousClose") or meta.get("previousClose")
 
-                if last_p is not None and prev_c is not None and prev_c > 0:
-                    pct = ((last_p / prev_c) - 1.0) * 100.0
-                    if not is_nan(pct):
-                        futures_data[t_sym] = round(pct, 2)
-                    else:
-                        LOG.warning("Futures %s returned NaN change pct", t_sym)
+                        if last_p is not None and prev_c is not None and prev_c > 0:
+                            pct = ((last_p / prev_c) - 1.0) * 100.0
+                            if not is_nan(pct):
+                                futures_data[t_sym] = round(pct, 2)
+                                break
+                    except Exception:
+                        continue
             except Exception as e:
-                LOG.warning("Failed to fetch futures quote for %s: %s", t_sym, e)
+                LOG.warning("Failed to fetch futures quote via curl_cffi for %s: %s", t_sym, e)
+
+        # Secondary: Fallback to yfinance if curl_cffi failed to get all tickers
+        missing_tickers = [t for t in tickers if t not in futures_data]
+        if missing_tickers:
+            try:
+                import yfinance as yf
+                for t_sym in missing_tickers:
+                    try:
+                        t = yf.Ticker(t_sym)
+                        info = getattr(t, "fast_info", None)
+                        last_p = getattr(info, "last_price", None)
+                        prev_c = getattr(info, "previous_close", None)
+                        if last_p is None or prev_c is None or prev_c <= 0:
+                            h = t.history(period="2d")
+                            if len(h) >= 2:
+                                prev_c = float(h["Close"].iloc[-2])
+                                last_p = float(h["Close"].iloc[-1])
+                            elif len(h) == 1:
+                                prev_c = float(h["Open"].iloc[0])
+                                last_p = float(h["Close"].iloc[-1])
+
+                        if last_p is not None and prev_c is not None and prev_c > 0:
+                            pct = ((last_p / prev_c) - 1.0) * 100.0
+                            if not is_nan(pct):
+                                futures_data[t_sym] = round(pct, 2)
+                    except Exception as e:
+                        LOG.warning("yfinance fallback failed for futures %s: %s", t_sym, e)
+            except Exception as exc:
+                LOG.warning("yfinance module error during futures fallback: %s", exc)
 
         if not futures_data:
             guard_status = "degraded"
