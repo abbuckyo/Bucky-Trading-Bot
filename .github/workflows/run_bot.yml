@@ -56,7 +56,7 @@ jobs:
       - name: Run test suite (blocking)
         env:
           PYTHONPATH: .
-        run: pytest -q --maxfail=1
+        run: python -m pytest -q --maxfail=1
 
       # ── State: cache = fast path, git = durable source of truth ──
       - name: Restore state cache
