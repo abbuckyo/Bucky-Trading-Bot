@@ -32,6 +32,11 @@ import pandas as pd
 import requests
 
 from alphashield.data.provider import MarketDataProvider
+from alphashield.engine.decision import (
+    DecisionEngine,
+    MarketSnapshot,
+    StrategyOutcome,
+)
 from alphashield.strategy.data_integrity import (
     DataHealth,
     IntegrityAction,
@@ -251,6 +256,12 @@ DATA_PROVIDER = MarketDataProvider(
     http_timeout=CFG.HTTP_TIMEOUT,
     history_period=CFG.HISTORY_PERIOD,
     session_factory=lambda: _get_curl_session(),
+)
+
+DECISION_ENGINE = DecisionEngine(
+    sleeve_weight=0.20,
+    min_order_thb=CFG.SCB_MIN_SWITCH_THB,
+    default_capital_thb=CFG.DEFAULT_CAPITAL_THB,
 )
 
 
@@ -1418,7 +1429,11 @@ def process_asset(
     futures_guard_triggered: bool = False,
     run_date: Optional[date] = None,
     now_iso: Optional[str] = None,
-) -> Tuple[str, Dict[str, Any], Optional[Tuple]]:
+    capital_thb: float = CFG.DEFAULT_CAPITAL_THB,
+    require_manual_confirm: bool = True,
+    submitted_token: str = "",
+    pending_approvals: Optional[Dict[str, Any]] = None,
+) -> Tuple[str, Dict[str, Any], Optional[Tuple], Optional[str]]:
     prev_entry = state.get("assets", {}).get(asset.fund, {})
     prev_stage = prev_entry.get("tranche_stage", 0)
     prev_integ = prev_entry.get("integrity", {
@@ -1438,35 +1453,60 @@ def process_asset(
         except Exception:
             last_bar_date = None
 
+    m = build_metrics(df, source) if df is not None else None
+    sc = compute_score(m) if m is not None else ScoreResult(score=0.0, raw_score=0.0, chop_capped=False, breakdown=False, breakdown_reason="", components={})
+
+    snapshot = MarketSnapshot(
+        fund=asset.fund,
+        price=m.price if m else 0.0,
+        ema50=m.ema50 if m else 0.0,
+        ema100=m.ema100 if m else 0.0,
+        ema200=m.ema200 if m else 0.0,
+        score=sc.score,
+        rsi=m.rsi if m else 50.0,
+        adx=m.adx if m else 0.0,
+        hv20=m.hv20 if m else 0.0,
+        chg_pct=m.chg_pct if m else 0.0,
+        dist_ema50_pct=m.dist_ema50_pct if m else 0.0,
+        dist_ema200_pct=m.dist_ema200_pct if m else 0.0,
+        bull_stack=m.bull_stack if m else False,
+        breakdown=sc.breakdown,
+        breakdown_reason=sc.breakdown_reason,
+        canary_ok=canary_ok,
+        canary_healthy=True,
+        futures_guard_triggered=futures_guard_triggered,
+        last_bar_date=last_bar_date,
+        run_date=run_date,
+        now_iso=now_iso,
+        is_data_available=(df is not None),
+    )
+
+    outcome = DECISION_ENGINE.evaluate(
+        snapshot=snapshot,
+        current_state=state.get("assets", {}),
+        config={
+            "capital_thb": capital_thb,
+            "require_manual_confirm": require_manual_confirm,
+            "submitted_token": submitted_token,
+            "pending_approvals": pending_approvals,
+            "now_dt": datetime.now(CFG.TZ_BANGKOK),
+        }
+    )
+
+    dec = Decision(
+        signal=outcome.signal,
+        position=outcome.position,
+        prev_position=f"T{prev_stage}" if prev_stage > 0 else "OUT",
+        action=outcome.action,
+        icon=outcome.icon,
+        action_detail=outcome.action_detail,
+        target_exposure=outcome.exposure,
+        tranche_stage=outcome.stage,
+        tranche_label=outcome.tranche_label,
+        changed=outcome.changed,
+    )
+
     if df is None:
-        # Complete cascade failure: metrics is None
-        sc = ScoreResult(score=0.0, raw_score=0.0, chop_capped=False, breakdown=False, breakdown_reason="", components={})
-        td = resolve_stage(
-            fund=asset.fund,
-            metrics=None,
-            raw_stage=0,
-            prev_stage=prev_stage,
-            run_date=run_date,
-            last_bar_date=None,
-            prev_integrity=prev_integ,
-            canary_ok=canary_ok,
-            canary_healthy=True,
-            breakdown=False,
-            futures_guard_triggered=futures_guard_triggered,
-            now_iso=now_iso,
-        )
-        dec = Decision(
-            signal=td.signal,
-            position=td.position,
-            prev_position=f"T{prev_stage}" if prev_stage > 0 else "OUT",
-            action=td.action,
-            icon="🚨" if td.signal == "CORRUPT DATA EXIT" else ("⚠️" if td.signal == "FROZEN" else "⚪"),
-            action_detail=td.detail,
-            target_exposure=td.exposure,
-            tranche_stage=td.stage,
-            tranche_label=TRANCHE_LABEL_MAP.get(td.stage, "0% (Cash Park)"),
-            changed=td.changed,
-        )
         entry = {
             "fund": asset.fund,
             "label": asset.label,
@@ -1478,7 +1518,7 @@ def process_asset(
             "target_exposure": dec.target_exposure,
             "tranche_stage": dec.tranche_stage,
             "tranche_label": dec.tranche_label,
-            "integrity": td.integrity.to_state(),
+            "integrity": outcome.integrity.to_state() if outcome.integrity else prev_integ,
             "score": 0.0,
             "raw_score": 0.0,
             "price": 0.0,
@@ -1498,7 +1538,8 @@ def process_asset(
             "components": {},
             "updated_at": datetime.now(CFG.TZ_BANGKOK).isoformat(timespec="seconds"),
         }
-        block = f"⚠️ **{asset.fund}** — ไม่สามารถดึงข้อมูลราคาได้ ({td.signal} • Strike {td.integrity.strike})"
+        strike_num = outcome.integrity.strike if outcome.integrity else 0
+        block = f"⚠️ **{asset.fund}** — ไม่สามารถดึงข้อมูลราคาได้ ({dec.signal} • Strike {strike_num})"
         summary_tuple = (
             asset.fund,
             0.0,
@@ -1510,79 +1551,6 @@ def process_asset(
             dec.tranche_label,
         )
         return block, entry, summary_tuple
-
-    m = build_metrics(df, source)
-    sc = compute_score(m)
-
-    # Raw stage logic
-    if m.price > m.ema200 and (m.ema50 > m.ema100 > m.ema200):
-        raw_stage = 3
-    elif m.price > m.ema100 and (m.ema50 > m.ema100):
-        raw_stage = 2
-    elif m.price > m.ema50:
-        raw_stage = 1
-    else:
-        raw_stage = 0
-
-    metrics_dict = {
-        "price": m.price,
-        "ema50": m.ema50,
-        "ema100": m.ema100,
-        "ema200": m.ema200,
-        "score": sc.score,
-        "rsi": m.rsi,
-        "adx": m.adx,
-        "hv20": m.hv20,
-        "chg_pct": m.chg_pct,
-    }
-
-    td = resolve_stage(
-        fund=asset.fund,
-        metrics=metrics_dict,
-        raw_stage=raw_stage,
-        prev_stage=prev_stage,
-        run_date=run_date,
-        last_bar_date=last_bar_date,
-        prev_integrity=prev_integ,
-        canary_ok=canary_ok,
-        canary_healthy=True,
-        breakdown=sc.breakdown,
-        futures_guard_triggered=futures_guard_triggered,
-        now_iso=now_iso,
-    )
-
-    dec_icon = "⚪"
-    if td.signal == "CORRUPT DATA EXIT":
-        dec_icon = "🚨"
-    elif td.signal == "FROZEN":
-        dec_icon = "⚠️"
-    elif td.signal == "HARD EXIT":
-        dec_icon = "🧨"
-    elif td.signal == "SWITCH OUT":
-        dec_icon = "⚪"
-    elif td.signal == "TRIM RISK":
-        dec_icon = "🔵" if td.stage == 2 else "🟡"
-    elif td.signal == "FUTURES PAUSE":
-        dec_icon = "⚠️"
-    elif td.stage == 3:
-        dec_icon = "🟢"
-    elif td.stage == 2:
-        dec_icon = "🔵"
-    elif td.stage == 1:
-        dec_icon = "🟡"
-
-    dec = Decision(
-        signal=td.signal,
-        position=td.position,
-        prev_position=f"T{prev_stage}" if prev_stage > 0 else "OUT",
-        action=td.action,
-        icon=dec_icon,
-        action_detail=td.detail,
-        target_exposure=td.exposure,
-        tranche_stage=td.stage,
-        tranche_label=TRANCHE_LABEL_MAP.get(td.stage, "0% (Cash Park)"),
-        changed=td.changed,
-    )
 
     news = fetch_news(asset.yahoo)
     ai_text = ai_explain(asset, m, sc, dec, news)
@@ -1598,7 +1566,7 @@ def process_asset(
         "target_exposure": dec.target_exposure,
         "tranche_stage": dec.tranche_stage,
         "tranche_label": dec.tranche_label,
-        "integrity": td.integrity.to_state(),
+        "integrity": outcome.integrity.to_state() if outcome.integrity else prev_integ,
         "score": sc.score,
         "raw_score": sc.raw_score,
         "price": round(m.price, 4) if not is_nan(m.price) else 0.0,
