@@ -37,6 +37,7 @@ from alphashield.engine.decision import (
     MarketSnapshot,
     StrategyOutcome,
 )
+from alphashield.notification.gateway import NotificationGateway
 from alphashield.strategy.data_integrity import (
     DataHealth,
     IntegrityAction,
@@ -262,6 +263,16 @@ DECISION_ENGINE = DecisionEngine(
     sleeve_weight=0.20,
     min_order_thb=CFG.SCB_MIN_SWITCH_THB,
     default_capital_thb=CFG.DEFAULT_CAPITAL_THB,
+)
+
+NOTIFICATION_GATEWAY = NotificationGateway(
+    discord_webhook_url=SECRETS["DISCORD_WEBHOOK_URL"],
+    line_access_token=SECRETS["LINE_CHANNEL_ACCESS_TOKEN"],
+    line_user_id=SECRETS["LINE_USER_ID"],
+    discord_chunk_limit=CFG.DISCORD_CHUNK,
+    line_chunk_limit=CFG.LINE_CHUNK,
+    http_timeout=CFG.HTTP_TIMEOUT,
+    line_timeout=CFG.LINE_TIMEOUT,
 )
 
 
@@ -1137,125 +1148,23 @@ RSI: {m.rsi:.1f} | ADX: {m.adx:.1f} (+DI {m.plus_di:.1f} / -DI {m.minus_di:.1f})
 
 
 # ------------------------------------------------------------------------------
-# SECTION 11 -- NOTIFICATIONS
+# SECTION 11 -- NOTIFICATIONS (NotificationGateway Deep Module)
 # ------------------------------------------------------------------------------
 
 def _chunk_text(text: str, limit: int) -> List[str]:
-    chunks: List[str] = []
-    buf = ""
-    for line in text.split("\n"):
-        while len(line) > limit:
-            if buf:
-                chunks.append(buf)
-                buf = ""
-            chunks.append(line[:limit])
-            line = line[limit:]
-        if len(buf) + len(line) + 1 > limit:
-            chunks.append(buf)
-            buf = line
-        else:
-            buf = f"{buf}\n{line}" if buf else line
-    if buf.strip():
-        chunks.append(buf)
-    return [c for c in chunks if c.strip()]
+    return NOTIFICATION_GATEWAY.chunk_text(text, limit)
 
 
 def send_to_discord(message: str) -> bool:
-    url = SECRETS["DISCORD_WEBHOOK_URL"]
-    if not url:
-        return False
-    ok = True
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    }
-    for chunk in _chunk_text(message, CFG.DISCORD_CHUNK):
-        for attempt in range(3):
-            try:
-                r = requests.post(url, json={"content": chunk}, headers=headers, timeout=CFG.HTTP_TIMEOUT)
-                if r.status_code == 429:
-                    wait = float(r.json().get("retry_after", 2))
-                    time.sleep(wait + 0.5)
-                    continue
-                r.raise_for_status()
-                break
-            except Exception:
-                time.sleep(1.5 * (attempt + 1))
-        else:
-            ok = False
-        time.sleep(0.5)
-    return ok
+    return NOTIFICATION_GATEWAY.send_discord(message)
 
 
 def send_to_line(message: str) -> bool:
-    token = SECRETS["LINE_CHANNEL_ACCESS_TOKEN"]
-    user_id = SECRETS["LINE_USER_ID"]
-
-    # If ENABLE_LINE is explicitly set to false/0/no, skip
-    enable_line_env = os.getenv("ENABLE_LINE")
-    if enable_line_env is not None and enable_line_env.strip().lower() in ("false", "0", "no"):
-        LOG.info("MOCK: ข้ามการส่ง LINE ตามการตั้งค่า (ENABLE_LINE=false)")
-        return True
-
-    if not token or not user_id:
-        missing = []
-        if not token:
-            missing.append("LINE_CHANNEL_ACCESS_TOKEN")
-        if not user_id:
-            missing.append("LINE_USER_ID")
-        LOG.warning("ข้ามการส่ง LINE: ไม่พบการตั้งค่า Secrets/Env (%s)", ", ".join(missing))
-        return False
-
-    chunks = _chunk_text(message, CFG.LINE_CHUNK)
-    if not chunks:
-        LOG.warning("LINE: ข้อความว่างเปล่า ไม่สามารถส่งได้")
-        return False
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {token}",
-    }
-
-    ok = True
-    for start in range(0, len(chunks), 5):
-        batch = chunks[start:start + 5]
-        payload = {
-            "to": user_id,
-            "messages": [{"type": "text", "text": c} for c in batch],
-        }
-        for attempt in range(2):
-            try:
-                r = requests.post(
-                    CFG.LINE_PUSH_ENDPOINT,
-                    headers=headers,
-                    data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-                    timeout=CFG.LINE_TIMEOUT,
-                )
-                if r.status_code == 429:
-                    time.sleep(2.0 * (attempt + 1))
-                    continue
-                r.raise_for_status()
-                LOG.info("LINE push notification sent successfully (%d message chunks)", len(batch))
-                break
-            except Exception as e:
-                LOG.error("LINE push failed (attempt %d/2, timeout=%.1fs): %s | Response: %s",
-                          attempt + 1, CFG.LINE_TIMEOUT, e, getattr(locals().get("r", None), "text", "N/A"))
-                time.sleep(1.0 * (attempt + 1))
-        else:
-            ok = False
-        time.sleep(0.3)
-    return ok
+    return NOTIFICATION_GATEWAY.send_line(message)
 
 
 def broadcast(message: str) -> None:
-    try:
-        send_to_discord(message)
-    except Exception as exc:
-        LOG.error("Discord error: %s", exc)
-    try:
-        send_to_line(message)
-    except Exception as exc:
-        LOG.error("LINE error: %s", exc)
+    NOTIFICATION_GATEWAY.dispatch(title="", message=message)
 
 
 # ------------------------------------------------------------------------------
