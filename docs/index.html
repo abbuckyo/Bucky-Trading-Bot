@@ -322,36 +322,49 @@
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-borderline pb-3">
             <div class="flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted">
               <i data-lucide="trending-up" class="h-4 w-4 text-em-bright"></i>
-              <span>Multi-Year AlphaShield V8.1 vs Benchmark</span>
+              <span id="chart-card-title">Multi-Year AlphaShield V8.1 vs Benchmark</span>
             </div>
 
-            <!-- Quick Stat Chips -->
-            <div class="flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
-              <span id="chip-canary" class="rounded-full border border-borderline bg-white/[0.04] px-2 py-0.5 font-bold text-muted">
-                TIP Canary: --
-              </span>
-              <span id="chip-futures" class="rounded-full border border-borderline bg-white/[0.04] px-2 py-0.5 font-bold text-muted">
-                Futures: Normal
-              </span>
+            <!-- Right Controls: Toggle Pills & Status Chips -->
+            <div class="flex flex-wrap items-center gap-2 font-mono text-[10px]">
+              <!-- Timeframe Toggle Buttons (Dark Glassmorphic) -->
+              <div class="inline-flex rounded-lg border border-borderline bg-background/60 p-0.5" role="group" aria-label="Timeframe Toggle">
+                <button type="button" id="btn-chart-all" class="chart-timeframe-btn rounded-md px-2.5 py-1 text-[10px] font-semibold transition-all duration-200 border border-cyan/40 bg-cyan-subtle text-cyan-bright shadow-[0_0_8px_rgba(6,182,212,0.25)]" data-timeframe="all">
+                  ALL (2015–2026)
+                </button>
+                <button type="button" id="btn-chart-ytd" class="chart-timeframe-btn rounded-md px-2.5 py-1 text-[10px] font-semibold transition-all duration-200 border border-transparent text-muted hover:text-foreground" data-timeframe="ytd">
+                  YTD (2026)
+                </button>
+              </div>
+
+              <!-- Quick Stat Chips -->
+              <div class="flex items-center gap-1.5">
+                <span id="chip-canary" class="rounded-full border border-borderline bg-white/[0.04] px-2 py-0.5 font-bold text-muted">
+                  TIP Canary: --
+                </span>
+                <span id="chip-futures" class="rounded-full border border-borderline bg-white/[0.04] px-2 py-0.5 font-bold text-muted">
+                  Futures: Normal
+                </span>
+              </div>
             </div>
           </div>
 
-          <!-- Performance Metric Highlights -->
+          <!-- Performance Metric Highlights (Dynamic) -->
           <div class="mt-4 grid grid-cols-3 gap-2 font-mono text-xs">
             <div class="rounded-xl border border-borderline bg-background/40 p-2.5">
               <span class="text-[9px] uppercase text-muted">AlphaShield V8.1</span>
-              <p class="tabular text-sm font-bold text-em-bright">+14.89% <span class="text-[10px] text-muted font-normal">CAGR</span></p>
-              <span class="text-[9px] text-muted">Sharpe: 1.51 | MDD: -14.8%</span>
+              <p id="perf-v8-val" class="tabular text-sm font-bold text-em-bright">+14.89% <span id="perf-v8-lbl" class="text-[10px] text-muted font-normal">CAGR</span></p>
+              <span id="perf-v8-sub" class="text-[9px] text-muted">Sharpe: 1.51 | MDD: -14.8%</span>
             </div>
             <div class="rounded-xl border border-borderline bg-background/40 p-2.5">
               <span class="text-[9px] uppercase text-muted">Legacy V7.2</span>
-              <p class="tabular text-sm font-bold text-am-bright">+11.01% <span class="text-[10px] text-muted font-normal">CAGR</span></p>
-              <span class="text-[9px] text-muted">Sharpe: 1.00 | MDD: -17.6%</span>
+              <p id="perf-v7-val" class="tabular text-sm font-bold text-am-bright">+11.01% <span id="perf-v7-lbl" class="text-[10px] text-muted font-normal">CAGR</span></p>
+              <span id="perf-v7-sub" class="text-[9px] text-muted">Sharpe: 1.00 | MDD: -17.6%</span>
             </div>
             <div class="rounded-xl border border-borderline bg-background/40 p-2.5">
               <span class="text-[9px] uppercase text-muted">SPY Buy &amp; Hold</span>
-              <p class="tabular text-sm font-bold text-cyan-bright">+13.29% <span class="text-[10px] text-muted font-normal">CAGR</span></p>
-              <span class="text-[9px] text-muted">Sharpe: 0.79 | MDD: -33.7%</span>
+              <p id="perf-spy-val" class="tabular text-sm font-bold text-cyan-bright">+13.29% <span id="perf-spy-lbl" class="text-[10px] text-muted font-normal">CAGR</span></p>
+              <span id="perf-spy-sub" class="text-[9px] text-muted">Sharpe: 0.79 | MDD: -33.7%</span>
             </div>
           </div>
 
@@ -362,7 +375,7 @@
         </div>
 
         <div class="mt-2 flex items-center justify-between border-t border-borderline pt-2.5 font-mono text-[10px] text-muted">
-          <span>Backtest &amp; OOS Regime Horizon: 2015 – 2026</span>
+          <span id="chart-footer-label">Backtest &amp; OOS Regime Horizon: 2015 – 2026</span>
           <span class="text-em-bright">HAA TIP Canary Protection Active</span>
         </div>
       </div>
@@ -571,6 +584,7 @@ const SESS_KEY  = "alphashield.master.sess";
 const state = {
   data: null,
   filter: "all",
+  chartTimeframe: "all", // "all" (2015-2026) | "ytd" (2026)
   bundle: null,
   unlocked: false,
   charts: { donut: null, line: null }
@@ -881,79 +895,196 @@ function initCharts(d) {
     $("#donut-center-pct").textContent = `${fmt(eq, 0)}%`;
   }
 
-  // 2. Multi-Year Performance Line Chart (Reference Trend Profile 2015-2026)
-  const lineCanvas = $("#performanceLineCanvas");
-  if (lineCanvas) {
-    if (state.charts.line) state.charts.line.destroy();
+  // 2. Performance Line Chart Dataset Profile (ALL 2015-2026 vs YTD 2026)
+  renderPerformanceLineChart();
+}
 
-    // Representative performance curves based on backtest & OOS telemetry
-    const years = ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026"];
-    const v8Data  = [100, 108, 125, 142, 168, 205, 235, 234, 258, 305, 365, 442];
-    const v7Data  = [100, 102, 118, 128, 138, 168, 182, 172, 195, 228, 268, 318];
-    const spyData = [100, 104, 126, 120, 158, 184, 236, 192, 242, 300, 360, 408];
-
-    state.charts.line = new Chart(lineCanvas, {
-      type: "line",
-      data: {
-        labels: years,
-        datasets: [
-          {
-            label: "AlphaShield V8.1 (+14.89%)",
-            data: v8Data,
-            borderColor: "#10b981",
-            backgroundColor: "rgba(16, 185, 129, 0.08)",
-            fill: true,
-            tension: 0.25,
-            borderWidth: 2,
-            pointRadius: 0
-          },
-          {
-            label: "Legacy V7.2 (+11.01%)",
-            data: v7Data,
-            borderColor: "#f59e0b",
-            borderWidth: 1.5,
-            borderDash: [3, 3],
-            pointRadius: 0
-          },
-          {
-            label: "SPY Buy & Hold (+13.29%)",
-            data: spyData,
-            borderColor: "#06b6d4",
-            borderWidth: 1.5,
-            borderDash: [4, 4],
-            pointRadius: 0
-          }
-        ]
+const CHART_PROFILES = {
+  all: {
+    title: "Multi-Year AlphaShield V8.1 vs Benchmark",
+    footer: "Backtest & OOS Regime Horizon: 2015 – 2026",
+    yScaleType: "logarithmic",
+    labels: ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026"],
+    datasets: [
+      {
+        label: "AlphaShield V8.1 (+14.89%)",
+        data: [100, 108, 125, 142, 168, 205, 235, 234, 258, 305, 365, 442],
+        borderColor: "#10b981",
+        backgroundColor: "rgba(16, 185, 129, 0.08)",
+        fill: true,
+        tension: 0.25,
+        borderWidth: 2,
+        pointRadius: 0
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            grid: { color: "rgba(255, 255, 255, 0.04)" },
-            ticks: { color: "#94a3b8", font: { family: "'JetBrains Mono'", size: 10 } }
-          },
-          y: {
-            type: "logarithmic",
-            grid: { color: "rgba(255, 255, 255, 0.04)" },
-            ticks: { color: "#94a3b8", font: { family: "'JetBrains Mono'", size: 10 } }
+      {
+        label: "Legacy V7.2 (+11.01%)",
+        data: [100, 102, 118, 128, 138, 168, 182, 172, 195, 228, 268, 318],
+        borderColor: "#f59e0b",
+        borderWidth: 1.5,
+        borderDash: [3, 3],
+        pointRadius: 0
+      },
+      {
+        label: "SPY Buy & Hold (+13.29%)",
+        data: [100, 104, 126, 120, 158, 184, 236, 192, 242, 300, 360, 408],
+        borderColor: "#06b6d4",
+        borderWidth: 1.5,
+        borderDash: [4, 4],
+        pointRadius: 0
+      }
+    ],
+    metrics: {
+      v8:  { val: "+14.89%", lbl: "CAGR", sub: "Sharpe: 1.51 | MDD: -14.8%" },
+      v7:  { val: "+11.01%", lbl: "CAGR", sub: "Sharpe: 1.00 | MDD: -17.6%" },
+      spy: { val: "+13.29%", lbl: "CAGR", sub: "Sharpe: 0.79 | MDD: -33.7%" }
+    }
+  },
+  ytd: {
+    title: "Year-To-Date (2026) Performance vs Benchmark",
+    footer: "Live Execution Tracking: Re-based to 0.0% at Jan 02, 2026",
+    yScaleType: "linear",
+    labels: ["Jan 02", "Jan 07", "Jan 12", "Jan 15", "Jan 21", "Jan 26", "Jan 29", "Feb 03", "Feb 06", "Feb 11", "Feb 17", "Feb 20", "Feb 25", "Feb 27"],
+    datasets: [
+      {
+        label: "AlphaShield V8.1 (+6.48%)",
+        data: [0.0, 2.03, 3.34, 3.45, 4.04, 5.7, 8.17, 4.93, 4.96, 6.65, 4.4, 6.34, 7.69, 6.48],
+        borderColor: "#10b981",
+        backgroundColor: "rgba(16, 185, 129, 0.08)",
+        fill: true,
+        tension: 0.25,
+        borderWidth: 2,
+        pointRadius: 1.5
+      },
+      {
+        label: "Legacy V7.2 (+10.03%)",
+        data: [0.0, 2.15, 3.92, 4.08, 5.72, 8.94, 12.34, 7.74, 6.83, 8.63, 5.54, 8.34, 9.27, 10.03],
+        borderColor: "#f59e0b",
+        borderWidth: 1.5,
+        borderDash: [3, 3],
+        pointRadius: 1.5
+      },
+      {
+        label: "SPY Buy & Hold (+0.41%)",
+        data: [0.0, 0.94, 1.76, 1.33, 0.33, 1.4, 1.59, 0.93, 1.09, 1.29, -0.05, 0.92, 1.46, 0.41],
+        borderColor: "#06b6d4",
+        borderWidth: 1.5,
+        borderDash: [4, 4],
+        pointRadius: 1.5
+      }
+    ],
+    metrics: {
+      v8:  { val: "+6.48%", lbl: "YTD RET", sub: "Max DD: -5.77% | Controlled" },
+      v7:  { val: "+10.03%", lbl: "YTD RET", sub: "Max DD: -7.01% | High Vol" },
+      spy: { val: "+0.41%", lbl: "YTD RET", sub: "Max DD: -2.57% | Rangebound" }
+    }
+  }
+};
+
+function renderPerformanceLineChart() {
+  const lineCanvas = $("#performanceLineCanvas");
+  if (!lineCanvas) return;
+
+  const tf = state.chartTimeframe || "all";
+  const profile = CHART_PROFILES[tf] || CHART_PROFILES.all;
+
+  // 1. Update Title and Footer
+  const titleEl = $("#chart-card-title");
+  if (titleEl) titleEl.textContent = profile.title;
+  const footerEl = $("#chart-footer-label");
+  if (footerEl) footerEl.textContent = profile.footer;
+
+  // 2. Update Metric Chips
+  const m = profile.metrics;
+  if ($("#perf-v8-val")) {
+    $("#perf-v8-val").innerHTML = `${m.v8.val} <span id="perf-v8-lbl" class="text-[10px] text-muted font-normal">${m.v8.lbl}</span>`;
+    $("#perf-v8-sub").textContent = m.v8.sub;
+  }
+  if ($("#perf-v7-val")) {
+    $("#perf-v7-val").innerHTML = `${m.v7.val} <span id="perf-v7-lbl" class="text-[10px] text-muted font-normal">${m.v7.lbl}</span>`;
+    $("#perf-v7-sub").textContent = m.v7.sub;
+  }
+  if ($("#perf-spy-val")) {
+    $("#perf-spy-val").innerHTML = `${m.spy.val} <span id="perf-spy-lbl" class="text-[10px] text-muted font-normal">${m.spy.lbl}</span>`;
+    $("#perf-spy-sub").textContent = m.spy.sub;
+  }
+
+  // 3. Render Chart
+  if (state.charts.line) {
+    state.charts.line.destroy();
+    state.charts.line = null;
+  }
+
+  state.charts.line = new Chart(lineCanvas, {
+    type: "line",
+    data: {
+      labels: profile.labels,
+      datasets: profile.datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      scales: {
+        x: {
+          grid: { color: "rgba(255, 255, 255, 0.04)" },
+          ticks: { color: "#94a3b8", font: { family: "'JetBrains Mono'", size: 10 } }
+        },
+        y: {
+          type: profile.yScaleType,
+          grid: { color: "rgba(255, 255, 255, 0.04)" },
+          ticks: {
+            color: "#94a3b8",
+            font: { family: "'JetBrains Mono'", size: 10 },
+            callback: (val) => tf === "ytd" ? `${val >= 0 ? "+" : ""}${val}%` : val
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: "bottom",
+          labels: {
+            color: "#94a3b8",
+            font: { family: "'JetBrains Mono'", size: 10 },
+            boxWidth: 12,
+            padding: 10
           }
         },
-        plugins: {
-          legend: {
-            display: true,
-            position: "bottom",
-            labels: {
-              color: "#94a3b8",
-              font: { family: "'JetBrains Mono'", size: 10 },
-              boxWidth: 12,
-              padding: 10
+        tooltip: {
+          backgroundColor: "rgba(18, 22, 34, 0.95)",
+          borderColor: "rgba(255, 255, 255, 0.12)",
+          borderWidth: 1,
+          titleFont: { family: "'JetBrains Mono'", size: 11 },
+          bodyFont: { family: "'JetBrains Mono'", size: 11 },
+          callbacks: {
+            label: (ctx) => {
+              const prefix = ctx.dataset.label ? ctx.dataset.label.split(" (")[0] : "";
+              const val = ctx.parsed.y;
+              return tf === "ytd"
+                ? ` ${prefix}: ${val >= 0 ? "+" : ""}${val.toFixed(2)}%`
+                : ` ${prefix}: ${val.toFixed(1)} (Rebased)`;
             }
           }
         }
       }
-    });
-  }
+    }
+  });
+}
+
+function setChartTimeframe(tf) {
+  if (state.chartTimeframe === tf) return;
+  state.chartTimeframe = tf;
+
+  // Toggle button styling
+  $$(".chart-timeframe-btn").forEach(btn => {
+    const active = btn.dataset.timeframe === tf;
+    btn.className = `chart-timeframe-btn rounded-md px-2.5 py-1 text-[10px] font-semibold transition-all duration-200 ` +
+      (active
+        ? "border border-cyan/40 bg-cyan-subtle text-cyan-bright shadow-[0_0_8px_rgba(6,182,212,0.25)]"
+        : "border border-transparent text-muted hover:text-foreground");
+  });
+
+  renderPerformanceLineChart();
 }
 
 /* ── Full Dashboard Renderer ── */
@@ -1199,6 +1330,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   $$("[data-filter]").forEach(b => b.addEventListener("click", () => setFilter(b.dataset.filter)));
+  $$(".chart-timeframe-btn").forEach(b => b.addEventListener("click", () => setChartTimeframe(b.dataset.timeframe)));
   $("#logout-btn").addEventListener("click", () => lockUI());
 
   $("#toggle-visibility").addEventListener("click", () => {

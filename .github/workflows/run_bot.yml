@@ -47,13 +47,15 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
 
-      - name: Install
+      - name: Install dependencies
         run: |
           python -m pip install -U pip
-          pip install -e . -r requirements.txt
+          pip install -r requirements.txt
 
       # ── Gate: test ต้องเขียวก่อนเสมอ ──────────────────────────
       - name: Run test suite (blocking)
+        env:
+          PYTHONPATH: .
         run: pytest -q --maxfail=1
 
       # ── State: cache = fast path, git = durable source of truth ──
@@ -94,6 +96,7 @@ jobs:
         if: steps.guard.outputs.should_run == 'true'
         id: bot
         env:
+          PYTHONPATH:                .
           DASHBOARD_PASSWORD:        ${{ secrets.DASHBOARD_PASSWORD }}
           GEMINI_API_KEY:            ${{ secrets.GEMINI_API_KEY }}
           FINNHUB_API_KEY:           ${{ secrets.FINNHUB_API_KEY }}

@@ -220,8 +220,8 @@ SECRETS = {
     "GEMINI_API_KEY": env("GEMINI_API_KEY"),
     "DISCORD_WEBHOOK_URL": env("DISCORD_WEBHOOK_URL"),
     "FINNHUB_API_KEY": env("FINNHUB_API_KEY"),
-    "LINE_CHANNEL_ACCESS_TOKEN": env("LINE_CHANNEL_ACCESS_TOKEN"),
-    "LINE_USER_ID": env("LINE_USER_ID"),
+    "LINE_CHANNEL_ACCESS_TOKEN": env("LINE_CHANNEL_ACCESS_TOKEN") or env("LINE_TOKEN") or env("LINE_ACCESS_TOKEN") or env("LINE_NOTIFY_TOKEN"),
+    "LINE_USER_ID": env("LINE_USER_ID") or env("LINE_TARGET_ID") or env("LINE_TO"),
 }
 
 OVERRIDE_ASSET = env("OVERRIDE_ASSET", "NONE")
@@ -1383,19 +1383,27 @@ def send_to_discord(message: str) -> bool:
 
 
 def send_to_line(message: str) -> bool:
-    # ── สวิตช์ปิด LINE ชั่วคราวเพื่อประหยัด QUOTA ──
-    enable_line = os.getenv("ENABLE_LINE", "false").lower() in ("true", "1", "yes")
-    if not enable_line:
-        LOG.info("MOCK: ข้ามการส่ง LINE ชั่วคราวเพื่อประหยัดโควตา (ENABLE_LINE=false)")
-        return True
-
     token = SECRETS["LINE_CHANNEL_ACCESS_TOKEN"]
     user_id = SECRETS["LINE_USER_ID"]
+
+    # If ENABLE_LINE is explicitly set to false/0/no, skip
+    enable_line_env = os.getenv("ENABLE_LINE")
+    if enable_line_env is not None and enable_line_env.strip().lower() in ("false", "0", "no"):
+        LOG.info("MOCK: ข้ามการส่ง LINE ตามการตั้งค่า (ENABLE_LINE=false)")
+        return True
+
     if not token or not user_id:
+        missing = []
+        if not token:
+            missing.append("LINE_CHANNEL_ACCESS_TOKEN")
+        if not user_id:
+            missing.append("LINE_USER_ID")
+        LOG.warning("ข้ามการส่ง LINE: ไม่พบการตั้งค่า Secrets/Env (%s)", ", ".join(missing))
         return False
 
     chunks = _chunk_text(message, CFG.LINE_CHUNK)
     if not chunks:
+        LOG.warning("LINE: ข้อความว่างเปล่า ไม่สามารถส่งได้")
         return False
 
     headers = {
@@ -1422,9 +1430,11 @@ def send_to_line(message: str) -> bool:
                     time.sleep(2.0 * (attempt + 1))
                     continue
                 r.raise_for_status()
+                LOG.info("LINE push notification sent successfully (%d message chunks)", len(batch))
                 break
             except Exception as e:
-                LOG.warning("LINE push failed (attempt %d/2, timeout=%.1fs): %s", attempt + 1, CFG.LINE_TIMEOUT, e)
+                LOG.error("LINE push failed (attempt %d/2, timeout=%.1fs): %s | Response: %s",
+                          attempt + 1, CFG.LINE_TIMEOUT, e, getattr(locals().get("r", None), "text", "N/A"))
                 time.sleep(1.0 * (attempt + 1))
         else:
             ok = False
