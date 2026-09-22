@@ -1,20 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-09-21T12:35:16+00:00",
-  "last_run_ict": "2026-09-21T19:30:16+07:00",
+  "last_run_utc": "2026-09-22T05:17:58+00:00",
+  "last_run_ict": "2026-09-22T12:15:35+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -1.94,
+    "tip_mom_13612_pct": -1.19,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -1.94% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -1.19% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
-    "guard_status": "degraded",
-    "data": {},
-    "description": "DEGRADED: ไม่สามารถดึงข้อมูล US Futures ได้ (ทำงานตามตรรกะปกติ)"
+    "guard_status": "ok",
+    "data": {
+      "ES=F": 0.0,
+      "NQ=F": 0.09
+    },
+    "description": "NORMAL: ES=F +0.00% | NQ=F +0.09% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -44,30 +47,30 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 62.0,
-      "raw_score": 62.0,
-      "price": 206.77,
-      "chg_pct": -0.21,
-      "dist_ema50_pct": 0.24,
-      "dist_ema200_pct": 5.83,
+      "score": 65.0,
+      "raw_score": 72.0,
+      "price": 209.7,
+      "chg_pct": 1.42,
+      "dist_ema50_pct": 1.6,
+      "dist_ema200_pct": 7.25,
       "bull_stack": true,
-      "rsi": 48.0,
-      "adx": 15.3,
-      "hv20": 10.0,
-      "chop_capped": false,
+      "rsi": 56.3,
+      "adx": 14.3,
+      "hv20": 11.0,
+      "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "ต้องทำตามคำสั่ง **CANARY CASH** เพื่อล็อกหลบภัย 100% ทันที แม้ราคาจะอยู่เหนือ EMA20",
+      "ai_analysis": "สัญญาณ Macro จาก TIP Canary สั่งล็อกเงินสด 100% เพื่อปกป้องเงินต้น แม้ราคาจะยังยืนเหนือ EMA200 แต่ ADX เพียง 14.3 บ่งชี้ภาวะตลาดแกว่งตัวไร้ทิศทางชัดเจน\n**เงื่อนไขสำคัญ:** ถือเงินสดตามระบบอย่างเคร่งครัดจนกว่าสัญญาณ Canary จะปลดล็อกกลับเป็น Risk-On และเกิดเทรนด์รอบใหม่ที่แข็งแกร่ง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
         "momentum_macd": 4.0,
-        "momentum_rsi": 5.0,
+        "momentum_rsi": 15.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-09-21T19:31:34+07:00"
+      "updated_at": "2026-09-22T12:16:06+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -85,30 +88,30 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 65.0,
-      "raw_score": 72.0,
-      "price": 830.43,
-      "chg_pct": 0.93,
-      "dist_ema50_pct": 1.19,
-      "dist_ema200_pct": 6.84,
+      "score": 62.0,
+      "raw_score": 62.0,
+      "price": 822.76,
+      "chg_pct": -0.04,
+      "dist_ema50_pct": 0.3,
+      "dist_ema200_pct": 5.93,
       "bull_stack": true,
-      "rsi": 55.0,
-      "adx": 14.3,
-      "hv20": 9.8,
-      "chop_capped": true,
+      "rsi": 48.0,
+      "adx": 14.9,
+      "hv20": 9.2,
+      "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "ระบบสั่งล็อกหลบภัยเงินสด 100% เพื่อรักษาเงินต้นตามสัญญาณมหภาค TIP Canary แม้ราคาจะอยู่เหนือ EMA200 แต่ตลาดเข้าสู่ภาวะแกว่งตัวไร้ทิศทางชัดเจน (ADX 14.3) จึงต้องคุมความเสี่ยงเข้มงวด\n\n**เงื่อนไขที่ต้องจับตา:** รอสัญญาณ Canary พลิกกลับเป็นบวกและค่า ADX เร่งตัวเหนือ 20 เพื่อยืนยันโมเมนตัมขาขึ้นรอบใหม่ก่อนกลับเข้าสะสม",
+      "ai_analysis": "ต้องทำตามคำสั่ง **[CANARY CASH]** ล็อกเงินสด 100% เพื่อเน้นรักษาเงินต้นจากสัญญาณเตือน",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
         "momentum_macd": 4.0,
-        "momentum_rsi": 15.0,
+        "momentum_rsi": 5.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-09-21T19:32:26+07:00"
+      "updated_at": "2026-09-22T12:16:45+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -127,33 +130,33 @@
         "corrupt_first_seen_ict": null
       },
       "score": 65.0,
-      "raw_score": 83.0,
-      "price": 721.45,
-      "chg_pct": 0.63,
-      "dist_ema50_pct": 1.46,
-      "dist_ema200_pct": 8.02,
+      "raw_score": 80.0,
+      "price": 741.47,
+      "chg_pct": 2.88,
+      "dist_ema50_pct": 4.2,
+      "dist_ema200_pct": 11.01,
       "bull_stack": true,
-      "rsi": 55.9,
-      "adx": 9.8,
-      "hv20": 13.2,
+      "rsi": 66.0,
+      "adx": 10.8,
+      "hv20": 16.5,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "Biotech Week Ahead: XLV Beats The Market — Here Are The Stocks, Readouts And Events To Watch Next",
-        "If the AI Bubble Bursts as the Dot-Com Did, History Says the QQQ Might Not Recover Until 2042",
-        "AI's Power Bottleneck Is Here, Profiting Is The Hard Part"
+        "Oil-Rates Correlation Jumps To A 35-Year High",
+        "World Markets Watchlist: September 21, 2026",
+        "SanDisk Falls 2% Despite Memory Rally; Micron Advances 3%, Western Digital Nudges Higher"
       ],
-      "ai_analysis": "ระบบสั่งล็อกหลบภัยถือเงินสด 100% ตามสัญญาณมหภาค HAA TIP Canary เพื่อรักษาเงินต้น แม้ราคาอยู่เหนือ EMA200 แต่ ADX ต่ำเพียง 9.8 ชี้ว่าตลาดไร้ทิศทางชัดเจนและมีความเสี่ยงจากฟองสบู่ AI\n\n**เงื่อนไขสำคัญที่ต้องจับตา:** สัญญาณ Canary พลิกกลับมาเป็นบวก และค่า ADX เร่งตัวทะลุ 20 เพื่อยืนยันโมเมนตัมขาขึ้นรอบใหม่ก่อนกลับเข้าตลาด",
+      "ai_analysis": "ต้องทำตามคำสั่ง **CANARY CASH** ล็อกถือเงินสด 100% เพื่อรักษาเงินต้นตามวินัย แม้โครงสร้างราคาไม่พังแต่ ADX ต่ำเพียง 10.8 ชี้ชัดว่าตลาดแกว่งตัวไร้ทิศทาง ผสานความเสี่ยง Macro จากสัมพันธ์น้ำมันและดอกเบี้ย\n**เงื่อนไขสำคัญ:** ถือเงินสดจนกว่าสัญญาณ Canary Macro จะปลดล็อก และ ADX เร่งตัวพ้น 20 เพื่อยืนยันเทรนด์ขาขึ้นรอบใหม่ก่อนเข้าลงทุนอีกครั้ง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
         "momentum_macd": 15.0,
         "momentum_rsi": 15.0,
-        "volatility": 15.0
+        "volatility": 12.0
       },
-      "updated_at": "2026-09-21T19:32:50+07:00"
+      "updated_at": "2026-09-22T12:17:11+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -171,34 +174,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 56.0,
-      "raw_score": 56.0,
-      "price": 401.17,
-      "chg_pct": 0.71,
-      "dist_ema50_pct": 0.65,
-      "dist_ema200_pct": 1.25,
+      "score": 40.0,
+      "raw_score": 40.0,
+      "price": 398.38,
+      "chg_pct": -0.7,
+      "dist_ema50_pct": -0.05,
+      "dist_ema200_pct": 0.54,
       "bull_stack": false,
-      "rsi": 50.6,
-      "adx": 14.1,
-      "hv20": 24.5,
+      "rsi": 48.5,
+      "adx": 13.3,
+      "hv20": 23.3,
       "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "Weekly Commentary: Walked The Walk",
-        "Bitcoin Tops $80,000, S&P 500 Slips as Yields Reclaim 5%: Stock Market Today",
-        "Chart Of The Day: Precious Metals At A 'Prove It' Point"
+        "Oil-Rates Correlation Jumps To A 35-Year High",
+        "Will Rising Interest Rates Send Gold Back to Its Highs?",
+        "Fidelity Sees Gold Climbing Toward $5,000"
       ],
-      "ai_analysis": "must follow the CANARY CASH order to lock 100% cash immediately to preserve capital. Gold is weakening, barely holding above the EMA20",
+      "ai_analysis": "ทำตามสัญญาณ Canary Cash ล็อกเงินสด 100% ทันทีเพื่อรักษาเงินต้น แม้มีข่าวเชิงบวก",
       "data_source": "yahoo_v8",
       "components": {
-        "trend_structure": 27.0,
+        "trend_structure": 16.0,
         "trend_strength": 3.0,
         "momentum_macd": 4.0,
-        "momentum_rsi": 10.0,
+        "momentum_rsi": 5.0,
         "volatility": 12.0
       },
-      "updated_at": "2026-09-21T19:34:07+07:00"
+      "updated_at": "2026-09-22T12:17:39+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -217,33 +220,33 @@
         "corrupt_first_seen_ict": null
       },
       "score": 65.0,
-      "raw_score": 72.0,
-      "price": 573.0,
-      "chg_pct": 2.21,
-      "dist_ema50_pct": 1.53,
-      "dist_ema200_pct": 15.26,
+      "raw_score": 76.0,
+      "price": 596.03,
+      "chg_pct": 4.02,
+      "dist_ema50_pct": 5.38,
+      "dist_ema200_pct": 19.66,
       "bull_stack": true,
-      "rsi": 54.3,
-      "adx": 11.2,
-      "hv20": 34.3,
+      "rsi": 61.1,
+      "adx": 11.9,
+      "hv20": 36.9,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "History Says This Chip ETF Keeps Beating the S&P 500. It Has Trailed the Index Only Twice Since 2016.",
-        "Semis: Market Has Completely Misunderstood The Potential AI Slowdown",
-        "Big Phase Transition Of AI Alpha"
+        "Easing Oil Bills, Pending Xi US Visit Buoy Wall Street Pre-Bell; Asia, Europe Up",
+        "What's Going On With Taiwan Semiconductor Stock Monday?",
+        "History Says This Chip ETF Keeps Beating the S&P 500. It Has Trailed the Index Only Twice Since 2016."
       ],
-      "ai_analysis": "ต้องทำตามคำสั่ง **CANARY CASH** เพื่อล็อกหลบภัย 100% ทันที แม้ราคาจะอยู่เหนือ",
+      "ai_analysis": "ตัวไร้ทิศทาง ระบบจึงสั่งล็อกหลบภัย 100% ตามสัญญาณมหาภาค (Canary) เพื่อรักษาเงินต้น **",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
-        "momentum_macd": 12.0,
-        "momentum_rsi": 10.0,
-        "volatility": 12.0
+        "momentum_macd": 15.0,
+        "momentum_rsi": 15.0,
+        "volatility": 8.0
       },
-      "updated_at": "2026-09-21T19:35:16+07:00"
+      "updated_at": "2026-09-22T12:17:58+07:00"
     }
   }
 }
