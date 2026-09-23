@@ -1,7 +1,7 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-09-22T05:17:58+00:00",
-  "last_run_ict": "2026-09-22T12:15:35+07:00",
+  "last_run_utc": "2026-09-23T05:16:50+00:00",
+  "last_run_ict": "2026-09-23T12:15:35+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
@@ -14,10 +14,10 @@
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": 0.0,
-      "NQ=F": 0.09
+      "ES=F": 0.09,
+      "NQ=F": 0.01
     },
-    "description": "NORMAL: ES=F +0.00% | NQ=F +0.09% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F +0.09% | NQ=F +0.01% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -60,8 +60,10 @@
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
-      "news": [],
-      "ai_analysis": "สัญญาณ Macro จาก TIP Canary สั่งล็อกเงินสด 100% เพื่อปกป้องเงินต้น แม้ราคาจะยังยืนเหนือ EMA200 แต่ ADX เพียง 14.3 บ่งชี้ภาวะตลาดแกว่งตัวไร้ทิศทางชัดเจน\n**เงื่อนไขสำคัญ:** ถือเงินสดตามระบบอย่างเคร่งครัดจนกว่าสัญญาณ Canary จะปลดล็อกกลับเป็น Risk-On และเกิดเทรนด์รอบใหม่ที่แข็งแกร่ง",
+      "news": [
+        "Better Global ETF: Vanguard's VT vs. the iShares URTH"
+      ],
+      "ai_analysis": "ต้องถือเงินสด 100% ตามคำสั่ง **CANARY CASH** เพื่อรักษาเงินต้นจากสัญญาณ Macro Risk-Off",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -70,7 +72,7 @@
         "momentum_rsi": 15.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-09-22T12:16:06+07:00"
+      "updated_at": "2026-09-23T12:15:49+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -88,30 +90,30 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 62.0,
-      "raw_score": 62.0,
-      "price": 822.76,
-      "chg_pct": -0.04,
-      "dist_ema50_pct": 0.3,
-      "dist_ema200_pct": 5.93,
+      "score": 65.0,
+      "raw_score": 72.0,
+      "price": 833.84,
+      "chg_pct": 1.35,
+      "dist_ema50_pct": 1.59,
+      "dist_ema200_pct": 7.28,
       "bull_stack": true,
-      "rsi": 48.0,
-      "adx": 14.9,
-      "hv20": 9.2,
-      "chop_capped": false,
+      "rsi": 57.6,
+      "adx": 15.2,
+      "hv20": 10.4,
+      "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "ต้องทำตามคำสั่ง **[CANARY CASH]** ล็อกเงินสด 100% เพื่อเน้นรักษาเงินต้นจากสัญญาณเตือน",
+      "ai_analysis": "ต้องทำตามคำสั่ง CANARY CASH 100% เพื่อรักษาเงินต้นตามวินัย แม้ราคาจะอยู่เหนือ EMA200",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
-        "momentum_macd": 4.0,
-        "momentum_rsi": 5.0,
-        "volatility": 15.0
+        "momentum_macd": 7.0,
+        "momentum_rsi": 15.0,
+        "volatility": 12.0
       },
-      "updated_at": "2026-09-22T12:16:45+07:00"
+      "updated_at": "2026-09-23T12:16:03+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -143,11 +145,11 @@
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "Oil-Rates Correlation Jumps To A 35-Year High",
-        "World Markets Watchlist: September 21, 2026",
-        "SanDisk Falls 2% Despite Memory Rally; Micron Advances 3%, Western Digital Nudges Higher"
+        "Nasdaq Jumps To Close At Record As Chipmakers Climb, Oil Prices Cool — AAPL, META, SPCX, MSFT, VKTX In Focus",
+        "S&P 500 Nears Record as Breadth Sends Rare Warning",
+        "A Retired Couple Can Sell $98,900 of Gains This Year and Owe the IRS Nothing. These 3 ETFs Are Built for the 0% Bracket"
       ],
-      "ai_analysis": "ต้องทำตามคำสั่ง **CANARY CASH** ล็อกถือเงินสด 100% เพื่อรักษาเงินต้นตามวินัย แม้โครงสร้างราคาไม่พังแต่ ADX ต่ำเพียง 10.8 ชี้ชัดว่าตลาดแกว่งตัวไร้ทิศทาง ผสานความเสี่ยง Macro จากสัมพันธ์น้ำมันและดอกเบี้ย\n**เงื่อนไขสำคัญ:** ถือเงินสดจนกว่าสัญญาณ Canary Macro จะปลดล็อก และ ADX เร่งตัวพ้น 20 เพื่อยืนยันเทรนด์ขาขึ้นรอบใหม่ก่อนเข้าลงทุนอีกครั้ง",
+      "ai_analysis": "ทำตามคำสั่ง **CANARY CASH** ถือเงินสด 100% เพื่อรักษาเงินต้นอย่างเคร่งครัดตามสัญญาณ Macro ส",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -156,7 +158,7 @@
         "momentum_rsi": 15.0,
         "volatility": 12.0
       },
-      "updated_at": "2026-09-22T12:17:11+07:00"
+      "updated_at": "2026-09-23T12:16:15+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -188,11 +190,11 @@
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "Oil-Rates Correlation Jumps To A 35-Year High",
-        "Will Rising Interest Rates Send Gold Back to Its Highs?",
-        "Fidelity Sees Gold Climbing Toward $5,000"
+        "Gold Slides as Fed Fears Take Over",
+        "Silver Made America’s Critical Minerals List. This ETF Is the Easiest Way In",
+        "2 Of The Best 10-13% Yielding Monthly Income Machines For Uncertain Times"
       ],
-      "ai_analysis": "ทำตามสัญญาณ Canary Cash ล็อกเงินสด 100% ทันทีเพื่อรักษาเงินต้น แม้มีข่าวเชิงบวก",
+      "ai_analysis": "ต้องทำตามคำสั่ง **[CANARY CASH] ล็อกเงินสด 100%** ทันทีเพื่อรักษาเงินต้น เนื่องจากคะแนน Quant",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 16.0,
@@ -201,7 +203,7 @@
         "momentum_rsi": 5.0,
         "volatility": 12.0
       },
-      "updated_at": "2026-09-22T12:17:39+07:00"
+      "updated_at": "2026-09-23T12:16:32+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -233,11 +235,11 @@
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "Easing Oil Bills, Pending Xi US Visit Buoy Wall Street Pre-Bell; Asia, Europe Up",
-        "What's Going On With Taiwan Semiconductor Stock Monday?",
-        "History Says This Chip ETF Keeps Beating the S&P 500. It Has Trailed the Index Only Twice Since 2016."
+        "Nasdaq Jumps To Close At Record As Chipmakers Climb, Oil Prices Cool — AAPL, META, SPCX, MSFT, VKTX In Focus",
+        "Don't Sleep On Analog Semiconductors",
+        "Tech Rally Pauses, But Soft Oil Lifts Wall Street Pre-Bell; Asia, Europe Up"
       ],
-      "ai_analysis": "ตัวไร้ทิศทาง ระบบจึงสั่งล็อกหลบภัย 100% ตามสัญญาณมหาภาค (Canary) เพื่อรักษาเงินต้น **",
+      "ai_analysis": "ต้องล็อกเงินสด 100% ตามระบบ **CANARY CASH** เพื่อรักษาเงินต้นเป็นหลัก แม้ราคาอยู่เหนือ EMA20",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -246,7 +248,7 @@
         "momentum_rsi": 15.0,
         "volatility": 8.0
       },
-      "updated_at": "2026-09-22T12:17:58+07:00"
+      "updated_at": "2026-09-23T12:16:50+07:00"
     }
   }
 }
