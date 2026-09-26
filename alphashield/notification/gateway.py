@@ -47,7 +47,8 @@ class NotificationGateway:
         self.http_timeout = http_timeout
         self.line_timeout = line_timeout
         self.dry_run = dry_run
-        self.line_push_endpoint = "https://api.line.me/v2/bot/message/push"
+        self.line_broadcast_endpoint = "https://api.line.me/v2/bot/message/broadcast"
+        self.line_push_endpoint = self.line_broadcast_endpoint  # backward compatibility alias
 
     # --------------------------------------------------------------------------
     # Auto-Chunking (Hidden Implementation)
@@ -126,12 +127,13 @@ class NotificationGateway:
         return ok
 
     # --------------------------------------------------------------------------
-    # LINE Messaging API Delivery Adapter
+    # LINE Messaging API Delivery Adapter (Broadcast)
     # --------------------------------------------------------------------------
 
     def send_line(self, message: str) -> bool:
         """
-        Send formatted message to LINE push API with auto-chunking (max 5 bubbles per payload).
+        Send formatted message to LINE broadcast API with auto-chunking (max 5 bubbles per payload).
+        Broadcast delivers messages to all user friends of the official account.
         """
         # Check global environment toggle if configured
         enable_line_env = os.getenv("ENABLE_LINE")
@@ -143,13 +145,8 @@ class NotificationGateway:
             LOG.info("[DRY-RUN] LINE message suppressed (%d chars)", len(message))
             return True
 
-        if not self.line_access_token or not self.line_user_id:
-            missing = []
-            if not self.line_access_token:
-                missing.append("line_access_token")
-            if not self.line_user_id:
-                missing.append("line_user_id")
-            LOG.warning("ข้ามการส่ง LINE: ไม่พบการตั้งค่า (%s)", ", ".join(missing))
+        if not self.line_access_token:
+            LOG.warning("ข้ามการส่ง LINE: ไม่พบการตั้งค่า line_access_token")
             return False
 
         chunks = self.chunk_text(message, self.line_chunk_limit)
@@ -166,13 +163,12 @@ class NotificationGateway:
         for start in range(0, len(chunks), 5):
             batch = chunks[start:start + 5]
             payload = {
-                "to": self.line_user_id,
                 "messages": [{"type": "text", "text": c} for c in batch],
             }
             for attempt in range(2):
                 try:
                     r = requests.post(
-                        self.line_push_endpoint,
+                        self.line_broadcast_endpoint,
                         headers=headers,
                         data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
                         timeout=self.line_timeout,
@@ -181,11 +177,11 @@ class NotificationGateway:
                         time.sleep(2.0 * (attempt + 1))
                         continue
                     r.raise_for_status()
-                    LOG.info("LINE push notification sent successfully (%d message chunks)", len(batch))
+                    LOG.info("LINE broadcast notification sent successfully (%d message chunks)", len(batch))
                     break
                 except Exception as e:
                     LOG.error(
-                        "LINE push failed (attempt %d/2, timeout=%.1fs): %s",
+                        "LINE broadcast failed (attempt %d/2, timeout=%.1fs): %s",
                         attempt + 1,
                         self.line_timeout,
                         e,

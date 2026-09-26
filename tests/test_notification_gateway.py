@@ -8,6 +8,7 @@ Verifies:
   4. Dry-run mode suppressing HTTP requests
   5. Unified dispatch seam
 """
+import json
 from unittest.mock import patch, MagicMock
 import pytest
 
@@ -43,7 +44,7 @@ def test_send_discord_success():
 
 
 def test_send_line_batching():
-    # Long text that splits into 7 chunks -> should produce 2 push requests (5 + 2)
+    # Long text that splits into 7 chunks -> should produce 2 broadcast requests (5 + 2)
     gw = NotificationGateway(
         line_access_token="MOCK_TOKEN",
         line_user_id="U1234567890",
@@ -57,6 +58,14 @@ def test_send_line_batching():
         ok = gw.send_line(long_msg)
         assert ok is True
         assert mock_post.call_count == 2
+        # Verify broadcast endpoint is targeted
+        for call in mock_post.call_args_list:
+            endpoint = call[0][0]
+            assert endpoint == "https://api.line.me/v2/bot/message/broadcast"
+            # Verify payload does not contain "to" key
+            sent_data = json.loads(call[1]["data"].decode("utf-8"))
+            assert "to" not in sent_data
+            assert "messages" in sent_data
 
 
 def test_dry_run_mode_suppresses_http():
