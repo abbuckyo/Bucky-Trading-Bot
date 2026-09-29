@@ -1,23 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-09-28T05:16:51+00:00",
-  "last_run_ict": "2026-09-28T12:15:36+07:00",
+  "last_run_utc": "2026-09-29T05:17:11+00:00",
+  "last_run_ict": "2026-09-29T12:15:37+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -2.27,
+    "tip_mom_13612_pct": -2.66,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -2.27% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -2.66% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": -0.34,
-      "NQ=F": -0.64
+      "ES=F": -0.25,
+      "NQ=F": -0.43
     },
-    "description": "NORMAL: ES=F -0.34% | NQ=F -0.64% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F -0.25% | NQ=F -0.43% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -47,30 +47,32 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 65.0,
-      "raw_score": 75.0,
-      "price": 208.73,
-      "chg_pct": 0.52,
-      "dist_ema50_pct": 0.97,
-      "dist_ema200_pct": 6.48,
+      "score": 58.0,
+      "raw_score": 58.0,
+      "price": 207.18,
+      "chg_pct": -0.74,
+      "dist_ema50_pct": 0.21,
+      "dist_ema200_pct": 5.63,
       "bull_stack": true,
-      "rsi": 53.0,
-      "adx": 13.3,
-      "hv20": 11.5,
-      "chop_capped": true,
+      "rsi": 48.2,
+      "adx": 13.4,
+      "hv20": 11.8,
+      "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
-      "news": [],
-      "ai_analysis": "D-DI ชนะ +DI สะท้อนแรงขายปกคลุม เงื่อนไขสำคัญคือต้องนิ่งรอจนกว่าสัญญาณ Canary จะเปลี่ยนเป็น Risk-On และ ADX ชี้ทิศทางขาขึ้นชัดเจนจึงพิจารณาเข้าซื้ออีกครั้ง",
+      "news": [
+        "CIO Weekly: Equities Conviction Where It Counts"
+      ],
+      "ai_analysis": "ต้องถือเงินสด 100% ทันทีตามสัญญาณ HAA TIP Canary เพื่อรักษาเงินต้น แม้ราคาจะอยู่เหนือ EMA200 แต่แรงขายเริ่มคุมตลาด (-DI สูงกว่า +DI ชัดเจน) จึงต้องลดความเสี่ยงโดยไม่สนข่าวบวก\nเงื่อนไขสำคัญคือจับตาสัญญาณมหภาค Canary ปลดล็อกความเสี่ยงกลับสู่",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
-        "momentum_macd": 15.0,
-        "momentum_rsi": 10.0,
+        "momentum_macd": 3.0,
+        "momentum_rsi": 5.0,
         "volatility": 12.0
       },
-      "updated_at": "2026-09-28T12:16:02+07:00"
+      "updated_at": "2026-09-29T12:15:43+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -102,7 +104,7 @@
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "ทำตามคำสั่ง **[CANARY CASH]** ถือเงินสด 100% เพื่อรักษาเงินต้นตามวินัยอย่างเคร่งครัด",
+      "ai_analysis": "ต้องทำตามคำสั่ง CANARY CASH ล็อกหลบภัย 100% เพื่อรักษาเงินต้นตามสัญญาณ Macro แม้ราคาจะ",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -111,7 +113,7 @@
         "momentum_rsi": 10.0,
         "volatility": 12.0
       },
-      "updated_at": "2026-09-28T12:16:19+07:00"
+      "updated_at": "2026-09-29T12:16:07+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -130,33 +132,33 @@
         "corrupt_first_seen_ict": null
       },
       "score": 65.0,
-      "raw_score": 79.0,
-      "price": 744.5,
-      "chg_pct": 0.46,
-      "dist_ema50_pct": 3.94,
-      "dist_ema200_pct": 10.97,
+      "raw_score": 76.0,
+      "price": 736.53,
+      "chg_pct": -1.07,
+      "dist_ema50_pct": 2.71,
+      "dist_ema200_pct": 9.68,
       "bull_stack": true,
-      "rsi": 64.9,
-      "adx": 13.9,
-      "hv20": 15.9,
+      "rsi": 58.7,
+      "adx": 13.6,
+      "hv20": 16.2,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "Inflation Watch Mode: Preparing For Wednesday's PCE Data",
-        "A Barbell Portfolio Skips the Middle Entirely. Here’s What $250,000 Looks Like at Both Ends",
-        "Why the Nasdaq Refuses to Break Even With Treasury Yields Above Five Percent"
+        "Cumberland's Monday Memo",
+        "A Ben Franklin Market Analysis",
+        "The Market Is Wrong About Big Tech"
       ],
-      "ai_analysis": "แม้ดัชนียังยืนเหนือ EMA200 (+11%) แต่ ADX 13.9 ชี้ชัดว่าตลาดแกว่งตัวไร้พลังขับเคลื่อน จึงต้องล็อกเงินสด 100% ตามสัญญาณเตือนภัยมหภาคของ HAA Canary เพื่อรักษาเงินต้นก่อนรับแรงกระแทกจากเงินเฟ้อ PCE \n**เงื่อนไขสำคัญที่ต้องจับตา",
+      "ai_analysis": "ระบบสั่งถือเงินสด 100% ตามสัญญาณมหภาค HAA Canary เพื่อรักษาเงินต้น แม้ดัชนียังยืนเหนือ EMA200 (+9.7%) แต่ค่า ADX ต่ำชี้ชัดว่าตลาดแกว่งตัวไร้ทิศทางและมีความเสี่ยงแฝงสูง \n\n**เงื่อนไขจับตา:** รอสัญญาณ Canary ปลดล็อกกลับสู่โหมด Risk-On และโมเมนตัมกลุ่ม Big Tech ฟื้นตัวชัดเจนก่อนกลับเข้าซื้อ",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
         "momentum_macd": 11.0,
         "momentum_rsi": 15.0,
-        "volatility": 15.0
+        "volatility": 12.0
       },
-      "updated_at": "2026-09-28T12:16:25+07:00"
+      "updated_at": "2026-09-29T12:16:15+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -174,34 +176,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 40.0,
-      "raw_score": 40.0,
-      "price": 393.41,
-      "chg_pct": 0.44,
-      "dist_ema50_pct": -1.15,
-      "dist_ema200_pct": -0.7,
+      "score": 25.0,
+      "raw_score": 27.0,
+      "price": 377.91,
+      "chg_pct": -3.94,
+      "dist_ema50_pct": -4.85,
+      "dist_ema200_pct": -4.56,
       "bull_stack": false,
-      "rsi": 45.2,
-      "adx": 13.0,
-      "hv20": 23.2,
+      "rsi": 35.3,
+      "adx": 14.4,
+      "hv20": 24.5,
       "chop_capped": false,
-      "breakdown": false,
-      "breakdown_reason": "",
+      "breakdown": true,
+      "breakdown_reason": "Price -4.6% below EMA200",
       "news": [
-        "The Next Move Looks Bullish, But It Needs To Come Sooner Rather Than Later (Technical Analysis)",
-        "Gold Is Up 17%, But the Fed Just Changed the Game for GLD and IAU",
-        "Bitcoin Surges 36% Since August 18 While Gold and Stocks Remain Stagnant: A Shift in Correlation?"
+        "Metals Meltdown",
+        "Toogood Gold Narrows Table Mountain Targets as Two Major Gold Corridors Take Shape",
+        "The Bond Bloodbath Spreads"
       ],
-      "ai_analysis": "**เหตุผล:** ต้องล็อกถือเงินสด 100% เพื่อปกป้องเงินต้นทันที หลังราคาหลุด EMA200 (-0",
+      "ai_analysis": "จับตาคือการกลับมายืนเหนือเส้น EMA200 เพื่อซ่อมแซมโครงสร้าง และการกลับทิศของแรงขาย (-DI < +",
       "data_source": "yahoo_v8",
       "components": {
-        "trend_structure": 16.0,
+        "trend_structure": 12.0,
         "trend_strength": 3.0,
-        "momentum_macd": 4.0,
-        "momentum_rsi": 5.0,
+        "momentum_macd": 0.0,
+        "momentum_rsi": 0.0,
         "volatility": 12.0
       },
-      "updated_at": "2026-09-28T12:16:40+07:00"
+      "updated_at": "2026-09-29T12:16:33+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -220,33 +222,33 @@
         "corrupt_first_seen_ict": null
       },
       "score": 65.0,
-      "raw_score": 80.0,
-      "price": 606.56,
-      "chg_pct": 1.01,
-      "dist_ema50_pct": 6.17,
-      "dist_ema200_pct": 20.76,
+      "raw_score": 79.0,
+      "price": 600.01,
+      "chg_pct": -1.08,
+      "dist_ema50_pct": 4.82,
+      "dist_ema200_pct": 19.23,
       "bull_stack": true,
-      "rsi": 62.7,
+      "rsi": 59.6,
       "adx": 15.3,
-      "hv20": 34.6,
+      "hv20": 32.0,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "China Won't Move Chip Stocks Anymore",
-        "If I Could Only Add 1 ETF to My Portfolio This Year, Here's Exactly What I'd Buy",
-        "Sandisk: $94B In Contracts Reinforces Outlook"
+        "S&P 500, Dow, Nasdaq Drop Under Pressure From Elevated Yields As Investors Shrug Off Trump’s Iran Sanction Relief — NVDA, BA, AMD, NVTS, CBR",
+        "Why the Midterm Elections Matter for the Stock Market This Year",
+        "AI: Substantial Cracks Have Formed Around This Bubble"
       ],
-      "ai_analysis": "แม้โมเมนตัมของ SCBSEMI(E) ยังแกร่งเหนือ EMA200 (+20.8%) พร้อมข่าวบวก แต่ต้องล็อกถือเงินสด 100% ทันทีตามสัญญาณเตือนระดับมหภาค (HAA TIP Canary) เพื่อรักษาเงินต้นจากความเสี่ยงเชิงระบบที่เริ่มก่อตัว \n\n**เงื่อนไขจับตา:** รอสัญญาณ Canary ส่งสัญญาณปลอดภัย (Risk-on) ควบคู่กับ ADX ดีดพ้น 20 เพื่อยืนยันการเกิดเทรนด์รอบใหม่ก่อนกลับเข้าลงทุน",
+      "ai_analysis": "9) ... Let's count Thai characters/words.\n        \"ต้องทำตามคำสั่ง [CANARY CASH] เพื่อรักษาเงินต้นทันที แม",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
-        "momentum_macd": 15.0,
+        "momentum_macd": 11.0,
         "momentum_rsi": 15.0,
-        "volatility": 12.0
+        "volatility": 15.0
       },
-      "updated_at": "2026-09-28T12:16:51+07:00"
+      "updated_at": "2026-09-29T12:17:11+07:00"
     }
   }
 }
