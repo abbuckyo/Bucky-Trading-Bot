@@ -1,23 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-09-30T05:19:39+00:00",
-  "last_run_ict": "2026-09-30T12:15:43+07:00",
+  "last_run_utc": "2026-10-01T05:18:23+00:00",
+  "last_run_ict": "2026-10-01T12:15:35+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -2.67,
+    "tip_mom_13612_pct": -2.61,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -2.67% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -2.61% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": 0.2,
-      "NQ=F": 0.03
+      "ES=F": 0.55,
+      "NQ=F": 0.99
     },
-    "description": "NORMAL: ES=F +0.20% | NQ=F +0.03% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F +0.55% | NQ=F +0.99% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -47,32 +47,32 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 44.0,
-      "raw_score": 44.0,
-      "price": 206.71,
+      "score": 47.0,
+      "raw_score": 47.0,
+      "price": 206.23,
       "chg_pct": -0.23,
-      "dist_ema50_pct": -0.01,
-      "dist_ema200_pct": 5.33,
+      "dist_ema50_pct": -0.24,
+      "dist_ema200_pct": 5.03,
       "bull_stack": true,
-      "rsi": 46.9,
-      "adx": 13.8,
-      "hv20": 11.8,
+      "rsi": 45.4,
+      "adx": 13.9,
+      "hv20": 11.4,
       "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
         "CIO Weekly: Equities Conviction Where It Counts"
       ],
-      "ai_analysis": "ต้องล็อกถือเงินสด 100% ตามสัญญาณ **CANARY CASH** เพื่อรักษาเงินต้นขั้นสูงสุด แม้ราคาอยู่",
+      "ai_analysis": "ต้องสับเปลี่ยนเข้าถือเงินสด 100% เพื่อรักษาเงินต้นตามสัญญาณ CANARY CASH เนื่องจากโมเมนตัมเชิงลบครอบงำ (-DI สูงกว่า +DI) และ RSI ต่ำกว่า 50 สะท้อนเทรนด์อ่อนแอซึ่งมีความน่าเชื่อถือกว่ากระแสข่าว\n**เงื่อนไขจับตา:** รอราคายืนเหนือ EMA200 อย่างมั่นคง พร้อม +DI ตัดขึ้นชนะ -DI และ RSI ข้ามระดับ 50 เพื่อยืนยันการกลับตัวเป็นขาขึ้นรอบใหม่",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 24.0,
         "trend_strength": 3.0,
         "momentum_macd": 0.0,
         "momentum_rsi": 5.0,
-        "volatility": 12.0
+        "volatility": 15.0
       },
-      "updated_at": "2026-09-30T12:16:07+07:00"
+      "updated_at": "2026-10-01T12:15:51+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -91,29 +91,29 @@
         "corrupt_first_seen_ict": null
       },
       "score": 65.0,
-      "raw_score": 71.0,
-      "price": 828.66,
-      "chg_pct": -0.5,
-      "dist_ema50_pct": 0.72,
-      "dist_ema200_pct": 6.25,
+      "raw_score": 74.0,
+      "price": 827.29,
+      "chg_pct": -0.17,
+      "dist_ema50_pct": 0.53,
+      "dist_ema200_pct": 6.01,
       "bull_stack": true,
-      "rsi": 51.2,
-      "adx": 12.8,
-      "hv20": 10.8,
+      "rsi": 50.0,
+      "adx": 12.0,
+      "hv20": 9.5,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "คำสั่ง **[CANARY CASH]** ต้องปฏิบัติตามทันทีเพื่อรักษาเงินต้นตามสัญญาณมหภาค แม้ราคายังลอยเหนือ EMA200 (+6.2%) แต่ ADX ต่ำเพียง 12.8 ยืนยันว่าตลาดแกว่งตัวไร้ทิศทาง การถือเงินสด 100% จึงตัดความเสี่ยงช่วงไร้โมเมนตัมได้ดีที่สุด\n\n**เงื่อนไขที่ต้องจับตา:** รอสัญญาณ Canary ปลดล็อกความเสี่ยงมหภาค และค่า ADX เร่งตัวขึ้นเพื่อยืนยันแนวโน้มรอบใหม่ก่อนกลับเข้าลงทุน",
+      "ai_analysis": "0 แต่เทคนิคไร้เทรนด์ชัดเจน (ADX 12.0, RSI 50.0) และไม่มีข่าว",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
         "momentum_macd": 11.0,
         "momentum_rsi": 10.0,
-        "volatility": 12.0
+        "volatility": 15.0
       },
-      "updated_at": "2026-09-30T12:16:14+07:00"
+      "updated_at": "2026-10-01T12:17:28+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -132,33 +132,33 @@
         "corrupt_first_seen_ict": null
       },
       "score": 65.0,
-      "raw_score": 76.0,
-      "price": 737.93,
-      "chg_pct": 0.19,
-      "dist_ema50_pct": 2.79,
-      "dist_ema200_pct": 9.78,
+      "raw_score": 79.0,
+      "price": 739.77,
+      "chg_pct": 0.25,
+      "dist_ema50_pct": 2.92,
+      "dist_ema200_pct": 9.94,
       "bull_stack": true,
-      "rsi": 59.5,
-      "adx": 13.3,
-      "hv20": 16.2,
+      "rsi": 60.5,
+      "adx": 13.4,
+      "hv20": 15.3,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "QQQM Charges 0.15% and QQQ Charges 0.18%. A Wide Spread Can Take That Back on a Single Trade",
-        "S&P 500, Dow Extend Losses From Elevated Yield Pressure — SPCX, TGT, AAPL, MU, NTAP In Focus",
-        "If You'd Invested $1,000 in the Invesco QQQ Trust (QQQ) 10 Years Ago, Here's How Much You'd Have Today"
+        "New Price Inflation Data Shows The Fed Has Missed Its Target For 66 Months In A Row",
+        "Lower-Than-Expected PCE Data Failed To Help Markets",
+        "S&P 500, Dow End Lower As Investors Shrug Off Cooler-Than-Expected Inflation Data — MGM, SPCX, AAPL, TSM In Focus"
       ],
-      "ai_analysis": "คำสั่ง `[CANARY CASH]` เกิดจากสัญญาณ Macro ที่ชัดเจนและภาวะตลาดแกว่งตัว (ADX ต่ำ 1",
+      "ai_analysis": "คำสั่ง [CANARY CASH] ถูกเลือกเพื่อรักษาเงินต้นจากสัญญาณ Macro ที่ชัดเจน แม้ราคาจะอยู่เหนือ EMA200",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
         "momentum_macd": 11.0,
         "momentum_rsi": 15.0,
-        "volatility": 12.0
+        "volatility": 15.0
       },
-      "updated_at": "2026-09-30T12:18:55+07:00"
+      "updated_at": "2026-10-01T12:17:57+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -176,34 +176,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 23.0,
-      "raw_score": 23.0,
-      "price": 382.89,
-      "chg_pct": 1.32,
-      "dist_ema50_pct": -3.46,
-      "dist_ema200_pct": -3.27,
+      "score": 25.0,
+      "raw_score": 27.0,
+      "price": 380.84,
+      "chg_pct": -0.54,
+      "dist_ema50_pct": -3.83,
+      "dist_ema200_pct": -3.76,
       "bull_stack": false,
-      "rsi": 39.9,
-      "adx": 15.5,
-      "hv20": 25.3,
+      "rsi": 38.7,
+      "adx": 16.3,
+      "hv20": 23.4,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -3.3% below EMA200",
+      "breakdown_reason": "Price -3.8% below EMA200",
       "news": [
-        "GLD Sells Your Gold Every Month to Pay Itself, and the IRS Can Tax Those Sales at Up to 28%",
-        "Gold Has Fallen Roughly $400 an Ounce Since August. The Retiree Who Sold at the Top Still Owes Medicare on the Top, in 2028",
-        "The Inverse Correlation Between Gold And Interest Rates Is Breaking Down"
+        "NUGT: Strong Employment Data May Be Bad For Gold",
+        "S&P 500: Rule of 20 Relevance Returns",
+        "Silver Has Now Lost Nearly Half Its Value. Here’s What Broke the Metals Trade"
       ],
-      "ai_analysis": "ต้องถือเงินสด 100% เพื่อรักษาเงินต้นทันที เนื่องจากโครงสร้างขาขึ้นพังสมบูรณ์ ราคาหลุดต่ำกว่า EMA200 ถึง -3.3% ประกอบกับแรงขายกดดันชัดเจน (-DI 34.2) สอดคล้องกับข่าวราคาทองโลกที่ปรับฐานลงแรง \n\n**เงื่อนไขที่ต้องจับตา:** รอราคาเบรกกลับขึ้นมายืนเหนือเส้น EMA200 และสัญญาณ Canary ปลดล็อก จึงจะพิจารณากลับเข้าสะสมอีกครั้ง",
+      "ai_analysis": "ต้องปฏิบัติตามคำสั่ง **CANARY CASH** ถือเงินสด 100% ทันทีเพื่อปก",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 12.0,
         "trend_strength": 3.0,
         "momentum_macd": 0.0,
         "momentum_rsi": 0.0,
-        "volatility": 8.0
+        "volatility": 12.0
       },
-      "updated_at": "2026-09-30T12:19:01+07:00"
+      "updated_at": "2026-10-01T12:18:06+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -223,23 +223,23 @@
       },
       "score": 65.0,
       "raw_score": 79.0,
-      "price": 606.9,
-      "chg_pct": 1.15,
-      "dist_ema50_pct": 5.77,
-      "dist_ema200_pct": 20.35,
+      "price": 609.0,
+      "chg_pct": 0.35,
+      "dist_ema50_pct": 5.88,
+      "dist_ema200_pct": 20.52,
       "bull_stack": true,
-      "rsi": 61.8,
-      "adx": 15.7,
-      "hv20": 32.1,
+      "rsi": 62.4,
+      "adx": 15.9,
+      "hv20": 30.8,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "S&P 500, Dow Extend Losses From Elevated Yield Pressure — SPCX, TGT, AAPL, MU, NTAP In Focus",
-        "How the Midterms Could Break the AI Trade",
-        "Bet on These ETFs as AMD Agrees to Buy World Labs for $8.2B"
+        "S&P 500, Dow End Lower As Investors Shrug Off Cooler-Than-Expected Inflation Data — MGM, SPCX, AAPL, TSM In Focus",
+        "OpenAI's DevDay: Private Intelligence Could Unlock Enterprise Growth",
+        "At 5% Yields, Big Tech Marches Onto the Death Ground"
       ],
-      "ai_analysis": "ต้องปฏิบัติตาม **CANARY CASH (ถือเงินสด 100%)** เพื่อเน้นรักษาเงินต้นเป็นหลัก แม้ราคา",
+      "ai_analysis": "ต้องทำตามคำสั่ง **CANARY CASH (ลดพอร์ต 100%)** เพื่อรักษาเงินต้นตามระบบ Macro Signal แม้ราคาอยู่เหนือ",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -248,7 +248,7 @@
         "momentum_rsi": 15.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-09-30T12:19:39+07:00"
+      "updated_at": "2026-10-01T12:18:23+07:00"
     }
   }
 }
