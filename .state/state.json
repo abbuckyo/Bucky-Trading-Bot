@@ -1,23 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-10-05T05:18:00+00:00",
-  "last_run_ict": "2026-10-05T12:15:37+07:00",
+  "last_run_utc": "2026-10-06T05:17:01+00:00",
+  "last_run_ict": "2026-10-06T12:15:38+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -2.76,
+    "tip_mom_13612_pct": -2.82,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -2.76% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -2.82% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": -0.09,
-      "NQ=F": 0.03
+      "ES=F": 0.11,
+      "NQ=F": 0.15
     },
-    "description": "NORMAL: ES=F -0.09% | NQ=F +0.03% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F +0.11% | NQ=F +0.15% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -49,22 +49,21 @@
       },
       "score": 65.0,
       "raw_score": 67.0,
-      "price": 207.53,
-      "chg_pct": 0.82,
-      "dist_ema50_pct": 0.39,
-      "dist_ema200_pct": 5.59,
+      "price": 208.55,
+      "chg_pct": 0.49,
+      "dist_ema50_pct": 0.85,
+      "dist_ema200_pct": 6.04,
       "bull_stack": true,
-      "rsi": 50.3,
-      "adx": 14.3,
-      "hv20": 10.9,
+      "rsi": 53.5,
+      "adx": 13.5,
+      "hv20": 11.0,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "Better International ETF: Vanguard VEA vs. iShares URTH",
-        "Global Manufacturing PMI Hits Highest Since February 2022 But Price Growth Also Accelerates"
+        "Better International ETF: Vanguard VEA vs. iShares URTH"
       ],
-      "ai_analysis": "2-3 short lines? Yes (3 lines).\n    *   Summary of Tech + News included? Yes (-DI > +DI, Sid",
+      "ai_analysis": "ต้องถือเงินสด 100% ตามระบบ HAA Canary เพื่อรักษาเงินต้นจากความเสี่ยง Macro แม้ราคาจะยืนเหนือ EMA200 แต่ทางเทคนิคัลไร้แนวโน้มชัดเจน (ADX 13.5) และฝั่งขายเริ่มได้เปรียบ (-DI > +DI) ในภาวะ Sideways ส่วนข่าว ETF ไร้ปัจจัยหนุน\n**เงื่อนไขจับตา:** ถ",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -73,7 +72,7 @@
         "momentum_rsi": 10.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-05T12:15:59+07:00"
+      "updated_at": "2026-10-06T12:15:55+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -105,7 +104,7 @@
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "ต้องถือเงินสด 100% ตามคำสั่ง CANARY CASH เพื่อเน้นรักษาเงินต้นตามวินัยเชิงปริมาณอย่างเคร่งคร",
+      "ai_analysis": "ต้องทำตามคำสั่ง **[CANARY CASH]** เพื่อล็อกกำไรและรักษาเงินต้น เนื่องจากสัญญาณ Macro เตือนภัย 10",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -114,7 +113,7 @@
         "momentum_rsi": 10.0,
         "volatility": 12.0
       },
-      "updated_at": "2026-10-05T12:16:08+07:00"
+      "updated_at": "2026-10-06T12:16:28+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -134,23 +133,23 @@
       },
       "score": 65.0,
       "raw_score": 83.0,
-      "price": 749.58,
-      "chg_pct": 1.02,
-      "dist_ema50_pct": 3.99,
-      "dist_ema200_pct": 11.16,
+      "price": 756.2,
+      "chg_pct": 0.88,
+      "dist_ema50_pct": 4.7,
+      "dist_ema200_pct": 12.01,
       "bull_stack": true,
-      "rsi": 65.6,
-      "adx": 13.8,
-      "hv20": 15.2,
+      "rsi": 68.6,
+      "adx": 14.5,
+      "hv20": 15.4,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "Financials Got Hit On Higher Rates, I'm Buying These Four Names",
-        "Q4 Market Outlook: Strong Years Usually Finish Strong",
-        "A Global Liquidity Regime Shift May Be Taking Place"
+        "Equity Markets Remain Resilient Amidst Continued Yield Surge",
+        "Employment Report: 29K Jobs Added In September, Worse Than Expected",
+        "Nasdaq 100 Hits Record Highs As Investors Shrug Off Pressure From Soaring Yields — NVDA, SPCX, CRML, TSLA, QCOM In Focus"
       ],
-      "ai_analysis": "ต้องถือเงินสด 100% ตามสัญญาณ HAA Canary เพื่อเน้นรักษาเงินต้นจากความเสี่ยง Liquidity และดอกเบี้ยสูง แม",
+      "ai_analysis": "ต้องทำตามคำสั่ง **[CANARY CASH]** เพื่อล็อกกำไรและรักษาเงินต้นตามวินัย แม้ดั",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -159,7 +158,7 @@
         "momentum_rsi": 15.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-05T12:16:16+07:00"
+      "updated_at": "2026-10-06T12:16:40+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -179,23 +178,23 @@
       },
       "score": 22.0,
       "raw_score": 22.0,
-      "price": 380.14,
-      "chg_pct": -0.68,
-      "dist_ema50_pct": -3.73,
-      "dist_ema200_pct": -3.86,
+      "price": 379.55,
+      "chg_pct": -0.16,
+      "dist_ema50_pct": -3.74,
+      "dist_ema200_pct": -3.97,
       "bull_stack": false,
-      "rsi": 38.8,
-      "adx": 17.9,
+      "rsi": 38.4,
+      "adx": 18.7,
       "hv20": 21.3,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -3.9% below EMA200",
+      "breakdown_reason": "Price -4.0% below EMA200",
       "news": [
-        "The 60/40 Portfolio Looks Dead Again: Here's What To Do",
-        "The Next Big Move In Interest Rates: How I'm Buying The Dividend Sell-Off",
-        "Weekly Commentary: Significant Step For Crisis Dynamics"
+        "EXCLUSIVE: US May Need AI Boom to Grow Out of Debt Crisis, American Hartford Gold President Says",
+        "Gold And Silver Bounce - But The Bond Market Still Holds The Reins",
+        "The 60/40 Portfolio Looks Dead Again: Here's What To Do"
       ],
-      "ai_analysis": "ต้องล็อกเงินสด 100% ทันทีเพื่อรักษาเงินต้น เพราะโครงสร้างเทคนิคพังชัดเจนจากการหลุด EMA200 ถึง -3.9% พร้อมแรงขายกดดันหนัก (-DI 31.6) สอดคล้องกับสัญญาณ Canary เตือนภัยวิกฤตและแรงกดดันจากดอกเบี้ย\nเงื่อนไขสำคัญคือ ต้องยืนเหนือ EMA200 ให้ได้ก่อนเท่านั้น ระบบจึงจะพิจารณากลับเข้าลงทุนรอบใหม่ครับ",
+      "ai_analysis": "ต้องทำตามคำสั่ง **[CANARY CASH]** เพื่อรักษาเงินต้น เนื่องจากราคาทองคำหลุด EMA200",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 0.0,
@@ -204,7 +203,7 @@
         "momentum_rsi": 0.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-05T12:16:20+07:00"
+      "updated_at": "2026-10-06T12:16:52+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -224,23 +223,23 @@
       },
       "score": 65.0,
       "raw_score": 83.0,
-      "price": 630.6,
-      "chg_pct": 2.07,
-      "dist_ema50_pct": 8.92,
-      "dist_ema200_pct": 24.21,
+      "price": 633.9,
+      "chg_pct": 0.52,
+      "dist_ema50_pct": 9.09,
+      "dist_ema200_pct": 24.55,
       "bull_stack": true,
-      "rsi": 68.6,
-      "adx": 18.0,
-      "hv20": 31.3,
+      "rsi": 69.5,
+      "adx": 19.1,
+      "hv20": 30.5,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "5 Big Risks To This AI Bull Market",
-        "Beware, Bears: Chipmakers Are Still Lubricating The AI Financing Wheel",
-        "Bullish Goldilocks Macro, Sort Of"
+        "Nasdaq 100 Hits Record Highs As Investors Shrug Off Pressure From Soaring Yields — NVDA, SPCX, CRML, TSLA, QCOM In Focus",
+        "Semiconductor Stocks Rebound. The Case for Buying Micron and STMicroelectronics.",
+        "Treasuries' Three Tall Tails"
       ],
-      "ai_analysis": "ต้องทำตามคำสั่ง **[CANARY CASH]** ถือเงินสด 100% เพื่อรักษาเงินต้นตามวินัย แม้ราคา SCBSEMI(E) ยืนเหนือ EMA200 (+24.2%) แต่ ADX ต่ำเพียง 18.0 สะท้อนภาวะแกว่งตัวไร้เทรนด์ชัดเจน สอดคล้องกับข่าวเตือนความเสี่ยงในกลุ่ม AI\n**เงื่อนไขสำคัญที่ต้องจับตา:** รอสัญญาณ Macro Canary ปลดล็อกกลับเป็น Risk-On และ ADX เร่งตัวเกิน 20 เพื่อยืนยันเทรนด์ขาขึ้นรอบใหม่ก่อนเข้าซื้ออีกครั้ง",
+      "ai_analysis": "แม้ราคาชิปจะฟื้นตัวตามกลุ่ม Tech แต่ ADX ที่ต่ำ (19.1) ชี้ว่าเทรนด์ไม่แข็งแกร่ง และ RSI ใกล้ Overbought (69.5) ท่ามกลางแรงกดดันจาก Bond Yields ที่พุ่งสูงขึ้น การทำตามคำสั่ง **[CANARY CASH]** ล็อกเงินสด 100% จึงเป็นสิ่งจำเป็นเพื่อปกป้องเงินต้นจากความผันผวนของปัจจัยมหภาค \n\n**เงื่อนไขสำคัญที่ต้องจับตา:** รอจนกว่าสัญญาณ Macro Canary จะพลิกกลับมา Risk-On และอัตราผลตอบแทนพันธบัตรรัฐบาลเริ่มชะลอตัวลงชัดเจน",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -249,7 +248,7 @@
         "momentum_rsi": 15.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-05T12:18:00+07:00"
+      "updated_at": "2026-10-06T12:17:01+07:00"
     }
   }
 }
