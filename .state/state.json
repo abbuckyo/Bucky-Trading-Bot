@@ -1,23 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-10-08T05:23:42+00:00",
-  "last_run_ict": "2026-10-08T12:15:38+07:00",
+  "last_run_utc": "2026-10-09T05:19:51+00:00",
+  "last_run_ict": "2026-10-09T12:15:32+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -2.54,
+    "tip_mom_13612_pct": -2.3,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -2.54% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -2.30% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": -0.04,
-      "NQ=F": -0.02
+      "ES=F": 0.29,
+      "NQ=F": 0.5
     },
-    "description": "NORMAL: ES=F -0.04% | NQ=F -0.02% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F +0.29% | NQ=F +0.50% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -48,15 +48,15 @@
         "corrupt_first_seen_ict": null
       },
       "score": 65.0,
-      "raw_score": 78.0,
-      "price": 208.67,
-      "chg_pct": -0.51,
-      "dist_ema50_pct": 0.82,
-      "dist_ema200_pct": 5.97,
+      "raw_score": 74.0,
+      "price": 207.87,
+      "chg_pct": -0.38,
+      "dist_ema50_pct": 0.42,
+      "dist_ema200_pct": 5.5,
       "bull_stack": true,
-      "rsi": 53.1,
-      "adx": 12.4,
-      "hv20": 11.0,
+      "rsi": 50.4,
+      "adx": 12.3,
+      "hv20": 10.7,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
@@ -64,16 +64,16 @@
         "Global PMI Hits Joint-Highest Since 2021 As Economic Expansion Reaches All Sectors",
         "Manufacturing's Skewed Upturn Starts To Broaden Out"
       ],
-      "ai_analysis": "ต้องล็อกเงินสด 100% ตามสัญญาณ HAA Canary เพื่อรักษาเงินต้นเป็นอันดับแรก แม้ข่าว PMI โลกจะแข็งแกร่งและราคาอยู่เหนือ EMA200 (+6.0%) แต่ตลาดอยู่ในภาวะแกว่งตัวไร้เทรนด์ชัดเจน (ADX ต่ำเพียง 12.4 และ -DI ยังคุม) \n**เงื่อนไขสำคัญ:** รอสัญญาณ Canary ปลดล็อกกลับสู่ Risk-On และ ADX ยกตัวยืนยันโมเมนตัมขาขึ้นรอบใหม่ จึงจะพิจารณากลับเข้าซื้อครับ",
+      "ai_analysis": "แม้ข่าว PMI โลกจะฟื้นตัวและราคาอยู่เหนือ EMA200 แต่ต้องถือเงินสด 100% ตามคำสั่ง [CAN",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
-        "momentum_macd": 15.0,
+        "momentum_macd": 11.0,
         "momentum_rsi": 10.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-08T12:19:44+07:00"
+      "updated_at": "2026-10-09T12:16:24+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -93,19 +93,19 @@
       },
       "score": 65.0,
       "raw_score": 80.0,
-      "price": 845.93,
-      "chg_pct": 1.06,
-      "dist_ema50_pct": 2.53,
-      "dist_ema200_pct": 8.03,
+      "price": 839.36,
+      "chg_pct": -0.78,
+      "dist_ema50_pct": 1.67,
+      "dist_ema200_pct": 7.12,
       "bull_stack": true,
-      "rsi": 62.0,
-      "adx": 12.7,
-      "hv20": 11.5,
+      "rsi": 56.5,
+      "adx": 13.6,
+      "hv20": 11.6,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "ต้องล็อกเงินสด 100% เพื่อรักษาเงินต้นตามสัญญาณเตือน HAA Canary แม้ราคายืนเหนือ EMA20",
+      "ai_analysis": "ต้องล็อกเงินสด 100% ตามสัญญาณเตือนภัยมหภาค (HAA Canary) เพื่อรักษาเงินต้นตามวินัย แม้ราคาจะยืนเหนือ EMA200 (+7.1%) แต่ค่า ADX เพียง 13.6 ยืนยันว่าตลาดยังแกว่งตัวไร้พลังขับเคลื่อน\n**เงื่อนไขที่ต้องจับตา:** รอสัญญาณ Macro Canary ปลดล็อกความเสี่ยง และ ADX เร่งตัวขึ้นเพื่อยืนยันแนวโน้มขาขึ้นรอบใหม่ก่อนพิจารณากลับเข้าซื้อ",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -114,7 +114,7 @@
         "momentum_rsi": 15.0,
         "volatility": 12.0
       },
-      "updated_at": "2026-10-08T12:21:52+07:00"
+      "updated_at": "2026-10-09T12:16:55+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -134,23 +134,23 @@
       },
       "score": 65.0,
       "raw_score": 79.0,
-      "price": 757.73,
-      "chg_pct": -0.25,
-      "dist_ema50_pct": 4.51,
-      "dist_ema200_pct": 11.96,
+      "price": 747.58,
+      "chg_pct": -1.34,
+      "dist_ema50_pct": 2.98,
+      "dist_ema200_pct": 10.34,
       "bull_stack": true,
-      "rsi": 68.2,
-      "adx": 15.8,
-      "hv20": 15.3,
+      "rsi": 59.0,
+      "adx": 15.0,
+      "hv20": 15.7,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "S&P 500 And Nasdaq 100 Slip From Record Highs Amid Pressure From Soaring Treasury Yields — SPCX, AMD, NVDA, MRVL In Focus",
-        "JEPQ Trailed the Nasdaq-100 by $17,970 on $300,000 Over One Year. The Covered Calls Are Why",
-        "The Big Four Recession Indicators: Employment"
+        "Why Buy-and-Hold Investors Are Switching From QQQ to This Lower-Fee Alternative",
+        "Nasdaq 100 Ends Lower As Report Of Weaker-Than-Expected OpenAI Revenue Drags Chipmakers — NVDA, DIS, ORCL, SBUX In Focus",
+        "The Trade Desk Is Down 68% This Year: Is TTD Stock Dead Money or Due for a Bounce?"
       ],
-      "ai_analysis": "ต้องล็อกถือเงินสด 100% ตามระบบ HAA TIP Canary ทันทีเพื่อรักษาเงินต้น แม้เทคนิคอลยังเหนือ EMA",
+      "ai_analysis": "ต้องปฏิบัติตาม **CANARY CASH** ล็อกเงินสด 100% เพื่อรักษาเงินต้นทันที แม้ SCBNDQ(E) จะอยู่เหนือ EMA200 แต่ ADX ต่ำเพียง 15.0 ชี้ภาวะแกว่งตัวไร้เทรนด์ ผสานข่าวลบกลุ่มเซมิคอนดักเตอร์ที่กดดันดัชนี\n**สิ่งต้องจับตา:** รอสัญญาณ Canary ปลดล็อกความเสี่ยงระดับมหภาค และ ADX เร่งตัวขึ้นยืนยันเทรนด์ใหม่ก่อนเข้าซื้ออีกครั้ง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -159,7 +159,7 @@
         "momentum_rsi": 15.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-08T12:22:55+07:00"
+      "updated_at": "2026-10-09T12:17:43+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -177,34 +177,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 18.0,
-      "raw_score": 18.0,
-      "price": 375.88,
-      "chg_pct": -1.67,
-      "dist_ema50_pct": -4.38,
-      "dist_ema200_pct": -4.83,
+      "score": 19.0,
+      "raw_score": 19.0,
+      "price": 378.62,
+      "chg_pct": 0.73,
+      "dist_ema50_pct": -3.55,
+      "dist_ema200_pct": -4.09,
       "bull_stack": false,
-      "rsi": 36.9,
-      "adx": 19.7,
-      "hv20": 21.1,
+      "rsi": 39.9,
+      "adx": 20.2,
+      "hv20": 20.7,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -4.8% below EMA200",
+      "breakdown_reason": "Price -4.1% below EMA200",
       "news": [
-        "I'm Betting Big On These Discounted Proven Outperformers",
-        "What If You Invested $1,000 in Bitcoin 5 Years Ago? Gold and US Stocks Both Did Better",
-        "HGER: A Primer On The Harbor Commodity All-Weather Strategy ETF"
+        "Gold Just Fell to a Two-Month Low as the Fed Signals Another Hike",
+        "Gold ETF Down 13% in Six Months: 4 Bullish Reasons for Long Term",
+        "Bond Investors Not 'Buying The Spin' Anymore - Yields To Go Higher"
       ],
-      "ai_analysis": "ต้องล็อกเงินสด 100% เพื่อรักษาเงินต้นทันทีตามสัญญาณ Canary หลังโครงสร้างทางเทคนิคพังชัดเจน ราคาหลุด EMA200 ลึกถึง -4.8% และแรงขายครอบงำตลาดเบ็ดเสร็จ (-DI 32.9 ข่ม +DI ชัดเจน) \n**จุดจับตา:** รอจนกว่าราคาจะดีดกลับมายืนเหนือ EMA200",
+      "ai_analysis": "ต้องถือเงินสด 100% ทันทีเพื่อรักษาเงินต้น เนื่องจากโครงสร้างราคาพังสมบูรณ์ หลุด EMA200 ถึง -4.1% และโมเมนตัมขาลงครอบงำชัดเจน (-DI 31.4) สอดคล้องกับปัจจัยมหภาคที่บอนด์ยีลด์พุ่งกดดันทองคำ \n**เงื่อนไขจับตา:** ห้ามเข้าช้อนซื้อเด็ดขาดจนกว่าระบบ Canary จะปลดล็อก และราคากลับขึ้นมายืนเหนือเส้น EMA200 ได้อย่างมั่นคง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 0.0,
-        "trend_strength": 3.0,
-        "momentum_macd": 0.0,
+        "trend_strength": 0.0,
+        "momentum_macd": 4.0,
         "momentum_rsi": 0.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-08T12:23:27+07:00"
+      "updated_at": "2026-10-09T12:18:02+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -222,34 +222,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 85.0,
-      "raw_score": 85.0,
-      "price": 625.03,
-      "chg_pct": -1.18,
-      "dist_ema50_pct": 6.89,
-      "dist_ema200_pct": 22.24,
+      "score": 65.0,
+      "raw_score": 74.0,
+      "price": 607.27,
+      "chg_pct": -2.84,
+      "dist_ema50_pct": 3.69,
+      "dist_ema200_pct": 18.55,
       "bull_stack": true,
-      "rsi": 64.1,
-      "adx": 20.3,
-      "hv20": 31.1,
-      "chop_capped": false,
+      "rsi": 54.9,
+      "adx": 19.2,
+      "hv20": 31.6,
+      "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "S&P 500 And Nasdaq 100 Slip From Record Highs Amid Pressure From Soaring Treasury Yields — SPCX, AMD, NVDA, MRVL In Focus",
-        "If the AI Bubble Pops: How Exposed Your ETFs Really Are",
-        "USD: Missed Nvidia's Rally? Get Exposure With A Side Of Leverage"
+        "Nasdaq 100 Ends Lower As Report Of Weaker-Than-Expected OpenAI Revenue Drags Chipmakers — NVDA, DIS, ORCL, SBUX In Focus",
+        "ETFs to Benefit as Nasdaq's Breakthrough Still Matters",
+        "Bond Yields, Oil Prices Pressure Wall Street Pre-Bell; Asia, Europe Off"
       ],
-      "ai_analysis": "แม้เทคนิคอลยังแกร่ง (คะแนน 85 เหนือ EMA200 +22.2%) แต่ต้องล็อกเงินสด 100% ทันทีตามระบบ Canary เพื่อตัดความเสี่ยงมหภาคจากบอนด์ยีลด์พุ่งและความกังวลฟองสบู่ AI ตามวินัยรักษาเงินต้น\nเงื่อนไขสำคัญที่ต้องจับตาคือ สัญญาณ HAA Canary พลิกกลับมาเป็นบวก (Risk-On) และแรงเทขายทำกำไรในกลุ่ม Semiconductor เริ่มทรงตัวชะลอลง",
+      "ai_analysis": "**เหตุผลที่ต้องล็อกเงินสด (CANARY CASH):** \nเพื่อรักษาเงินต้นตามวินัยเคร่งครัด สัญญาณเต",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
-        "trend_strength": 9.0,
+        "trend_strength": 3.0,
         "momentum_macd": 11.0,
-        "momentum_rsi": 15.0,
+        "momentum_rsi": 10.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-08T12:23:42+07:00"
+      "updated_at": "2026-10-09T12:19:51+07:00"
     }
   }
 }
