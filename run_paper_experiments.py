@@ -1,10 +1,7 @@
 import os
-import sys
-import numpy as np
 import pandas as pd
 import yfinance as yf
-from dataclasses import dataclass
-from typing import Dict, List, Tuple, Optional
+from typing import Dict
 from backtest_core import precompute_asset_indicators, score_bar
 from run_experiments import compute_kpis, get_spy_kpis, BacktestConfig, run_simulation
 
