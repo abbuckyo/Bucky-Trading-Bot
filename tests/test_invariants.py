@@ -1,11 +1,14 @@
 import math
 import itertools
 import pytest
+import numpy as np
+import pandas as pd
 from bot import (
     Metrics,
     decide,
     validate_sizing_for_scb,
     is_nan,
+    ema,
     TRANCHE_EXPOSURE_MAP,
     TRANCHE_LABEL_MAP,
     CFG,
@@ -65,6 +68,61 @@ def make_metrics_for_stage(stage: int, breakdown: bool = False, rsi: float = 60.
 
 STAGE_TO_POS_INOUT = {0: 'OUT', 1: 'IN', 2: 'IN', 3: 'IN'}
 STAGE_TO_PREV_POS = {0: 'OUT', 1: 'T1', 2: 'T2', 3: 'T3'}
+
+
+# ==============================================================================
+# Suite 0: Indicator Function Suite (EMA)
+# ==============================================================================
+class TestIndicators:
+    def test_ema_mathematical_calculation(self):
+        """Verify EMA values match manual calculation with span=length, adjust=False."""
+        prices = pd.Series([10.0, 20.0, 30.0, 40.0, 50.0])
+        length = 3
+        # multiplier alpha = 2 / (3 + 1) = 0.5
+        # min_periods = 3, so index 0 and 1 are NaN
+        # index 2: SMA of first 3 elements (or initial ewm value with adjust=False) = 22.5
+        # index 3: 40.0 * 0.5 + 22.5 * (1 - 0.5) = 31.25
+        # index 4: 50.0 * 0.5 + 31.25 * (1 - 0.5) = 40.625
+        result = ema(prices, length)
+
+        assert pd.isna(result.iloc[0])
+        assert pd.isna(result.iloc[1])
+        assert pytest.approx(result.iloc[2], abs=1e-5) == 22.5
+        assert pytest.approx(result.iloc[3], abs=1e-5) == 31.25
+        assert pytest.approx(result.iloc[4], abs=1e-5) == 40.625
+
+    def test_ema_constant_series(self):
+        """EMA of a constant price series should return the constant price (after min_periods)."""
+        prices = pd.Series([100.0] * 10)
+        length = 5
+        result = ema(prices, length)
+
+        assert result.iloc[:4].isna().all()
+        assert (result.iloc[4:] == 100.0).all()
+
+    def test_ema_series_shorter_than_length(self):
+        """Series with length < length parameter should return all NaNs due to min_periods."""
+        prices = pd.Series([10.0, 12.0, 14.0])
+        length = 5
+        result = ema(prices, length)
+
+        assert len(result) == 3
+        assert result.isna().all()
+
+    def test_ema_length_one(self):
+        """EMA with length=1 should equal the original series (alpha = 1.0)."""
+        prices = pd.Series([10.0, 15.0, 12.0, 20.0])
+        result = ema(prices, length=1)
+
+        pd.testing.assert_series_equal(result, prices)
+
+    def test_ema_with_nan_in_series(self):
+        """Test handling when series contains NaN values."""
+        prices = pd.Series([10.0, 20.0, np.nan, 40.0, 50.0, 60.0])
+        result = ema(prices, length=3)
+        # Verify output is a pandas Series with same index and length
+        assert len(result) == len(prices)
+        assert isinstance(result, pd.Series)
 
 
 # ==============================================================================
