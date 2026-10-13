@@ -1,10 +1,9 @@
 import os
-import sys
 import numpy as np
 import pandas as pd
 import yfinance as yf
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Optional
+from typing import Dict
 from backtest_core import precompute_asset_indicators, score_bar
 
 CACHE_FILE = 'historical_data_10y.pkl'
