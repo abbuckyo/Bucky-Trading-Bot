@@ -1259,8 +1259,14 @@ SALT_BYTES = 16
 IV_BYTES = 12
 TAG_BITS = 128
 
-DEFAULT_PASSWORD = "AlphaShield@2026"
-MASTER_PASSWORD = (os.getenv("DASHBOARD_PASSWORD") or DEFAULT_PASSWORD).strip()
+
+def get_master_password() -> str:
+    pwd = (os.getenv("DASHBOARD_PASSWORD") or "").strip()
+    if not pwd:
+        raise ValueError("DASHBOARD_PASSWORD environment variable is not set or empty.")
+    return pwd
+
+
 DASHBOARD_URL = "https://abbuckyo.github.io/Bucky-Trading-Bot/"
 
 _b64e = lambda b: base64.b64encode(b).decode("ascii")
@@ -1277,7 +1283,9 @@ def derive_key(password: str, salt: bytes, iterations: int = PBKDF2_ITERATIONS) 
     return kdf.derive(password.strip().encode("utf-8"))
 
 
-def encrypt_payload(payload: dict, password: str = MASTER_PASSWORD) -> dict:
+def encrypt_payload(payload: dict, password: Optional[str] = None) -> dict:
+    if password is None:
+        password = get_master_password()
     salt = secrets.token_bytes(SALT_BYTES)
     iv = secrets.token_bytes(IV_BYTES)
     key = derive_key(password, salt)
@@ -1309,7 +1317,9 @@ def selftest_decrypt(envelope: dict, password: str, expect: dict) -> None:
     LOG.info("Self-test ผ่าน ✓ ถอดรหัสได้ %d assets", len(back["assets"]))
 
 
-def write_encrypted_dashboard(payload: dict, password: str = MASTER_PASSWORD) -> Path:
+def write_encrypted_dashboard(payload: dict, password: Optional[str] = None) -> Path:
+    if password is None:
+        password = get_master_password()
     out_path = Path("docs/data.enc")
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
