@@ -1039,9 +1039,11 @@ def fetch_news(symbol: str) -> List[str]:
         if not isinstance(items, list):
             return []
         heads: List[str] = []
+        seen: set[str] = set()
         for it in items[: CFG.NEWS_MAX_HEADLINES * 3]:
             h = str(it.get("headline", "")).strip()
-            if h and h not in heads:
+            if h and h not in seen:
+                seen.add(h)
                 heads.append(h[:140])
             if len(heads) >= CFG.NEWS_MAX_HEADLINES:
                 break
