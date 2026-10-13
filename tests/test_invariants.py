@@ -70,14 +70,20 @@ STAGE_TO_PREV_POS = {0: 'OUT', 1: 'T1', 2: 'T2', 3: 'T3'}
 # ==============================================================================
 # Suite 1: NaN Guard Suite
 # ==============================================================================
+import numpy as np
+
 class TestNaNGuards:
     def test_nan_helper(self):
         assert is_nan(float('nan')) is True
         assert is_nan(math.nan) is True
+        assert is_nan(np.nan) is True
+        assert is_nan(float('inf')) is True
+        assert is_nan(np.inf) is True
         assert is_nan(None) is True
         assert is_nan('corrupt') is True
         assert is_nan(100.0) is False
         assert is_nan(0) is False
+        assert is_nan('123.45') is False
 
     @pytest.mark.parametrize("corrupt_field", ["price", "ema50", "ema100", "ema200", "rsi"])
     def test_metrics_nan_forces_safe_exit(self, corrupt_field):
