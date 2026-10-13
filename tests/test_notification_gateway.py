@@ -13,6 +13,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 from alphashield.notification.gateway import NotificationGateway
+from bot import _chunk_text
 
 
 def test_chunk_text_under_limit():
@@ -29,6 +30,51 @@ def test_chunk_text_over_limit():
     assert len(chunks) > 1
     for c in chunks:
         assert len(c) <= 200
+
+
+def test_chunk_text_line_exceeds_limit():
+    # Single line/word exceeding the chunk limit
+    long_line = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    limit = 10
+    chunks = NotificationGateway.chunk_text(long_line, limit)
+    assert chunks == ["ABCDEFGHIJ", "KLMNOPQRST", "UVWXYZ"]
+    for c in chunks:
+        assert len(c) <= limit
+
+
+def test_chunk_text_empty_and_whitespace():
+    assert NotificationGateway.chunk_text("", 100) == []
+    assert NotificationGateway.chunk_text("   \n \n \n", 100) == []
+
+
+def test_chunk_text_exact_limit_boundary():
+    line1 = "A" * 10
+    line2 = "B" * 10
+    text = f"{line1}\n{line2}"
+    chunks = NotificationGateway.chunk_text(text, 10)
+    assert len(chunks) == 2
+    assert chunks[0] == line1
+    assert chunks[1] == line2
+
+
+def test_chunk_text_mixed_long_and_short_lines():
+    text = "Short line 1\n" + ("X" * 25) + "\nShort line 2"
+    limit = 10
+    chunks = NotificationGateway.chunk_text(text, limit)
+    assert len(chunks) >= 4
+    for c in chunks:
+        assert len(c) <= limit
+    joined = "".join(chunks)
+    assert "Short line 1" in joined
+    assert "Short line 2" in joined
+    assert "X" * 25 in joined
+
+
+def test_bot_chunk_text_wrapper():
+    # Verify bot._chunk_text delegates to NotificationGateway.chunk_text
+    long_line = "1234567890ABCDEFGHIJ"
+    chunks = _chunk_text(long_line, 10)
+    assert chunks == ["1234567890", "ABCDEFGHIJ"]
 
 
 def test_send_discord_success():
