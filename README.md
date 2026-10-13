@@ -40,7 +40,7 @@
 
 ### 🟠 5. Claude Opus (The Cryptographic Security Architect)
 * **Zero-Knowledge Data Protection:** วางสถาปัตยกรรมเข้ารหัสข้อมูลพอร์ตบน Public Repository เพื่อความปลอดภัยระดับสูงสุด
-* **AES-GCM-256 & PBKDF2 Pipeline:** จัดรูปแบบการเข้ารหัส Payload ด้วย PBKDF2-HMAC-SHA256 (100,000 iterations) + AES-GCM (128-bit Auth Tag) ส่งออกเป็น Ciphertext ล้วน (`docs/data.enc`)
+* **AES-GCM-256 & PBKDF2 Pipeline:** จัดรูปแบบการเข้ารหัส Payload ด้วย PBKDF2-HMAC-SHA256 (600,000 iterations) + AES-GCM (128-bit Auth Tag) ส่งออกเป็น Ciphertext ล้วน (`docs/data.enc`)
 * **In-Memory WebCrypto Decryption:** วางรากฐานการถอดรหัสผ่าน Web Crypto API บน Browser RAM เท่านั้น พร้อมระบบทำลายไฟล์ Plaintext ทิ้งทันทีหลังประมวลผลเสร็จ
 
 ---

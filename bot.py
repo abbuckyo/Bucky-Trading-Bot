@@ -1255,7 +1255,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 # Crypto Constants (ตรงกับ index.html 100%)
-PBKDF2_ITERATIONS = 100_000
+PBKDF2_ITERATIONS = 600_000
 KEY_LENGTH = 32
 SALT_BYTES = 16
 IV_BYTES = 12
