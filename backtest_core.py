@@ -4,7 +4,7 @@ Calculates indicators and quant scoring identically to bot.py without lookahead 
 """
 from __future__ import annotations
 
-from typing import Dict, List, Tuple, Optional
+from typing import Tuple
 import numpy as np
 import pandas as pd
 
