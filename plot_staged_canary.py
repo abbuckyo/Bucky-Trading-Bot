@@ -6,7 +6,7 @@ import matplotlib.dates as mdates
 import pandas as pd
 import numpy as np
 
-from run_paper_experiments import load_or_fetch_all_data, run_paper_simulation, compute_kpis, get_spy_kpis
+from run_paper_experiments import load_or_fetch_all_data, run_paper_simulation, compute_kpis
 from run_experiments import run_simulation, BacktestConfig
 
 def generate_staged_canary_plot():
