@@ -4,7 +4,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import pandas as pd
-import numpy as np
 
 from backtest import load_or_fetch_data, run_simulation, BacktestConfig, compute_kpis
 
