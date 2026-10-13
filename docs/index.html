@@ -169,7 +169,7 @@
     <div class="mb-6">
       <h2 class="text-lg font-semibold tracking-tight text-foreground">Mission Control Terminal</h2>
       <p class="mt-1 font-mono text-xs leading-relaxed text-muted">
-        Decryption key derived locally via PBKDF2 (100,000 iters).<br/>
+        Decryption key derived locally via PBKDF2 (600,000 iters).<br/>
         Zero plaintext leaves this browser runtime.
       </p>
     </div>
@@ -564,7 +564,7 @@
         </p>
       </div>
       <div class="text-[10px] text-muted">
-        <span>PBKDF2-SHA256 (100k) · AES-256-GCM Decryption</span><br/>
+        <span>PBKDF2-SHA256 (600k) · AES-256-GCM Decryption</span><br/>
         <span>Client-side Zero Knowledge Architecture</span>
       </div>
     </div>
@@ -653,7 +653,7 @@ async function deriveKey(password, saltBytes, iterations) {
     {
       name: "PBKDF2",
       salt: saltBytes,
-      iterations: Number(iterations) || 100000,
+      iterations: Number(iterations) || 600000,
       hash: "SHA-256"
     },
     baseKey,
