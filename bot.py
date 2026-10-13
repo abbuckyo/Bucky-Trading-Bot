@@ -1086,11 +1086,7 @@ def get_dynamic_flash_models(client) -> List[str]:
             return CFG.MODEL_FALLBACK_LIST
 
         discovered.sort(key=lambda x: x[0], reverse=True)
-        unique = []
-        for _, name in discovered:
-            if name not in unique:
-                unique.append(name)
-        return unique
+        return list(dict.fromkeys(name for _, name in discovered))
     except Exception as exc:
         LOG.warning("Dynamic model discovery failed (%s) -> using fallback list", exc)
         return CFG.MODEL_FALLBACK_LIST
