@@ -5,8 +5,9 @@ from bot import (
     derive_key,
     encrypt_payload,
     selftest_decrypt,
-    MASTER_PASSWORD,
 )
+
+MASTER_PASSWORD = "test-master-password"
 
 
 def test_pbkdf2_iterations_recommendation():
