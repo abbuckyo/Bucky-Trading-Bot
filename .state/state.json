@@ -1,23 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-10-13T05:16:31+00:00",
-  "last_run_ict": "2026-10-13T12:15:41+07:00",
+  "last_run_utc": "2026-10-15T05:17:48+00:00",
+  "last_run_ict": "2026-10-15T12:15:36+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -2.13,
+    "tip_mom_13612_pct": -1.99,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -2.13% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -1.99% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": -0.18,
-      "NQ=F": -0.75
+      "ES=F": -0.31,
+      "NQ=F": -0.72
     },
-    "description": "NORMAL: ES=F -0.18% | NQ=F -0.75% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F -0.31% | NQ=F -0.72% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -48,29 +48,29 @@
         "corrupt_first_seen_ict": null
       },
       "score": 65.0,
-      "raw_score": 78.0,
-      "price": 208.93,
-      "chg_pct": -0.1,
-      "dist_ema50_pct": 0.85,
-      "dist_ema200_pct": 5.91,
+      "raw_score": 69.0,
+      "price": 207.26,
+      "chg_pct": -0.91,
+      "dist_ema50_pct": 0.01,
+      "dist_ema200_pct": 4.95,
       "bull_stack": true,
-      "rsi": 53.6,
-      "adx": 11.1,
-      "hv20": 10.3,
+      "rsi": 47.4,
+      "adx": 11.2,
+      "hv20": 10.5,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "แม้ราคายังยืนเหนือ EMA200 (+5.9%) แต่ต้องถือเงินสด 100% ตามสัญญาณเตือน Canary เพื่อรักษาเงินต้นจากความเสี่ยงเชิงมหภาค สอดคล้องกับภาวะตลาดแกว่งตัวไร้ทิศทาง (ADX 11.1) \n\nเงื่อนไขสำคัญคือจับตาสัญญาณเตือน Canary ปลดล็อกความเสี่ยง และแรงซื้อกลับมาคุมแนวโน้ม (-DI ลดลง) ก่อนพิจารณากลับเข้าลงทุนรอบใหม่ครับ",
+      "ai_analysis": "ระบบสั่งล็อกเงินสด 100% ตามสัญญาณเตือนภัย HAA TIP เพื่อรักษาเงินต้นอย่างเคร่งครัด แม้ราคายังยืนเหนือ EMA200 ได้ แต่โมเมนตัมอ่อนแอชัดเจนจาก -DI ที่คุมตลาดและ RSI ต่ำกว่า 50 ในภาวะแกว่งตัวไร้ทิศทาง \n\nเงื่อนไขสำคัญที่ต้อง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
-        "momentum_macd": 15.0,
-        "momentum_rsi": 10.0,
+        "momentum_macd": 11.0,
+        "momentum_rsi": 5.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-13T12:15:49+07:00"
+      "updated_at": "2026-10-15T12:15:56+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -89,29 +89,29 @@
         "corrupt_first_seen_ict": null
       },
       "score": 65.0,
-      "raw_score": 80.0,
-      "price": 841.26,
-      "chg_pct": 0.31,
-      "dist_ema50_pct": 1.76,
-      "dist_ema200_pct": 7.21,
+      "raw_score": 79.0,
+      "price": 840.44,
+      "chg_pct": -0.24,
+      "dist_ema50_pct": 1.52,
+      "dist_ema200_pct": 6.95,
       "bull_stack": true,
-      "rsi": 57.7,
-      "adx": 15.1,
-      "hv20": 11.2,
+      "rsi": 56.5,
+      "adx": 16.5,
+      "hv20": 10.7,
       "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "แม้ราคายังยืนเหนือ EMA200 ได้ แต่ต้องปฏิบัติตามวินัยรักษาเงินต้นอย่างเคร่งครัด ถือเงินสด 100% หลังสัญญาณมหภาค Canary สั่งตัดความเสี่ยง ประกอบกับ ADX ต่ำ (15.1) ยืนยันสภาวะตลาดแกว่งตัวไร้ทิศทาง\n**เงื่อนไขจับตา:** รอสัญญาณ Canary ปลดล็อกสู่โหมด Risk-On และ ADX เร่งตัวขึ้นเพื่อยืนยันโมเมนตัมขาขึ้นรอบใหม่ก่อนเข้าซื้ออีกครั้ง",
+      "ai_analysis": "ทำตามคำสั่ง **CANARY CASH** ล็อกเงินสด 100% เพื่อรักษาเงินต้นอย่างเคร่งครัด แม้รา",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
-        "momentum_macd": 15.0,
+        "momentum_macd": 11.0,
         "momentum_rsi": 15.0,
-        "volatility": 12.0
+        "volatility": 15.0
       },
-      "updated_at": "2026-10-13T12:15:58+07:00"
+      "updated_at": "2026-10-15T12:16:05+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -129,34 +129,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 65.0,
-      "raw_score": 79.0,
-      "price": 746.04,
-      "chg_pct": -0.7,
-      "dist_ema50_pct": 2.52,
-      "dist_ema200_pct": 9.89,
+      "score": 53.0,
+      "raw_score": 53.0,
+      "price": 728.95,
+      "chg_pct": -1.97,
+      "dist_ema50_pct": 0.09,
+      "dist_ema200_pct": 7.19,
       "bull_stack": true,
-      "rsi": 56.7,
-      "adx": 13.3,
-      "hv20": 15.5,
-      "chop_capped": true,
+      "rsi": 44.8,
+      "adx": 13.7,
+      "hv20": 17.2,
+      "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "S&P 500, Nasdaq 100 End Lower On Chipmaker Weakness, While Salesforce Gains Aid Dow — META, MSFT, BMBL, CRM, SNAP In Focus",
-        "JEPQ Pays 11.27%. This Lesser-Known Nasdaq ETF Is Paying 13.58% Monthly",
-        "The Compounding Catch: How TQQQ’s 3x Daily Target Became a 5.93x Windfall"
+        "Invesco QQQ Doesn't Own a Single Bank, and That's Not the Only Thing the Nasdaq-100 Leaves Out",
+        "Market Cap Disconnects",
+        "Inside The Consumer Price Index: September 2026"
       ],
-      "ai_analysis": "คำสั่ง [CANARY CASH] บังคับถือเงินสด 100% เพื่อรักษาเงินต้นตามสัญญาณเตือนมหภาค แม้ราคาอยู่เหนือ EMA200 แต่ ADX ต่ำเพียง 13.3 สะท้อนภาวะไซด์",
+      "ai_analysis": "ระบบสั่งถือเงินสด 100% ตาม HAA TIP Canary เพื่อตัดความเสี่ยงมหภาคและรักษาเงินต้น แม้",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
-        "momentum_macd": 11.0,
-        "momentum_rsi": 15.0,
-        "volatility": 15.0
+        "momentum_macd": 3.0,
+        "momentum_rsi": 0.0,
+        "volatility": 12.0
       },
-      "updated_at": "2026-10-13T12:16:10+07:00"
+      "updated_at": "2026-10-15T12:16:16+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -174,34 +174,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 22.0,
-      "raw_score": 22.0,
-      "price": 382.15,
-      "chg_pct": -0.63,
-      "dist_ema50_pct": -2.47,
-      "dist_ema200_pct": -3.14,
+      "score": 18.0,
+      "raw_score": 18.0,
+      "price": 375.99,
+      "chg_pct": -1.49,
+      "dist_ema50_pct": -3.8,
+      "dist_ema200_pct": -4.63,
       "bull_stack": false,
-      "rsi": 43.9,
+      "rsi": 39.2,
       "adx": 19.3,
-      "hv20": 21.0,
+      "hv20": 21.4,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -3.1% below EMA200",
+      "breakdown_reason": "Price -4.6% below EMA200",
       "news": [
-        "The Big Picture For Gold And Silver Could Not Be More Positive",
-        "Gold And Silver Recover - While Big Buyers Keep Accumulating",
-        "A Record $31 Billion Gold Rush Is Sending Investors a Strange Warning About the Bond Market"
+        "Here's Why Gold ETFs Still Make Sense for Long-Term Investors",
+        "Hot Inflation Flips Fed’s October Rate Odds: Economists Warn About ‘Debasement’ Risk",
+        "Gold And Silver Lose Their Shine When Held In The Wrong Account"
       ],
-      "ai_analysis": "ต้องถือเงินสด 100% ตามระบบเพื่อรักษาเงินต้น แม้ข่าวจะดูเป็นบวกแต่โครงสร้างราคาพังชัด",
+      "ai_analysis": "ระบบสั่งล็อกเงินสด 100% เพื่อรักษาเงินต้นอย่างเคร่งครัด เนื่องจากโครงสร้างราคาพัง หลุดต่ำกว่า EMA200 ถึง -4.6% และมีแรงขายกดดันชัดเจน (-DI 34.0) แม้มีข่าวเงินเฟ้อช่วยหนุน แต่สัญญาณ Macro ชี้ขาดให้ตัดความเสี่ยง \n**เงื่อนไขสำคัญ",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 0.0,
         "trend_strength": 3.0,
-        "momentum_macd": 4.0,
+        "momentum_macd": 0.0,
         "momentum_rsi": 0.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-13T12:16:22+07:00"
+      "updated_at": "2026-10-15T12:16:45+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -219,34 +219,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 61.0,
-      "raw_score": 61.0,
-      "price": 590.99,
-      "chg_pct": -2.05,
-      "dist_ema50_pct": 0.76,
-      "dist_ema200_pct": 14.99,
+      "score": 41.0,
+      "raw_score": 41.0,
+      "price": 564.74,
+      "chg_pct": -3.98,
+      "dist_ema50_pct": -3.58,
+      "dist_ema200_pct": 9.62,
       "bull_stack": true,
-      "rsi": 47.7,
-      "adx": 17.2,
-      "hv20": 26.6,
+      "rsi": 38.2,
+      "adx": 17.7,
+      "hv20": 31.1,
       "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "S&P 500, Nasdaq 100 End Lower On Chipmaker Weakness, While Salesforce Gains Aid Dow — META, MSFT, BMBL, CRM, SNAP In Focus",
-        "Yes, The Technology Sector Will Lead S&P Profit Growth (Again)",
-        "Someone Just Spent $21 Million Betting Nvidia Falls Below $180 by January"
+        "RBC Capital Markets Echoes Deutsche Bank In Asking Clients To Steer Clear Of Tech In Medium Term",
+        "Michael Burry Says Stocks Could Peak Within 9 Months — and He’s Betting Against the Nasdaq and Chip Stocks",
+        "Meta Platforms: Muse Wonder Exposes The AI Trade's Biggest Disconnect"
       ],
-      "ai_analysis": "ระบบสั่งล็อกเงินสด 100% ตามสัญญาณเตือนภัย HAA Canary เพื่อรักษาเงินต้นเป็นหลัก สอดคล้องกับทางเทคนิคที่แรงส่งเริ่มเสียเปรียบ (-DI ชนะ +DI) และข่าวแรงกดดันขาลงในหุ้นชิปหลัก \n**เงื่อนไขจับตา:** ต้องรอสัญญาณ Canary ปลดล็อกกลับสู่ Risk-On และโมเมนตัม RSI พลิกกลับมายืนเหนือ 50 เท่านั้นจึงจะพิจารณากลับเข้าสะสมใหม่",
+      "ai_analysis": "ต้องล็อกเงินสด 100% ทันทีตามสัญญาณ HAA Canary เพื่อรักษาเงินต้น หลังความเสี่ยงมหภาคเตือนภัย สอดคล้องกับโมเมนตัมลบเด่นชัด (-DI ข่ม +DI) และข่าวด้านลบที่สถา",
       "data_source": "yahoo_v8",
       "components": {
-        "trend_structure": 35.0,
+        "trend_structure": 20.0,
         "trend_strength": 3.0,
         "momentum_macd": 3.0,
-        "momentum_rsi": 5.0,
+        "momentum_rsi": 0.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-13T12:16:31+07:00"
+      "updated_at": "2026-10-15T12:17:48+07:00"
     }
   }
 }
