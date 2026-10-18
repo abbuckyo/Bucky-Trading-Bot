@@ -146,6 +146,7 @@ def run_backtest(cfg: EngineConfig, show: bool = False) -> None:
     regime = RegimeGuard(
         spy_ema_window=cfg.spy_ema_window,
         earnings_blackout_days=cfg.earnings_blackout_days,
+        spy_ema_fast_window=cfg.spy_ema_fast_window,
     ).evaluate(
         spy_close=bundle.spy_close,
         tickers=bundle.tickers,
@@ -154,6 +155,16 @@ def run_backtest(cfg: EngineConfig, show: bool = False) -> None:
     print(
         f"[2/5] Regime    : SPY > EMA{cfg.spy_ema_window} gate + "
         f"{cfg.earnings_blackout_days}-day Earnings Blackout filter"
+    )
+    bear_share = float((~regime.macro_bullish).mean())
+    bull_share = float(regime.bull_strict.mean())
+    print(
+        f"        V2 budget : bull {bull_share:.0%} of sessions "
+        f"({cfg.bull_risk_per_trade:.2%} risk, top {cfg.bull_top_quantile:.0%}, "
+        f"{cfg.max_active_holdings} names, {cfg.bull_utilization_target:.0%} utilisation) | "
+        f"cautious {1.0 - bear_share - bull_share:.0%} "
+        f"({cfg.target_risk_per_trade:.2%} risk, {cfg.cautious_max_active_holdings} names) | "
+        f"bear {bear_share:.0%} (entries frozen)"
     )
 
     # 3. Cross-Sectional Volatility-Adjusted Momentum Ranking
@@ -167,7 +178,8 @@ def run_backtest(cfg: EngineConfig, show: bool = False) -> None:
     ).compute(bundle.closes)
     print(
         f"[3/5] Ranking   : r_{{12M-1M}} / max(vol_60D, {cfg.vol_floor:.2f}), "
-        f"weekly Monday rebalance, top {cfg.top_quantile:.0%} pool"
+        f"weekly Monday rebalance, regime-adaptive top "
+        f"{cfg.top_quantile:.0%}-{max(cfg.top_quantile, cfg.bull_top_quantile):.0%} pool"
     )
 
     # 4. Individual Trend & Chandelier Trailing Stop Guards

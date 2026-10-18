@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 """Position Sizing, Signal Construction & Strict T+1 Execution Ledger.
 
-1. Fixed Fractional Risk Parity Sizing:
-   - Target Risk per Trade = 0.75% of current portfolio equity (NAV).
+1. Fixed Fractional Risk Parity Sizing (regime-adaptive, V2):
+   - Cautious/Bear Regime: Target Risk per Trade = 0.75% of NAV.
+   - Bull Regime (SPY > EMA50 > EMA200): Target Risk per Trade = 1.25% of NAV.
    - Stop Distance = 3.0 * ATR_20.
-   - Target Notional Weight = min(0.15, 0.0075 / (Stop Distance / Close))
-     (equivalently, Target Notional = min(0.15 * NAV, (0.0075 * NAV) / (Stop Distance / Close))).
+   - Target Notional Weight = min(0.15, target_risk / (Stop Distance / Close))
+     (equivalently, Target Notional = min(0.15 * NAV, (target_risk * NAV) / (Stop Distance / Close))).
+   - Bull Regime only: gross utilisation is scaled up to 85% of NAV across at least
+     5 confirmed names, always respecting the 15% single-stock cap.
 2. Signal State Machine (Close(t)):
-   - Weekly Rebalance (Mondays): rank universe by Momentum Score, select Top 20%
-     (5 to 10 stocks max).
+   - Weekly Rebalance (Mondays): rank universe by Momentum Score; pool is Top 20%
+     (max 6 names) in the cautious regime, Top 30% (max 10 names) in the bull regime.
    - Macro Gate (SPY > EMA200): if False, freeze new entries (hold existing valid
      winners without increasing risk).
    - Earnings Blackout (within 5 trading days of earnings): block new entries;
@@ -139,6 +142,15 @@ def build_signal_weights(
 ) -> pd.DataFrame:
     """Generate end-of-day (Close(t)) target portfolio weights prior to T+1 execution.
 
+    Regime-adaptive risk budgeting (V2):
+      * Bull (SPY > EMA50 AND EMA50 > EMA200): risk budget 1.25% of NAV, candidate
+        pool widened to the top 30%, up to ``max_active_holdings`` names, and gross
+        utilisation scaled up to ``bull_utilization_target`` (85%) once at least
+        ``min_stocks_for_boost`` names pass every filter.
+      * Cautious (SPY > EMA200 but not strict bull): risk budget 0.75% of NAV,
+        at most ``cautious_max_active_holdings`` (6) names, no utilisation boost.
+      * Bear (SPY <= EMA200): freeze new entries, trail existing winners only.
+
     Rules enforced at each session ``t``:
       1. Daily Exit Check (all days):
          - Any currently held position with ``stop_breached[t, i] == True``
@@ -146,9 +158,9 @@ def build_signal_weights(
            5-day pre-earnings blackout and ``3.0`` otherwise) or ``Close(t) <= EMA100(t)``
            is immediately exited (target weight = 0.0 at Close(t), executed at Open(t+1)).
       2. Weekly Rebalance (when ``ranking.rebalance_mask[t] == True``):
-         - Candidate stocks must be in ``ranking.eligible_pool[t]``, pass
+         - Candidate stocks must be in the regime's eligible pool, pass
            ``guards.trend_eligible[t]`` (``Close > EMA100``), and have `` stop_breached == False``.
-         - Ranked descending by ``ranking.ranks[t]`` up to ``config.max_active_holdings``.
+         - Ranked descending by ``ranking.ranks[t]`` up to the regime's active cap.
          - For a NEW position (not held at ``t-1``):
              * Blocked if ``regime.macro_bullish[t] == False`` (SPY <= EMA 200).
              * Blocked if ``regime.earnings_blackout[t, i] == True`` (earnings within 5 days).
@@ -168,10 +180,18 @@ def build_signal_weights(
     n_dates = len(dates)
     n_tickers = len(tickers)
 
-    raw_sized = compute_position_weight(
+    # Regime-conditional risk budgets: 0.75% (cautious/bear) vs 1.25% (bull).
+    sized_cautious = compute_position_weight(
         close=closes,
         atr20=guards.atr20,
         target_risk=cfg.target_risk_per_trade,
+        atr_mult=cfg.chandelier_atr_mult,
+        max_weight=cfg.max_weight_per_stock,
+    ).to_numpy(dtype=float)
+    sized_bull = compute_position_weight(
+        close=closes,
+        atr20=guards.atr20,
+        target_risk=cfg.bull_risk_per_trade,
         atr_mult=cfg.chandelier_atr_mult,
         max_weight=cfg.max_weight_per_stock,
     ).to_numpy(dtype=float)
@@ -180,11 +200,21 @@ def build_signal_weights(
     ranks_arr = ranking.ranks.reindex(index=dates, columns=tickers).fillna(np.inf).to_numpy(dtype=float)
     rebal_arr = ranking.rebalance_mask.reindex(dates).fillna(False).to_numpy(dtype=bool)
 
+    # Bull-regime pool: top 30%, mirroring RankingEngine's top-quantile rule.
+    score_arr = ranking.momentum_score.reindex(index=dates, columns=tickers).to_numpy(dtype=float)
+    bull_quantile = max(cfg.top_quantile, cfg.bull_top_quantile)
+    valid_counts = np.isfinite(score_arr).sum(axis=1)
+    bull_cutoff = np.clip(np.ceil(valid_counts * bull_quantile), 1, cfg.max_active_holdings)
+    bull_pool_arr = np.isfinite(score_arr) & (score_arr > 0.0) & (ranks_arr <= bull_cutoff[:, None])
+
     macro_arr = regime.macro_bullish.reindex(dates).fillna(False).to_numpy(dtype=bool)
+    bull_arr = regime.bull_strict.reindex(dates).fillna(False).to_numpy(dtype=bool)
     blackout_arr = regime.earnings_blackout.reindex(index=dates, columns=tickers).fillna(False).to_numpy(dtype=bool)
 
     trend_arr = guards.trend_eligible.reindex(index=dates, columns=tickers).fillna(False).to_numpy(dtype=bool)
     breach_arr = guards.stop_breached.reindex(index=dates, columns=tickers).fillna(False).to_numpy(dtype=bool)
+
+    cautious_cap = min(cfg.max_active_holdings, cfg.cautious_max_active_holdings)
 
     out_weights = np.zeros((n_dates, n_tickers), dtype=float)
     current_w = np.zeros(n_tickers, dtype=float)
@@ -199,15 +229,20 @@ def build_signal_weights(
 
         # Step 2: Weekly rebalance on Monday (or first trading day of week)
         if rebal_arr[t]:
+            is_bull = bool(bull_arr[t])
+            sized = sized_bull[t] if is_bull else sized_cautious[t]
+            pool = bull_pool_arr[t] if is_bull else eligible_arr[t]
+            active_cap = cfg.max_active_holdings if is_bull else cautious_cap
+
             next_w = np.zeros(n_tickers, dtype=float)
             # Determine ordered candidate indices by momentum rank
             cand_indices = [
                 j
                 for j in range(n_tickers)
-                if eligible_arr[t, j] and trend_arr[t, j] and (not breach_arr[t, j]) and raw_sized[t, j] > 0.0
+                if pool[j] and trend_arr[t, j] and (not breach_arr[t, j]) and sized[j] > 0.0
             ]
             cand_indices.sort(key=lambda j: ranks_arr[t, j])
-            cand_indices = cand_indices[: cfg.max_active_holdings]
+            cand_indices = cand_indices[:active_cap]
 
             if macro_arr[t]:
                 for j in cand_indices:
@@ -216,18 +251,20 @@ def build_signal_weights(
                         # New entry: must NOT be in 5-day pre-earnings blackout
                         if blackout_arr[t, j]:
                             continue
-                        next_w[j] = min(cfg.max_weight_per_stock, raw_sized[t, j])
+                        next_w[j] = min(cfg.max_weight_per_stock, sized[j])
                     else:
                         # Existing winner: if in earnings blackout, do not increase risk
                         if blackout_arr[t, j]:
-                            next_w[j] = min(surviving_w[j], raw_sized[t, j], cfg.max_weight_per_stock)
+                            next_w[j] = min(surviving_w[j], sized[j], cfg.max_weight_per_stock)
                         else:
-                            next_w[j] = min(cfg.max_weight_per_stock, raw_sized[t, j])
+                            next_w[j] = min(cfg.max_weight_per_stock, sized[j])
+                if is_bull:
+                    next_w = _boost_utilization(next_w, cfg)
             else:
                 # SPY <= EMA 200: Freeze new entries; retain existing valid winners without adding risk
                 for j in range(n_tickers):
                     if surviving_w[j] > 0.0:
-                        sized_j = raw_sized[t, j] if raw_sized[t, j] > 0.0 else surviving_w[j]
+                        sized_j = sized[j] if sized[j] > 0.0 else surviving_w[j]
                         next_w[j] = min(surviving_w[j], sized_j, cfg.max_weight_per_stock)
 
             total_w = float(next_w.sum())
@@ -241,6 +278,28 @@ def build_signal_weights(
         out_weights[t, :] = current_w
 
     return pd.DataFrame(out_weights, index=dates, columns=tickers)
+
+
+def _boost_utilization(next_w: np.ndarray, cfg: EngineConfig) -> np.ndarray:
+    """Deploy idle cash across confirmed bull-regime winners up to the utilisation target.
+
+    Positions are scaled proportionally first; any residual is then spread across
+    the remaining cap headroom, so the 15% single-stock cap is never breached.
+    """
+    if int((next_w > 0.0).sum()) < cfg.min_stocks_for_boost:
+        return next_w
+    total = float(next_w.sum())
+    target = cfg.bull_utilization_target
+    if total <= 1e-12 or total >= target:
+        return next_w
+
+    cap = cfg.max_weight_per_stock
+    scaled = np.minimum(next_w * (target / total), cap)
+    headroom = np.where(scaled > 0.0, cap - scaled, 0.0)
+    need = target - float(scaled.sum())
+    if need > 1e-12 and float(headroom.sum()) > 1e-12:
+        scaled = scaled + headroom * min(1.0, need / float(headroom.sum()))
+    return np.minimum(scaled, cap)
 
 
 class PortfolioEngine:

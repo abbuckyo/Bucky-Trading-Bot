@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Macro regime filter (SPY > EMA 200) and Earnings Blackout guard.
+"""Macro regime filter (SPY > EMA 200, V2 strict bull) and Earnings Blackout guard.
 
 1. Broad Market Gate:
    - Only allow opening NEW long positions if ``SPY Close > EMA 200``.
    - When ``SPY Close <= EMA 200``: freeze new entries (existing valid winners
      may be held until their individual trend or Chandelier stop exits them).
-2. Earnings Blackout Guard:
+2. Strict Bull Regime (V2):
+   - ``bull_strict`` = ``SPY Close > EMA 50`` AND ``EMA 50 > EMA 200``.
+   - Drives the higher risk budget, wider candidate pool and utilisation boost.
+   - Cautious regime = ``SPY > EMA 200`` but NOT strict bull.
+3. Earnings Blackout Guard:
    - If an asset's next earnings announcement is within ``blackout_days``
      (default 5) trading days forward from session ``t`` (i.e. 1..5 trading
      days ahead, or same day ``0..5``), new entries are blocked and any
@@ -29,6 +33,8 @@ class RegimeState:
     spy_ema200: pd.Series
     macro_bullish: pd.Series          # True when SPY Close > EMA 200 (new entries allowed)
     earnings_blackout: pd.DataFrame   # True when ticker is within 5 trading days pre-earnings
+    spy_ema50: pd.Series              # SPY EMA 50 (fast trend)
+    bull_strict: pd.Series            # True when SPY Close > EMA 50 AND EMA 50 > EMA 200
 
 
 def compute_spy_regime(
@@ -42,6 +48,21 @@ def compute_spy_regime(
     ema = s.ewm(span=ema_window, adjust=False, min_periods=ema_window).mean()
     bullish = (s > ema).fillna(False)
     return ema.rename(f"SPY_EMA{ema_window}"), bullish.rename("macro_bullish")
+
+
+def compute_strict_bull_regime(
+    spy_close: pd.Series,
+    fast_window: int = 50,
+    slow_window: int = 200,
+) -> tuple[pd.Series, pd.Series]:
+    """Compute SPY EMA(fast) and the strict bull gate ``Close > EMA_fast AND EMA_fast > EMA_slow``."""
+    if fast_window >= slow_window:
+        raise ValueError("fast_window must be shorter than slow_window")
+    s = spy_close.astype(float)
+    ema_fast = s.ewm(span=fast_window, adjust=False, min_periods=fast_window).mean()
+    ema_slow = s.ewm(span=slow_window, adjust=False, min_periods=slow_window).mean()
+    strict = ((s > ema_fast) & (ema_fast > ema_slow)).fillna(False)
+    return ema_fast.rename(f"SPY_EMA{fast_window}"), strict.rename("bull_strict")
 
 
 def is_in_earnings_blackout(
@@ -123,9 +144,11 @@ class RegimeGuard:
         self,
         spy_ema_window: int = 200,
         earnings_blackout_days: int = 5,
+        spy_ema_fast_window: int = 50,
     ) -> None:
         self._spy_ema_window = spy_ema_window
         self._earnings_blackout_days = earnings_blackout_days
+        self._spy_ema_fast_window = spy_ema_fast_window
 
     def evaluate(
         self,
@@ -134,6 +157,11 @@ class RegimeGuard:
         earnings_dates: Mapping[str, Sequence[pd.Timestamp | str] | pd.DatetimeIndex] | None = None,
     ) -> RegimeState:
         ema200, macro_bullish = compute_spy_regime(spy_close, self._spy_ema_window)
+        ema50, bull_strict = compute_strict_bull_regime(
+            spy_close,
+            fast_window=self._spy_ema_fast_window,
+            slow_window=self._spy_ema_window,
+        )
         blackout = compute_earnings_blackout_matrix(
             trading_calendar=spy_close.index,
             tickers=tickers,
@@ -144,4 +172,6 @@ class RegimeGuard:
             spy_ema200=ema200,
             macro_bullish=macro_bullish,
             earnings_blackout=blackout,
+            spy_ema50=ema50,
+            bull_strict=bull_strict,
         )
