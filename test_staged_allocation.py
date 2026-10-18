@@ -1,6 +1,5 @@
-import sys
 import pandas as pd
-from typing import Dict, List, Tuple
+from typing import Dict
 from run_experiments import load_or_fetch_data, compute_kpis, get_spy_kpis, run_simulation, BacktestConfig
 
 def get_tranche_target(row: pd.Series) -> float:

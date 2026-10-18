@@ -1,5 +1,3 @@
-import json
-import pytest
 from bot import (
     PBKDF2_ITERATIONS,
     derive_key,

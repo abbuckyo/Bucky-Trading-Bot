@@ -1,5 +1,5 @@
 import pytest
-from bot import Metrics, decide, TRANCHE_EXPOSURE_MAP, TRANCHE_LABEL_MAP
+from bot import Metrics, decide
 
 def make_metrics(price=100.0, ema50=95.0, ema100=90.0, ema200=85.0, dist_ema200_pct=5.0):
     return Metrics(

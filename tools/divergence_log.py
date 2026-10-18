@@ -14,9 +14,7 @@ from __future__ import annotations
 import csv
 import logging
 import os
-from dataclasses import dataclass
-from datetime import date
-from typing import Any, Dict, List, Mapping, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Tuple
 
 LOG = logging.getLogger("quantbot.divergence")
 

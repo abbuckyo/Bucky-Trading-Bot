@@ -1,4 +1,3 @@
-import os
 import pytest
 from pathlib import Path
 from bot import get_master_password, encrypt_payload, write_encrypted_dashboard, selftest_decrypt

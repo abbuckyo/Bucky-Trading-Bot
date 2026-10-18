@@ -10,8 +10,6 @@ from bot import (
     is_nan,
     ema,
     TRANCHE_EXPOSURE_MAP,
-    TRANCHE_LABEL_MAP,
-    CFG,
 )
 
 # Helper function to generate Metrics matching desired raw stage (0, 1, 2, 3)

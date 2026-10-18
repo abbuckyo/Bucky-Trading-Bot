@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-import math
 import secrets
 from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta, timezone

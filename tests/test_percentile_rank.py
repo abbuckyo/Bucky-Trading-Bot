@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from bot import percentile_rank, CFG
+from bot import percentile_rank
 
 
 def test_percentile_rank_short_series():
