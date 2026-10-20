@@ -1,23 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-10-19T05:16:29+00:00",
-  "last_run_ict": "2026-10-19T12:15:39+07:00",
+  "last_run_utc": "2026-10-20T05:23:31+00:00",
+  "last_run_ict": "2026-10-20T12:15:40+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -1.3,
+    "tip_mom_13612_pct": -1.46,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -1.30% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -1.46% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": 0.79,
-      "NQ=F": 1.33
+      "ES=F": 0.03,
+      "NQ=F": -0.26
     },
-    "description": "NORMAL: ES=F +0.79% | NQ=F +1.33% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F +0.03% | NQ=F -0.26% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -47,32 +47,30 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 45.0,
-      "raw_score": 45.0,
-      "price": 206.34,
-      "chg_pct": -0.85,
-      "dist_ema50_pct": -0.43,
-      "dist_ema200_pct": 4.38,
+      "score": 47.0,
+      "raw_score": 47.0,
+      "price": 206.65,
+      "chg_pct": 0.15,
+      "dist_ema50_pct": -0.27,
+      "dist_ema200_pct": 4.49,
       "bull_stack": true,
-      "rsi": 44.6,
-      "adx": 12.1,
-      "hv20": 10.2,
+      "rsi": 45.8,
+      "adx": 12.2,
+      "hv20": 8.7,
       "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
-      "news": [
-        "WLDR: A Small Global Value-Oriented Fund With Big Results"
-      ],
-      "ai_analysis": "ระบบสั่งถือเงินสด 100% เพื่อรักษาเงินต้นอย่างเด็ดขาดตามสัญญาณเตือนภัยมหภาค HAA TIP Canary แม้",
+      "news": [],
+      "ai_analysis": "ต้องถือเงินสด 100% ตามระบบ Canary เพื่อรักษาเงินต้นเป็นอันดับแรก หลังโมเมนตัมอ่อนแรงชัดเจน (-DI คุมตลาด) และคะแนน Quant ต่ำเกณฑ์ที่ 47 แม้ราคายังประคองตัวเหนือ EMA200 ได้ก็ตาม\n\n**เงื่อนไขสำคัญที่ต้องจับตา:** รอสัญญาณ Macro Canary ปลดล็อกสถานะเตือนภัย และโมเมนตัม RSI พลิกกลับมายืนเหนือ 50 เพื่อยืนยันการฟื้นตัวของแนวโน้มก่อนพิจารณาเข้าลงทุนใหม่",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 24.0,
         "trend_strength": 3.0,
-        "momentum_macd": 3.0,
-        "momentum_rsi": 0.0,
+        "momentum_macd": 0.0,
+        "momentum_rsi": 5.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-19T12:15:49+07:00"
+      "updated_at": "2026-10-20T12:17:43+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -104,7 +102,7 @@
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "ต้องถือเงินสด 100% เพื่อรักษาเงินต้นตามระบบ Macro HAA TIP Canary แม้ราคาอยู่เหนือ EMA200 แต่โมเมนตัมอ่อนแรงชัดเจน (ADX 14.6 และ -DI ชนะ) จึงต้องล็อกความปลอดภัยไว้ก่อน\n**เงื่อนไขสำคัญ",
+      "ai_analysis": "ต้องถือเงินสด 100% ตามสัญญาณเตือน HAA TIP Canary เพื่อรักษาเงินต้นเชิงมหภาค แม้ราคายังเหนือ EMA200 แต่โมเมนตัมอ่อนแรงชัดเจน (RSI ต่ำกว่า 50 และ -DI คุมเกม) \nเงื่อนไขสำคัญที่ต้องจับตา: รอสัญญาณ Canary ปลดล็อกกลับสู่ Risk-on และ RSI ดีดกลับเหนือ 50 พร้อมแรงส่ง ADX ขาขึ้นรอบใหม่",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
@@ -113,7 +111,7 @@
         "momentum_rsi": 5.0,
         "volatility": 12.0
       },
-      "updated_at": "2026-10-19T12:16:02+07:00"
+      "updated_at": "2026-10-20T12:18:40+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -131,34 +129,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 34.0,
-      "raw_score": 34.0,
-      "price": 709.8,
-      "chg_pct": -2.5,
-      "dist_ema50_pct": -2.44,
-      "dist_ema200_pct": 4.26,
+      "score": 45.0,
+      "raw_score": 45.0,
+      "price": 718.36,
+      "chg_pct": 1.21,
+      "dist_ema50_pct": -1.22,
+      "dist_ema200_pct": 5.46,
       "bull_stack": true,
-      "rsi": 35.1,
-      "adx": 16.8,
-      "hv20": 18.6,
+      "rsi": 41.3,
+      "adx": 18.5,
+      "hv20": 15.9,
       "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "Bonds Already Discounted A 3rd Hike, Stocks Have Followed, Stay Long",
-        "The Data Continues To Defy Sentiment",
-        "Friday's Market Volatility Spike May Have Gone Too Far"
+        "Tech Investors Bought The Dips",
+        "Palantir Wins Knox Federal Partnership, Gains 4%",
+        "Networking Stocks Rally as Tech Rebound Lifts AI Gear Makers: Ciena and Arista Climb 4%, but Cisco Barely Moves"
       ],
-      "ai_analysis": "ต้องล็อกเงินสด 100% ตามสัญญาณเตือน Canary ทันทีเพื่อรักษาเงินต้น แม้ราคาจะยังประคองตัวเหนือ EMA200 ได้ (+4.3%) แต่คะแนน Quant ทรุดหนักเหลือ 34.0 และโมเมนตัมลบกดดันรุนแรง (-DI 40.8 ข",
+      "ai_analysis": "ระบบสั่งล็อกเงินสด 100% เพื่อรักษาเงินต้นตามสัญญาณ Macro Canary ทันที แม้มีข่าวการเข้าช้อนซื้อ (Buy the dip) แต่ในเชิงเทคนิคแรงขายยังคุมตลาดเบ็ดเสร็จ (-DI 36.8 ข่ม +DI 16.0) \n\n**เงื่อนไขจับตา:** รอสัญญาณ Canary ปลดล็อกความเสี่ยงเชิงมหภาค และโมเมนตัมฝั่งซื้อพลิกกลับมาชนะแรงขายอย่างชัดเจนก่อนพิจารณาเข้าลงทุนรอบใหม่",
       "data_source": "yahoo_v8",
       "components": {
-        "trend_structure": 20.0,
+        "trend_structure": 24.0,
         "trend_strength": 3.0,
         "momentum_macd": 3.0,
         "momentum_rsi": 0.0,
-        "volatility": 8.0
+        "volatility": 15.0
       },
-      "updated_at": "2026-10-19T12:16:12+07:00"
+      "updated_at": "2026-10-20T12:18:49+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -177,33 +175,33 @@
         "corrupt_first_seen_ict": null
       },
       "score": 25.0,
-      "raw_score": 35.0,
-      "price": 382.01,
-      "chg_pct": -0.18,
-      "dist_ema50_pct": -2.09,
-      "dist_ema200_pct": -3.05,
+      "raw_score": 30.0,
+      "price": 379.69,
+      "chg_pct": -0.61,
+      "dist_ema50_pct": -2.58,
+      "dist_ema200_pct": -3.6,
       "bull_stack": false,
-      "rsi": 45.5,
-      "adx": 17.5,
-      "hv20": 21.3,
+      "rsi": 43.5,
+      "adx": 16.9,
+      "hv20": 21.2,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -3.0% below EMA200",
+      "breakdown_reason": "Price -3.6% below EMA200",
       "news": [
-        "Making Of An 8-Fund Retiree Portfolio: $5,000 Monthly Income Potentially",
-        "Weekly Commentary: Hope I'm Wrong",
-        "Impact Of Rising Inflation And Interest Rates On Commodities"
+        "Gold Technical And Macro Outlook: October 2026",
+        "Forget GLD. Investors Sent $500 Million to the Cheaper SPDR Gold Fund",
+        "Inflation Heats Up, Silver Sinks - What Is The Market Telling Us?"
       ],
-      "ai_analysis": "ระบบสั่งล็อกเงินสด 100% เพื่อรักษาเงินต้นทันที หลังโครงสร้างขาขึ้นพังสมบูรณ์ด้วยราคาหลุดต่ำ",
+      "ai_analysis": "ต้องล็อกถือเงินสด 100% ทันทีตามสัญญาณ [CANARY CASH] เนื่องจากโครงสร้างทางเทคนิคพังชัดเจนหลังราคาหลุด EMA200 ถึง -3.6% ร่วมกับแรงกดดันเชิงลบ (-DI นำ +DI) โดยระบบสั่งรักษาเงินต้นเด็ดขาด \n\nเงื่อนไขสำคัญที่ต้องจับตาคือ ราคาทองต้องเบรกฟื้นตัวกลับมายืนเหนือเส้น EMA200 ให้ได้ พร้อมกับระบบ Canary ปลดล็อกสัญญาณเตือนภัย Macro จึงจะเริ่มพิจารณากลับเข้าสะสมอีกครั้ง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 0.0,
         "trend_strength": 3.0,
         "momentum_macd": 12.0,
-        "momentum_rsi": 5.0,
+        "momentum_rsi": 0.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-19T12:16:20+07:00"
+      "updated_at": "2026-10-20T12:22:44+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -223,23 +221,23 @@
       },
       "score": 35.0,
       "raw_score": 35.0,
-      "price": 539.79,
-      "chg_pct": -3.41,
-      "dist_ema50_pct": -7.4,
-      "dist_ema200_pct": 4.64,
+      "price": 548.46,
+      "chg_pct": 1.61,
+      "dist_ema50_pct": -5.69,
+      "dist_ema200_pct": 6.26,
       "bull_stack": true,
-      "rsi": 31.4,
-      "adx": 20.3,
-      "hv20": 31.1,
+      "rsi": 35.8,
+      "adx": 21.2,
+      "hv20": 27.8,
       "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "S&P 500 Earnings Yield Jumps Over 5%; Sold The EMXC",
-        "Stock Futures Rise Ahead of Another Busy Earnings Week",
-        "Earnings Volatility Watch: Bloom Energy and Other 11 Stocks Are Priced For Double-Digit Swings"
+        "Nasdaq Bounces Back as AI Trade Freshens Up: Stock Market Today",
+        "Ignore the Conventional Wisdom. Higher Bond Yields Would Lift This Stock Market.",
+        "The AI Selloff Is About Financing"
       ],
-      "ai_analysis": "ระบบสั่งล็อกเงินสด 100% เพื่อรักษาเงินต้นตามสัญญาณมหภาค (Canary Cash) แม้ราคายังยืนเหนือ",
+      "ai_analysis": "สัญญาณ Canary สั่งล็อกเงินสด 100% เพื่อรักษาเงินต้นตามวินัยระบบ Quant ที่คะแนนทรุดเหลือ 35 โดยมี",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 20.0,
@@ -248,7 +246,7 @@
         "momentum_rsi": 0.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-19T12:16:29+07:00"
+      "updated_at": "2026-10-20T12:23:31+07:00"
     }
   }
 }
