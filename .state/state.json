@@ -1,23 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-10-21T05:16:28+00:00",
-  "last_run_ict": "2026-10-21T12:15:36+07:00",
+  "last_run_utc": "2026-10-22T05:19:45+00:00",
+  "last_run_ict": "2026-10-22T12:15:34+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -1.23,
+    "tip_mom_13612_pct": -1.13,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -1.23% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -1.13% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": 0.29,
-      "NQ=F": 0.7
+      "ES=F": -0.71,
+      "NQ=F": -1.34
     },
-    "description": "NORMAL: ES=F +0.29% | NQ=F +0.70% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F -0.71% | NQ=F -1.34% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -47,32 +47,32 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 62.0,
-      "raw_score": 62.0,
-      "price": 207.4,
-      "chg_pct": 0.36,
-      "dist_ema50_pct": 0.08,
-      "dist_ema200_pct": 4.82,
+      "score": 65.0,
+      "raw_score": 67.0,
+      "price": 208.49,
+      "chg_pct": 0.53,
+      "dist_ema50_pct": 0.59,
+      "dist_ema200_pct": 5.32,
       "bull_stack": true,
-      "rsi": 48.7,
-      "adx": 12.0,
-      "hv20": 8.8,
-      "chop_capped": false,
+      "rsi": 52.6,
+      "adx": 11.3,
+      "hv20": 8.3,
+      "chop_capped": true,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
         "Fiera Capital Global Asset Allocation - October 2026 Market Update"
       ],
-      "ai_analysis": "ต้องปรับเป็นเงินสด 100% ตามสัญญาณ HAA Canary เพื่อเน้นปกป้องเงินต้น แม้ราคาอยู่เหนือ EMA200",
+      "ai_analysis": "ต้องล็อกเงินสด 100% ทันทีตามสัญญาณเตือนภัย HAA Canary เพื่อรักษาเงินต้น แม้ราคาอยู่เหนือ EMA200 (+5.3%) แต่ ADX เพียง 11.3 ยืนย",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
         "momentum_macd": 4.0,
-        "momentum_rsi": 5.0,
+        "momentum_rsi": 10.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-21T12:15:50+07:00"
+      "updated_at": "2026-10-22T12:17:25+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -90,30 +90,30 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 65.0,
-      "raw_score": 66.0,
-      "price": 833.61,
-      "chg_pct": 0.07,
-      "dist_ema50_pct": 0.59,
-      "dist_ema200_pct": 5.83,
+      "score": 61.0,
+      "raw_score": 61.0,
+      "price": 832.77,
+      "chg_pct": -0.1,
+      "dist_ema50_pct": 0.47,
+      "dist_ema200_pct": 5.66,
       "bull_stack": true,
-      "rsi": 50.4,
-      "adx": 14.1,
-      "hv20": 9.9,
-      "chop_capped": true,
+      "rsi": 49.5,
+      "adx": 14.0,
+      "hv20": 9.8,
+      "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "ต้องถือเงินสดตามคำสั่ง [CANARY CASH] 100% เพื่อรักษาเงินต้นอย่างเคร่งครัด หลังสัญญาณ Macro เตือนความเสี่ยง แม้ราคาจะยืนเหนือ EMA200 (+5.8%) แต่โมเมนตัมฝั่งขึ้นหมดแรงชัดเจน (ADX 14.1, -DI ชนะ +DI) และตลาดแกว่งตัวไร้เทรนด์ \n\n**เงื่อนไขจับตา:** เฝ้าระวังความเสี่ยงการหลุดแนวรับ EMA200 และรอจนกว่าระบบ Canary จะปลดล็อกกลับเป็น Risk-On พร้อม ADX เร่งตัวขึ้นเหนือ 20 จึงพิจารณาเข้าซื้อรอบใหม่",
+      "ai_analysis": "ระบบสั่งล็อกเงินสด 100% ทันทีตามสัญญาณมหภาค HAA TIP Canary เพื่อรักษาเงินต้น แม้ราคาจะยืนเหนือ EMA200 (+5.7%) แต่ทิศทางเริ่มชะลอตัวและ -DI กดดันอยู่เหนือ +DI\n**เงื่อนไขจับตา:** ถือเงินสดจนกว่าสัญญาณ Canary จะปลดล็อกกลับมาเป็น Risk-On และโมเมนตัมขาขึ้นกลับมามีความ",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 35.0,
         "trend_strength": 3.0,
         "momentum_macd": 3.0,
-        "momentum_rsi": 10.0,
+        "momentum_rsi": 5.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-21T12:16:02+07:00"
+      "updated_at": "2026-10-22T12:18:33+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -131,34 +131,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 39.0,
-      "raw_score": 39.0,
-      "price": 717.63,
-      "chg_pct": -0.1,
-      "dist_ema50_pct": -1.27,
-      "dist_ema200_pct": 5.29,
+      "score": 48.0,
+      "raw_score": 48.0,
+      "price": 725.2,
+      "chg_pct": 1.05,
+      "dist_ema50_pct": -0.22,
+      "dist_ema200_pct": 6.34,
       "bull_stack": true,
-      "rsi": 40.9,
-      "adx": 20.3,
-      "hv20": 15.4,
+      "rsi": 46.1,
+      "adx": 21.3,
+      "hv20": 15.9,
       "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "Choppy Trading Leaves Dow Higher And Nasdaq Flat",
-        "AI: A Global Financial Trap With No Easy Way Out",
-        "Shopify Just Rallied 35% in a Month: Take Profits, or Buy More?"
+        "Micron Is Up 221% in 2026 and Seagate Is Up 155%: Take Profits, or Hold On for the Ride?",
+        "Exchange-Traded Funds Higher as US Equities Rise After Midday",
+        "Tesla Rises 4% Ahead of Q3 Report as Musk Backs SpaceX Merger Idea; Rivian and Lucid Inch Higher"
       ],
-      "ai_analysis": "สัญญาณ Macro Canary สั่งล็อกเงินสด 100% เพื่อรักษาเงินต้นทันที สอดรับกับโมเมนตัมลบที่แรงขายคุมตลาดเบ็ดเสร็จ (-DI 37.9 ทิ้งห่าง +DI) ท่ามกลางกระแสข่าวความกังวลต่อฟองสบู่ AI ที่เข้ามากดดันกลุ่มเทค\n**เงื่อนไขสำคัญ:** จับตาแรงขายว่าจะกดดันราคาลงไปทดสอบเส้น EMA200 (+5.3%) หรือไม่ และรอสัญญาณเตือนระดับมหภาคปลดล็อกก่อนพ",
+      "ai_analysis": "Word count check (Thai words/characters limit ~90 words max):\n        \"ต้องทำตามคำสั่ง **CANARY CASH** ล็อกเงินสด 100% เพื่อรักษาเงินต้นตามระบบ แม้ราคาอยู่เหนือ EMA200 แต่โครงสร้างโมเมนตัมฝั่งลงได้เปรียบชัดเจน (-DI 35.3 เหนือ +DI 17.1) สอดคล้องกับข่าวแรงขายทำกำไรในหุ้นเทคโนโลยี เงื่อนไขสำคัญคือรอระบบปลดล็อก Macro Signal และ RSI กลับมาเหนือ 50 พร้อมโมเมนตัมบวกเพื่อยืนยันการกลับตัว\" (51 Thai words / very well under 90 words).\n\n5.  **Final Polish (Making it sharp and exact):**\n    ต้องปฏิบัติตาม **CANARY CASH** ล็อกเงินสด 100% เพื่อรักษาเงินต้น แม้ราคาอยู่เหนือ EMA200 แต่แรงขายฝั่งลงได้เปรียบชัดเจน (-DI 35.3 ข่ม +DI 17.1) สอดคล้องกับข่าวเริ่มมีการขายทำกำไรในหุ้นเทคฯ เงื่อนไขสำคัญคือต้องรอ Macro Signal ปลดล็อก และ RSI กลับมาตัดขึ้นเหนือ 50 ก่อนพิจารณาเข้าซื้ออีกครั้งต้องปฏิบัติตาม **CANARY CASH** ล็อกเงินสด 100% เพื่อรักษาเงินต้น แม้ราคาอยู่เหนือ EMA200 แต่แรงขายฝั่งลงได้เปรียบชัดเจน (-DI 35.3 ข่ม +DI 17.1) สอดคล้องกับข่าวเริ่มมีการขายทำกำไรในหุ้นเทคฯ เงื่อนไขสำคัญคือต้องรอ Macro Signal ปลดล็อก และ RSI กลับมาตัดขึ้นเหนือ 50 ก่อนพิจารณาเข้าซื้ออีกครั้ง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 24.0,
         "trend_strength": 0.0,
-        "momentum_macd": 0.0,
-        "momentum_rsi": 0.0,
+        "momentum_macd": 4.0,
+        "momentum_rsi": 5.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-21T12:16:10+07:00"
+      "updated_at": "2026-10-22T12:18:44+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -177,33 +177,33 @@
         "corrupt_first_seen_ict": null
       },
       "score": 25.0,
-      "raw_score": 26.0,
-      "price": 377.65,
-      "chg_pct": -0.54,
-      "dist_ema50_pct": -2.99,
-      "dist_ema200_pct": -4.08,
+      "raw_score": 30.0,
+      "price": 378.95,
+      "chg_pct": 0.34,
+      "dist_ema50_pct": -2.55,
+      "dist_ema200_pct": -3.71,
       "bull_stack": false,
-      "rsi": 41.8,
-      "adx": 16.5,
-      "hv20": 21.1,
+      "rsi": 43.4,
+      "adx": 16.4,
+      "hv20": 20.4,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -4.1% below EMA200",
+      "breakdown_reason": "Price -3.7% below EMA200",
       "news": [
-        "Jim Cramer Prefers Gold to Bitcoin for Portfolio Insurance, but Backs 2 ‘Vetted’ Cryptos",
-        "Dividend Growth Is Broken In A 5% World - 2 Picks To Fix It",
-        "Gold Technical And Macro Outlook: October 2026"
+        "Gold ETFs to Watch Amid Fed Rate Hike & Oil Risks",
+        "ETFs to Buy and Hold for a Long-Term Investment Strategy",
+        "Ultra-rich investors are snatching up gold and the miners digging it out. Stake your claim in the new gold rush"
       ],
-      "ai_analysis": "ต้องล็อกเงินสด 100% ทันทีเพื่อรักษาเงินต้นตามสัญญาณ Canary เนื่องจากโครงสร้างเทรนด์พังสมบูรณ์ ราคาหลุดต่ำกว่า EMA200 ถึง -4",
+      "ai_analysis": "ต้องล็อกเงินสด 100% ตาม Canary เพื่อรักษาเงินต้น หลังราคาหลุด EMA200 ถึง -3.7% โครงสร้าง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 0.0,
         "trend_strength": 3.0,
-        "momentum_macd": 8.0,
+        "momentum_macd": 12.0,
         "momentum_rsi": 0.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-21T12:16:18+07:00"
+      "updated_at": "2026-10-22T12:19:37+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -223,23 +223,23 @@
       },
       "score": 39.0,
       "raw_score": 39.0,
-      "price": 546.36,
-      "chg_pct": -0.38,
-      "dist_ema50_pct": -5.83,
-      "dist_ema200_pct": 5.79,
+      "price": 556.7,
+      "chg_pct": 1.89,
+      "dist_ema50_pct": -3.89,
+      "dist_ema200_pct": 7.71,
       "bull_stack": true,
-      "rsi": 35.2,
-      "adx": 22.4,
-      "hv20": 26.4,
+      "rsi": 40.3,
+      "adx": 23.2,
+      "hv20": 27.7,
       "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [
-        "Forget SMH. Invesco’s Chip Fund Returned 67.69% Over the Past Year Against SMH’s 61.32%.",
-        "Buy 5 Top-Ranked High-Flying Non-Tech, Non-AI Stocks for a Strong Q4",
-        "AI Jitters, Oil, France Turmoil Damp Wall Street Pre-Bell; Asia, Europe Off"
+        "Semiconductor Stocks May Face An Explosive Move This Week",
+        "Europe's Debt, U.S. Big Tech Put To The Test",
+        "Who Pays For AI And Can It Maintain The Massive Data Center Buildout Humming"
       ],
-      "ai_analysis": "ต้องถือเงินสด 100% เพื่อรักษาเงินต้นตามสัญญาณเตือน Canary Macro สอดคล้องกับแรงขายกลุ่ม AI และโมเมนตัมขาลงที่กดดันชัดเจน (-DI 38.8 ทิ้งห่าง +DI หนัก และ Quant Score ต่ำเพียง 39.0) \n\nเงื่อนไขสำคัญคือจับตาแนวรับ EMA200 (+5.",
+      "ai_analysis": "ต้องถือเงินสด 100% ตามคำสั่ง [CANARY CASH] เพื่อเน้นรักษาเงินต้นทันที เนื่องจากโมเมนต",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 20.0,
@@ -248,7 +248,7 @@
         "momentum_rsi": 0.0,
         "volatility": 15.0
       },
-      "updated_at": "2026-10-21T12:16:28+07:00"
+      "updated_at": "2026-10-22T12:19:45+07:00"
     }
   }
 }
