@@ -1,0 +1,18 @@
+{
+  "status": "WATCH",
+  "k": 0.5,
+  "timestamp": "2026-10-23T23:18:33Z",
+  "signal_health": {
+    "status": "WATCH",
+    "k": 0.5,
+    "k_state": 0.5,
+    "k_dd": 1.0,
+    "n_warnings": 2,
+    "s_sr": 2,
+    "sharpe_60d": -1.5065,
+    "sharpe_120d": -0.2111,
+    "current_drawdown": -0.0519,
+    "max_drawdown": -0.1006,
+    "drawdown_breach": false
+  }
+}

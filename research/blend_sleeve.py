@@ -18,11 +18,13 @@ Usage:
 
 from __future__ import annotations
 
+import json
 import math
 import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import matplotlib
 
@@ -493,6 +495,157 @@ def save_blending_chart(
     plt.close(fig)
 
 
+def evaluate_signal_health(
+    returns: pd.Series,
+    rf_annual: float = RISK_FREE_ANNUAL,
+    d_warn: float = -0.1238,
+    d_stop: float = -0.1485,
+    sr_60_watch: float = 0.516,
+    sr_120_watch: float = 0.670,
+    sr_60_s2: float = 0.258,
+    sr_120_s2: float = 0.412,
+    max_dd_limit: float | None = None,
+    watch_dd_limit: float | None = None,
+) -> dict[str, Any]:
+    """Evaluate quantitative signal health aligned with DeepSeek Formal Spec.
+
+    Requirements:
+      1. Sharpe logic:
+         - Do NOT trigger WATCH on SR_60 alone (SE=2.05).
+         - Require (SR_60 < 0.516 AND SR_120 < 0.670) for WATCH (s_SR=1).
+         - Require (SR_60 < 0.258 AND SR_120 < 0.412) for s_SR=2.
+      2. Scaling factor k(t):
+         - ACTIVE: k_state = 1.0
+         - WATCH:  k_state = max(0.50, 1.0 - 0.25 * n_warnings)
+         - REVIEW: k_state = 0.0 (Unconditional de-risk)
+         - k_DD clipping: clip((D_stop - DD_t) / (D_stop - D_warn), 0, 1)
+           where D_warn = -0.1238, D_stop = -0.1485.
+         - Final k = min(k_state, k_DD).
+    """
+    if max_dd_limit is not None:
+        d_stop = max_dd_limit
+    if watch_dd_limit is not None:
+        d_warn = watch_dd_limit
+
+    r = returns.astype(float).dropna()
+    if len(r) == 0:
+        return {
+            "status": "WATCH",
+            "k": 0.5,
+            "k_state": 0.5,
+            "k_dd": 1.0,
+            "n_warnings": 1,
+            "s_sr": 1,
+            "sharpe_60d": 0.0,
+            "sharpe_120d": 0.0,
+            "current_drawdown": 0.0,
+            "max_drawdown": 0.0,
+            "drawdown_breach": False,
+        }
+
+    rf_daily = (1.0 + rf_annual) ** (1.0 / TRADING_DAYS_PER_YEAR) - 1.0
+    excess = r - rf_daily
+
+    # Rolling 60d & 120d annualized Sharpe ratio
+    roll_60_mean = excess.rolling(window=60, min_periods=min(15, len(excess))).mean()
+    roll_60_std = excess.rolling(window=60, min_periods=min(15, len(excess))).std(ddof=1)
+    s60_series = (roll_60_mean * math.sqrt(TRADING_DAYS_PER_YEAR)) / roll_60_std.replace(0.0, np.nan)
+
+    roll_120_mean = excess.rolling(window=120, min_periods=min(30, len(excess))).mean()
+    roll_120_std = excess.rolling(window=120, min_periods=min(30, len(excess))).std(ddof=1)
+    s120_series = (roll_120_mean * math.sqrt(TRADING_DAYS_PER_YEAR)) / roll_120_std.replace(0.0, np.nan)
+
+    s60_val = float(s60_series.iloc[-1]) if pd.notna(s60_series.iloc[-1]) else 0.0
+    s120_val = float(s120_series.iloc[-1]) if pd.notna(s120_series.iloc[-1]) else 0.0
+
+    # Drawdown metrics
+    dd = drawdown_curve(r)
+    current_dd = float(dd.iloc[-1]) if len(dd) > 0 else 0.0
+    mdd = float(dd.min()) if len(dd) > 0 else 0.0
+
+    drawdown_breach = bool(current_dd <= d_stop)
+
+    # Sharpe warning strike s_SR (joint test: never on SR_60 alone)
+    if s60_val < sr_60_s2 and s120_val < sr_120_s2:
+        s_sr = 2
+    elif s60_val < sr_60_watch and s120_val < sr_120_watch:
+        s_sr = 1
+    else:
+        s_sr = 0
+
+    s_dd = 1 if current_dd <= d_warn else 0
+    n_warnings = s_sr + s_dd
+
+    # State & k_state calculation
+    if drawdown_breach:
+        status = "REVIEW"
+        k_state = 0.0
+    elif n_warnings > 0:
+        status = "WATCH"
+        k_state = max(0.50, 1.0 - 0.25 * n_warnings)
+    else:
+        status = "ACTIVE"
+        k_state = 1.0
+
+    # k_DD clipping: clip((D_stop - DD_t) / (D_stop - D_warn), 0, 1)
+    if d_stop != d_warn:
+        k_dd = float(np.clip((d_stop - current_dd) / (d_stop - d_warn), 0.0, 1.0))
+    else:
+        k_dd = 0.0 if current_dd <= d_stop else 1.0
+
+    k = min(k_state, k_dd)
+    if k == 0.0:
+        status = "REVIEW"
+
+    return {
+        "status": status,
+        "k": round(float(k), 4),
+        "k_state": round(float(k_state), 4),
+        "k_dd": round(float(k_dd), 4),
+        "n_warnings": int(n_warnings),
+        "s_sr": int(s_sr),
+        "sharpe_60d": round(s60_val, 4),
+        "sharpe_120d": round(s120_val, 4),
+        "current_drawdown": round(current_dd, 4),
+        "max_drawdown": round(mdd, 4),
+        "drawdown_breach": drawdown_breach,
+    }
+
+
+def signal_health(
+    returns: pd.Series | None = None,
+    export_path: Path | str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Evaluate signal health and export status & k to docs/telemetry.json."""
+    if returns is None:
+        streams = load_aligned_streams()
+        blend_inv_vol, _, _ = simulate_inverse_vol_blend(
+            streams.core_etf_full,
+            streams.single_stock_full,
+            eval_index=streams.eval_index,
+            vol_window=VOL_LOOKBACK_DAYS,
+            name="Inv-Vol Risk Parity",
+        )
+        returns = blend_inv_vol
+
+    health = evaluate_signal_health(returns, **kwargs)
+
+    target_path = Path(export_path) if export_path is not None else _REPO_ROOT / "docs" / "telemetry.json"
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+
+    telemetry_data = {
+        "status": health["status"],
+        "k": health["k"],
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "signal_health": health,
+    }
+    with open(target_path, "w", encoding="utf-8") as f:
+        json.dump(telemetry_data, f, indent=2)
+
+    return health
+
+
 def main() -> None:
     divider = "=" * 96
     print(divider)
@@ -660,6 +813,13 @@ def main() -> None:
 
     save_blending_chart(models, r_spy, inv_vol_weights, CHART_OUTPUT_PATH)
     print(f"\nVisualization saved -> {CHART_OUTPUT_PATH}")
+
+    health = signal_health(blend_inv_vol)
+    print(
+        f"\nSignal Health Status: {health['status']} "
+        f"(Sharpe 60d: {health['sharpe_60d']:.2f}, 120d: {health['sharpe_120d']:.2f}, "
+        f"DD: {health['current_drawdown']:.2%})"
+    )
     print(divider)
 
 

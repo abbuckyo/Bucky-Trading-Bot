@@ -1,0 +1,109 @@
+{
+  "account": {
+    "cash": 54977.5205,
+    "equity": 99977.5,
+    "initial_balance": 100000.0,
+    "realized_pnl": 0.0,
+    "unrealized_pnl": -22.5
+  },
+  "positions": {
+    "AAPL": {
+      "symbol": "AAPL",
+      "quantity": 44.4444,
+      "avg_entry_price": 225.11249999999998,
+      "current_price": 225.0,
+      "market_value": 9999.99,
+      "unrealized_pnl": -4.999994999999243
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "quantity": 29.7619,
+      "avg_entry_price": 420.21,
+      "current_price": 420.0,
+      "market_value": 12499.998,
+      "unrealized_pnl": -6.2499989999993915
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "quantity": 96.1538,
+      "avg_entry_price": 130.065,
+      "current_price": 130.0,
+      "market_value": 12499.994,
+      "unrealized_pnl": -6.249996999999782
+    },
+    "SPY": {
+      "symbol": "SPY",
+      "quantity": 17.3913,
+      "avg_entry_price": 575.2875,
+      "current_price": 575.0,
+      "market_value": 9999.997500000001,
+      "unrealized_pnl": -4.999998750000396
+    }
+  },
+  "orders": [
+    {
+      "order_id": "8143c35f",
+      "symbol": "AAPL",
+      "side": "BUY",
+      "quantity": 44.4444,
+      "order_type": "MARKET",
+      "limit_price": null,
+      "status": "FILLED",
+      "created_at": "2026-10-23",
+      "filled_at": "2026-10-23",
+      "filled_price": 225.1125,
+      "filled_quantity": 44.4444,
+      "slippage_bps": 5.0,
+      "fee": 0.0,
+      "rejection_reason": null
+    },
+    {
+      "order_id": "a250c251",
+      "symbol": "MSFT",
+      "side": "BUY",
+      "quantity": 29.7619,
+      "order_type": "MARKET",
+      "limit_price": null,
+      "status": "FILLED",
+      "created_at": "2026-10-23",
+      "filled_at": "2026-10-23",
+      "filled_price": 420.21,
+      "filled_quantity": 29.7619,
+      "slippage_bps": 5.0,
+      "fee": 0.0,
+      "rejection_reason": null
+    },
+    {
+      "order_id": "76c69522",
+      "symbol": "NVDA",
+      "side": "BUY",
+      "quantity": 96.1538,
+      "order_type": "MARKET",
+      "limit_price": null,
+      "status": "FILLED",
+      "created_at": "2026-10-23",
+      "filled_at": "2026-10-23",
+      "filled_price": 130.065,
+      "filled_quantity": 96.1538,
+      "slippage_bps": 5.0,
+      "fee": 0.0,
+      "rejection_reason": null
+    },
+    {
+      "order_id": "d537d0e7",
+      "symbol": "SPY",
+      "side": "BUY",
+      "quantity": 17.3913,
+      "order_type": "MARKET",
+      "limit_price": null,
+      "status": "FILLED",
+      "created_at": "2026-10-23",
+      "filled_at": "2026-10-23",
+      "filled_price": 575.2875,
+      "filled_quantity": 17.3913,
+      "slippage_bps": 5.0,
+      "fee": 0.0,
+      "rejection_reason": null
+    }
+  ]
+}

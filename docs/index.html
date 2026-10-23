@@ -73,48 +73,59 @@
 <style>
   html { scroll-behavior: smooth; }
   body {
-    background-color: #0b0f19;
+    background-color: #080c14;
     color: #f8fafc;
     background-image:
-      radial-gradient(1200px 700px at 15% -10%, rgba(139, 92, 246, 0.14), transparent 60%),
-      radial-gradient(1000px 600px at 85% 10%, rgba(6, 182, 212, 0.12), transparent 55%),
-      radial-gradient(800px 500px at 50% 90%, rgba(16, 185, 129, 0.08), transparent 60%);
+      radial-gradient(1200px 700px at 15% -10%, rgba(99, 102, 241, 0.12), transparent 60%),
+      radial-gradient(1000px 600px at 85% 10%, rgba(6, 182, 212, 0.10), transparent 55%),
+      radial-gradient(900px 600px at 50% 90%, rgba(16, 185, 129, 0.06), transparent 60%),
+      linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px;
     background-attachment: fixed;
   }
   body.locked { overflow: hidden; }
-  ::selection { background: rgba(6, 182, 212, 0.35); }
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: #0b0f19; }
-  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+  ::selection { background: rgba(6, 182, 212, 0.35); color: #ffffff; }
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-track { background: #080c14; }
+  ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 4px; border: 1px solid rgba(0, 0, 0, 0.2); }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(6, 182, 212, 0.4); }
 
   .tabular { font-variant-numeric: tabular-nums; }
 
   /* ── Dark Glassmorphism ── */
   .glass-card {
-    background: rgba(18, 24, 38, 0.72);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    background: linear-gradient(145deg, rgba(17, 24, 39, 0.82) 0%, rgba(15, 23, 42, 0.65) 100%);
+    backdrop-filter: blur(20px) saturate(190%);
+    -webkit-backdrop-filter: blur(20px) saturate(190%);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    position: relative;
   }
   .glass-card-hover {
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, box-shadow 0.22s ease;
   }
   .glass-card-hover:hover {
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.16);
-    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+    border-color: rgba(6, 182, 212, 0.35);
+    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.75), 0 0 20px -4px rgba(6, 182, 212, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.14);
   }
 
   .subtle-input {
-    background: rgba(11, 15, 25, 0.65);
+    background: rgba(8, 12, 20, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
   }
   .subtle-input:focus {
     border-color: #06b6d4;
-    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.2);
   }
+
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6)); }
+  }
+  .glow-pulse { animation: pulseGlow 2.5s ease-in-out infinite; }
 
   @keyframes shake {
     10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(4px)}
@@ -240,8 +251,16 @@
         </div>
         <span class="hidden text-subborder sm:inline">|</span>
         <div class="hidden items-center gap-1.5 sm:flex">
-          <span class="h-2 w-2 rounded-full bg-em-bright animate-pulse"></span>
+          <span class="h-2 w-2 rounded-full bg-em-bright glow-pulse"></span>
           <span class="font-mono text-[11px] uppercase tracking-wider text-muted">OPERATIONAL</span>
+        </div>
+        <span class="hidden text-subborder sm:inline">|</span>
+        <div class="flex items-center gap-1.5">
+          <span class="font-mono text-[10px] uppercase text-muted">SIGNAL:</span>
+          <span id="signal-health-badge" class="inline-flex items-center gap-1 rounded-md border border-em/40 bg-em-subtle px-2 py-0.5 font-mono text-[10px] font-bold text-em-bright">
+            <span class="h-1.5 w-1.5 rounded-full bg-em-bright"></span>
+            ACTIVE
+          </span>
         </div>
       </div>
 
@@ -528,6 +547,14 @@
             <div class="flex items-center justify-between rounded-xl border border-borderline bg-background/40 p-2.5">
               <span class="text-muted">Circuit Breaker ES / NQ:</span>
               <span id="audit-circuit-breaker" class="font-semibold text-foreground">Normal Thresholds</span>
+            </div>
+
+            <div class="flex items-center justify-between rounded-xl border border-borderline bg-background/40 p-2.5">
+              <span class="text-muted">Signal Health:</span>
+              <span id="audit-signal-health-badge" class="inline-flex items-center gap-1 rounded-md border border-em/40 bg-em-subtle px-2 py-0.5 font-mono text-[10px] font-bold text-em-bright">
+                <span class="h-1.5 w-1.5 rounded-full bg-em-bright"></span>
+                ACTIVE
+              </span>
             </div>
           </div>
 
@@ -1102,6 +1129,9 @@ function renderAll() {
   $("#hdr-engine").textContent = "V8.1";
   $("#hdr-time").textContent   = timeICT(d.last_run_ict);
   $("#hdr-haven").textContent  = ps.cash_park || d.safe_haven || "SCBTMFPLUS-E";
+  if (d.signal_health?.status || d.telemetry?.status) {
+    updateSignalHealthBadge(d.signal_health?.status || d.telemetry?.status);
+  }
 
   // 2. Row 1: Donut & Performance Metrics
   $("#hero-capital-val").textContent = fmtBaht(capital, 0);
@@ -1319,8 +1349,50 @@ async function attemptUnlock(raw, { silent = false } = {}) {
   }
 }
 
+function updateSignalHealthBadge(status) {
+  const s = String(status || "ACTIVE").toUpperCase().trim();
+  let text = "text-em-bright";
+  let border = "border-em/40";
+  let bg = "bg-em-subtle";
+  let dot = "bg-em-bright";
+  if (s === "WATCH") {
+    text = "text-am-bright";
+    border = "border-am/40";
+    bg = "bg-am-subtle";
+    dot = "bg-am-bright";
+  } else if (s === "REVIEW") {
+    text = "text-rs-bright";
+    border = "border-rs/40";
+    bg = "bg-rs-subtle";
+    dot = "bg-rs-bright";
+  }
+  const badge = document.getElementById("signal-health-badge");
+  const auditBadge = document.getElementById("audit-signal-health-badge");
+  const content = `<span class="h-1.5 w-1.5 rounded-full ${dot}"></span>${s}`;
+  const cls = `inline-flex items-center gap-1 rounded-md border ${border} ${bg} px-2 py-0.5 font-mono text-[10px] font-bold ${text}`;
+  if (badge) {
+    badge.className = cls;
+    badge.innerHTML = content;
+  }
+  if (auditBadge) {
+    auditBadge.className = cls;
+    auditBadge.innerHTML = content;
+  }
+}
+
+async function loadTelemetry() {
+  try {
+    const res = await fetch(`telemetry.json?t=${Date.now()}`, { cache: "no-store" });
+    if (!res.ok) return;
+    const t = await res.json();
+    const st = t.status || t.signal_health?.status || "ACTIVE";
+    updateSignalHealthBadge(st);
+  } catch (_) {}
+}
+
 /* ── Bootstrap & Event Binding ── */
 document.addEventListener("DOMContentLoaded", async () => {
+  loadTelemetry();
   if (window.lucide) lucide.createIcons();
 
   if (!window.crypto || !window.crypto.subtle) {
@@ -1360,6 +1432,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Polling auto-refresh every 10 mins
   setInterval(async () => {
+    loadTelemetry();
     if (!state.unlocked) return;
     const pwd = readPwd();
     if (!pwd) return;
