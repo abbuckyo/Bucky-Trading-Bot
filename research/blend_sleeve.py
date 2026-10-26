@@ -26,10 +26,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import yfinance as yf  # noqa: E402
@@ -437,6 +433,11 @@ def save_blending_chart(
     out_path: Path,
 ) -> None:
     """Render and save 3-panel Equity, Drawdown, and Dynamic Risk Parity Weight chart."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig, axes = plt.subplots(
         3, 1, figsize=(14, 11), sharex=True, gridspec_kw={"height_ratios": [2.2, 1.3, 1.0]}

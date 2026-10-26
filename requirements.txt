@@ -10,3 +10,4 @@ certifi==2024.12.14
 urllib3==2.2.3
 cryptography
 pytest
+matplotlib
