@@ -1,23 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-11-16T05:33:36+00:00",
-  "last_run_ict": "2026-11-16T12:15:41+07:00",
+  "last_run_utc": "2026-11-18T05:24:52+00:00",
+  "last_run_ict": "2026-11-18T12:15:47+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -1.7,
+    "tip_mom_13612_pct": -1.47,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -1.70% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -1.47% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": -0.44,
-      "NQ=F": -0.84
+      "ES=F": 0.17,
+      "NQ=F": 0.38
     },
-    "description": "NORMAL: ES=F -0.44% | NQ=F -0.84% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F +0.17% | NQ=F +0.38% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -47,30 +47,30 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 44.0,
-      "raw_score": 44.0,
-      "price": 204.56,
-      "chg_pct": -0.27,
-      "dist_ema50_pct": -0.74,
-      "dist_ema200_pct": 2.76,
+      "score": 23.0,
+      "raw_score": 23.0,
+      "price": 198.73,
+      "chg_pct": -1.06,
+      "dist_ema50_pct": -3.34,
+      "dist_ema200_pct": -0.18,
       "bull_stack": true,
-      "rsi": 47.6,
-      "adx": 11.6,
-      "hv20": 20.8,
+      "rsi": 37.3,
+      "adx": 12.9,
+      "hv20": 21.9,
       "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "ระบบสั่งถือเงินสด 100% ตามสัญญาณมหภาค HAA Canary เพื่อล็อกความเสี่ยงและรักษาเงินต้นอย่างเคร่งครัด แม้ราคาจะยืนเหนือ EMA200 ได้ แต่คะแนน Quant ตกต่ำ (44.0) ร่วมกับแรงขายที่เริ่มคุมตลาด (-DI ชนะ +DI) \nเงื่อนไขสำคัญที่ต้องจับตาคือ การส่งสัญญาณกลับมาเปิดรับความเสี่ยงของ Canary และต้องเฝ้าระวังไม่ให้ราคาถอยหลุดแนวรับ EMA200 (+2.8%) ครับ",
+      "ai_analysis": "ต้องล๊อกถือเงินสด 100% ตามระบบ CANARY CASH เพื่อรักษาเงินต้น เนื่องจาก Quant Score ดิ่งเหลือ 23.0",
       "data_source": "yahoo_v8",
       "components": {
-        "trend_structure": 24.0,
+        "trend_structure": 20.0,
         "trend_strength": 3.0,
-        "momentum_macd": 12.0,
-        "momentum_rsi": 5.0,
+        "momentum_macd": 0.0,
+        "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-16T12:20:22+07:00"
+      "updated_at": "2026-11-18T12:20:34+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -88,30 +88,30 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 27.0,
-      "raw_score": 27.0,
-      "price": 813.41,
-      "chg_pct": -1.28,
-      "dist_ema50_pct": -1.38,
-      "dist_ema200_pct": 2.48,
+      "score": 23.0,
+      "raw_score": 23.0,
+      "price": 808.41,
+      "chg_pct": -0.61,
+      "dist_ema50_pct": -1.91,
+      "dist_ema200_pct": 1.83,
       "bull_stack": true,
-      "rsi": 44.0,
+      "rsi": 41.5,
       "adx": 16.3,
-      "hv20": 16.1,
+      "hv20": 16.2,
       "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "ต้องถือเงินสด 100% เพื่อรักษาเงินต้นตามสัญญาณเตือนภัยมหภาค (TIP Canary) แม้ราคายังอยู่เหนือ EMA200 แต่คะแนน Quant ทรุดหนักเหลือ 2",
+      "ai_analysis": ") อ่อนแอและไร้ปัจจัยข่าวหนุน\n        เงื่อนไขสำคัญ: จับตาการหลุดเส้น EMA200 และ",
       "data_source": "yahoo_v8",
       "components": {
-        "trend_structure": 24.0,
+        "trend_structure": 20.0,
         "trend_strength": 3.0,
         "momentum_macd": 0.0,
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-16T12:23:54+07:00"
+      "updated_at": "2026-11-18T12:21:31+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -129,34 +129,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 24.0,
-      "raw_score": 24.0,
-      "price": 679.89,
-      "chg_pct": -1.2,
-      "dist_ema50_pct": -3.96,
-      "dist_ema200_pct": -0.5,
-      "bull_stack": true,
-      "rsi": 42.8,
-      "adx": 30.3,
-      "hv20": 35.9,
+      "score": 12.0,
+      "raw_score": 12.0,
+      "price": 656.95,
+      "chg_pct": -0.73,
+      "dist_ema50_pct": -6.71,
+      "dist_ema200_pct": -3.79,
+      "bull_stack": false,
+      "rsi": 36.5,
+      "adx": 30.9,
+      "hv20": 36.5,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Strong downward impulse below EMA200",
+      "breakdown_reason": "Price -3.8% below EMA200",
       "news": [
-        "S&P 500, Dow, Nasdaq End Lower Amid Nvidia Turmoil, But Record Best Week Since August —  SPCX, NVDA, ARM, AZN In Focus",
-        "The Stock Market's Early Rally Fades as Wholesale Inflation Hits 6.5%",
-        "Exchange-Traded Funds Lower as US Equities Drop After Midday"
+        "Nvidia's Earnings And Guidance Soothe Investor Worries",
+        "Exchange-Traded Funds Fall as US Equities Drop After Midday",
+        "Bill Ackman Cut His Microsoft Stake. Your S&P 500 Fund Can’t."
       ],
-      "ai_analysis": "ต้องล็อกเงินสด 100% ทันทีเพื่อรักษาเงินต้นตามวินัย หลังโครงสร้างราคาพังและหลุด EMA200 (-0.5%) ด้วยแรงขายรุนแรง (-DI 33.9, ADX 30.3) ส",
+      "ai_analysis": "โครงสร้างราคาพังชัดเจนหลังหลุด EMA200 พร้อมแรงขายรุนแรง (ADX สูง/-DI คุม)",
       "data_source": "yahoo_v8",
       "components": {
-        "trend_structure": 20.0,
+        "trend_structure": 12.0,
         "trend_strength": 0.0,
-        "momentum_macd": 4.0,
+        "momentum_macd": 0.0,
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-16T12:26:25+07:00"
+      "updated_at": "2026-11-18T12:21:50+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -174,34 +174,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 11.0,
-      "raw_score": 11.0,
-      "price": 355.45,
-      "chg_pct": 0.16,
-      "dist_ema50_pct": -5.95,
-      "dist_ema200_pct": -8.72,
+      "score": 8.0,
+      "raw_score": 8.0,
+      "price": 352.48,
+      "chg_pct": -0.13,
+      "dist_ema50_pct": -6.25,
+      "dist_ema200_pct": -9.31,
       "bull_stack": false,
-      "rsi": 37.9,
-      "adx": 19.5,
+      "rsi": 36.3,
+      "adx": 21.0,
       "hv20": 28.1,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -8.7% below EMA200",
+      "breakdown_reason": "Price -9.3% below EMA200",
       "news": [
-        "Ray Dalio Keeps Telling Investors to Hold Gold. Gold Just Lost 28% From Its Record. Here’s His Rule for a 66-Year-Old With $800,000 in an IR",
-        "Gold Price Slips to Key Support as Fed Rate Risks and GLD ETF Outflows Build",
-        "AMD Benefits From Nvidia's Troubles, Smart Money Sells Nvidia; Cooler PPI; Bitcoin Below $70K"
+        "Investors Poured $2 Billion Into This Bitcoin ETF as It Lost a Quarter of Its Value This Year",
+        "DBMF: Insurance For When The 60/40 Falters",
+        "Gold Falls Below $4,000: Is Now the Time to Invest in This Gold-Backed ETF?"
       ],
-      "ai_analysis": "ระบบสั่งถือเงินสด 100% เพื่อรักษาเงินต้น เนื่องจากโครงสร้างขาขึ้นพังสมบูรณ์ ราคาหลุดต่ำกว่า EMA200 ถึง -8.7% พร้อมแรงกดดันขายมหาศาล (-DI 42.5) สอดคล้องกับเงินทุนที่ไหลออกจาก ETF ทองคำและความเสี่ยงดอกเบี้ย Fed \n\n**เงื่อนไขจับตา:** ต้องรอให้ราคากลับมายืนเหนือ EMA200 ได้อย่างมั่นคง และกระแสเงินไหลออกเริ่มชะลอตัว จึงจะพิจารณากลับเข้าลงทุนอีกครั้ง",
+      "ai_analysis": "คล้องกับข่าวกองทุนทองคำปรับตัวลงแรง\n        เงื่อนไขสำคัญที่ต้องจับตาคือ การรอให้ราค",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 0.0,
-        "trend_strength": 3.0,
+        "trend_strength": 0.0,
         "momentum_macd": 0.0,
         "momentum_rsi": 0.0,
         "volatility": 8.0
       },
-      "updated_at": "2026-11-16T12:28:55+07:00"
+      "updated_at": "2026-11-18T12:23:19+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -219,34 +219,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 16.0,
-      "raw_score": 16.0,
-      "price": 486.75,
-      "chg_pct": -2.99,
-      "dist_ema50_pct": -10.56,
-      "dist_ema200_pct": -5.67,
+      "score": 12.0,
+      "raw_score": 12.0,
+      "price": 460.1,
+      "chg_pct": -0.39,
+      "dist_ema50_pct": -14.45,
+      "dist_ema200_pct": -10.65,
       "bull_stack": false,
-      "rsi": 40.1,
-      "adx": 33.7,
-      "hv20": 67.4,
+      "rsi": 35.3,
+      "adx": 34.9,
+      "hv20": 68.9,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -5.7% below EMA200",
+      "breakdown_reason": "Price -10.6% below EMA200",
       "news": [
-        "Michael Burry sees 2 chip winners in Nvidia’s shake-up",
-        "The Semiconductor ETF Has Lost a Quarter of Its Value Since June. Buy It Now and Hold It Through 2030.",
-        "S&P 500, Dow, Nasdaq End Lower Amid Nvidia Turmoil, But Record Best Week Since August —  SPCX, NVDA, ARM, AZN In Focus"
+        "Nvidia's Earnings And Guidance Soothe Investor Worries",
+        "Nvidia Is Only 17% of SMH. After Its Beat, the Chip ETF Jumped Almost as Much as Nvidia Did",
+        "Jensen Huang Offered to Come Back and Nvidia Gained $90 Billion in 10 Minutes. Here’s What the Stock Did the Last Four Times a Board Took th"
       ],
-      "ai_analysis": "ต้องถือเงินสด 100% เพื่อรักษาเงินต้นทันที เนื่องจากโครงสร้างราคาพังชัดเจนจากการหลุด EMA200 ถึง -5.7% ประกอบกับ ADX 33.7 ยืนยันแนวโน้มขาลงแข็งแกร่ง (-DI 36.7) สอดคล้องกับข่าวแรงกดดันกลุ่มชิปที่ผันผวนหนัก\n\n**เงื่อนไขจับตา:** ห้ามเข้าช้อน",
+      "ai_analysis": "ต้องถือเงินสด 100% เพื่อรักษาเงินต้นอย่างเคร่งครัด เนื่องจากโครงสร้างราคาพังสมบูรณ์ หลุด EMA20",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 12.0,
         "trend_strength": 0.0,
-        "momentum_macd": 4.0,
+        "momentum_macd": 0.0,
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-16T12:33:36+07:00"
+      "updated_at": "2026-11-18T12:24:52+07:00"
     }
   }
 }
