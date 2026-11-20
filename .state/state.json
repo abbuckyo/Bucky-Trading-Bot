@@ -1,23 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-11-19T05:34:10+00:00",
-  "last_run_ict": "2026-11-19T12:15:46+07:00",
+  "last_run_utc": "2026-11-20T05:16:33+00:00",
+  "last_run_ict": "2026-11-20T12:15:40+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -1.52,
+    "tip_mom_13612_pct": -1.34,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -1.52% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -1.34% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": 0.6,
-      "NQ=F": 1.01
+      "ES=F": -0.49,
+      "NQ=F": -0.93
     },
-    "description": "NORMAL: ES=F +0.60% | NQ=F +1.01% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F -0.49% | NQ=F -0.93% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -49,19 +49,21 @@
       },
       "score": 23.0,
       "raw_score": 23.0,
-      "price": 197.72,
-      "chg_pct": -0.51,
-      "dist_ema50_pct": -3.69,
-      "dist_ema200_pct": -0.68,
+      "price": 193.91,
+      "chg_pct": -1.93,
+      "dist_ema50_pct": -5.34,
+      "dist_ema200_pct": -2.57,
       "bull_stack": true,
-      "rsi": 35.8,
-      "adx": 14.1,
-      "hv20": 21.8,
+      "rsi": 30.7,
+      "adx": 15.8,
+      "hv20": 22.4,
       "chop_capped": false,
-      "breakdown": false,
-      "breakdown_reason": "",
-      "news": [],
-      "ai_analysis": "ต้องล็อกเงินต้น 100% ตามสัญญาณ CANARY CASH เพราะราคาหลุดเส้น EMA200 และคะแนน Quant ต่ำวิ",
+      "breakdown": true,
+      "breakdown_reason": "Price -2.6% below EMA200",
+      "news": [
+        "The Shenzhen Summit: A New Yalta Or A Nothingburger? The Dates We Need To Watch"
+      ],
+      "ai_analysis": "ต้องล็อกเงินสด 100% ทันทีเพื่อรักษาเงินต้นตามระบบ TIP Canary หลังราคาหลุด EMA200 ถึง -2.6% จนโครงสร้างพังชัดเจน โดยมีแรงขายคุมตลาดเบ็ดเสร็จ (-DI พุ่ง 40.2) \n\n**เงื่อนไขที่ต้องจับตา:** ชะลอการลงทุนอย่างเด็ดขาดจนกว่าราคาจะพลิกกลับมายืนเหนือ EMA200 ได้อย่างมั่นคง และสัญญาณมหภาคระดับ Canary ปลดล็อกโหมดหลบภัยครับ",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 20.0,
@@ -70,7 +72,7 @@
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-19T12:20:16+07:00"
+      "updated_at": "2026-11-20T12:15:50+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -90,19 +92,19 @@
       },
       "score": 23.0,
       "raw_score": 23.0,
-      "price": 790.97,
-      "chg_pct": -2.16,
-      "dist_ema50_pct": -3.87,
-      "dist_ema200_pct": -0.36,
+      "price": 789.92,
+      "chg_pct": -0.13,
+      "dist_ema50_pct": -3.85,
+      "dist_ema200_pct": -0.49,
       "bull_stack": true,
-      "rsi": 34.2,
-      "adx": 17.4,
-      "hv20": 17.7,
+      "rsi": 33.8,
+      "adx": 18.5,
+      "hv20": 17.5,
       "chop_capped": false,
       "breakdown": false,
       "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "สัญญาณ Macro สั่งหนีความเสี่ยงจาก HAA Canary ประกอบกับราคาหลุดต่ำกว่าเส้น EMA200 (-0.4%) และแรงขายกดดันต่อเนื่อง (-DI สูงถึง 33.2) จึงต้องล็อกเงินสด 100% ทันทีเพื่อรักษาเงินต้นตามวินัย\n\nเงื่อนไขสำคัญที่ต้องจับตาคือ การกลับขึ้นไปยืนเหนือเส้น EMA200 ได้อย่างมั่นคง เพื่อยืนยันการฟื้นตัวของแนวโน้มขาขึ้นก่อนกลับเข้าลงทุนอีกครั้ง",
+      "ai_analysis": "ระบบสั่งถือเงินสด 100% เพื่อรักษาเงินต้นตามสัญญาณเตือนภัย HAA TIP Canary สอดรับกับคะแนน Quant ที่ทรุดหนัก (23/100) และราคาหลุด EMA200 ท่ามกลางแรงขายที่คุมตลาด (-DI 31.1) \n\nเงื่อนไขสำคัญที่ต้องจับตาคือ สัญญาณ Canary ต้องปลดล็อกความเสี่ยงมหภาค และดัชนีต้องเบรกกลับมายืนเหนือเส้น EMA200 ได้อย่างมั่นคงก่อนเข้าลงทุนรอบใหม่ครับ",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 20.0,
@@ -111,7 +113,7 @@
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-19T12:25:10+07:00"
+      "updated_at": "2026-11-20T12:15:58+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -131,23 +133,23 @@
       },
       "score": 12.0,
       "raw_score": 12.0,
-      "price": 659.51,
-      "chg_pct": 0.39,
-      "dist_ema50_pct": -6.11,
-      "dist_ema200_pct": -3.38,
+      "price": 645.04,
+      "chg_pct": -2.19,
+      "dist_ema50_pct": -7.87,
+      "dist_ema200_pct": -5.45,
       "bull_stack": false,
-      "rsi": 37.7,
-      "adx": 31.4,
-      "hv20": 36.3,
+      "rsi": 33.9,
+      "adx": 30.8,
+      "hv20": 35.7,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -3.4% below EMA200",
+      "breakdown_reason": "Price -5.5% below EMA200",
       "news": [
-        "$1 Million In QQQ Spent 503 Days Underwater",
-        "Two Retirees Each Hold $500,000 in a 401(k) Index Fund as Nvidia’s CFO Takes the Wheel. One Has About $28,950 Riding on a Single Stock. The ",
-        "Invesco QQQ Is 14% Below Its October Record. Here's Where I Think It Will Be in 2030."
+        "S&P 500, Nasdaq, Dow End Lower As Anthropic Trading Debut Fails To Provide Adequate Confidence —  ANT, META, AAPL, GME In Focus",
+        "AAII Sentiment Survey: Pessimism Backtracks",
+        "Anthropic Hits The Market, But Wall Street Hits The Brakes"
       ],
-      "ai_analysis": "ระบบสั่งถือเงินสด 100% เพื่อรักษาเงินต้นทันที เนื่องจากโครงสร้างขาลงสมบูรณ์ ราคาหลุด EMA200 ถึง -3.4% ผสานแรงขายกดดันชัดเจน (ADX 31.4, -DI 37.6) สอดคล้องกับภาพรวมข่าวที่ตลาดยังอยู่ในช่วงปรับฐานหนัก\n**เงื่อนไขที่ต้องจับตา:** รอสัญญาณ Canary ปลดล็อกและราคาฟื้นตัวปิดเหนือ EMA200 ให้ได้ก่อน จึงจะพิจารณากลับเข้าสะสมอีกครั้ง",
+      "ai_analysis": "ระบบสั่งถือเงินสด 100% เพื่อรักษาเงินต้นทันที หลังราคาหลุด EMA200 ลึกถึง -5.5% โครงสร้างพังชัดเจนและโมเมนตัมขาลงแข็งแกร่ง (ADX 30.8, -DI นำ) สอดคล้องกับตลาดสหรัฐฯ ที่ขาดความเชื่อมั่น \n\n**เงื่อนไขสำคัญที่ต้องจับตา:** รอสัญญาณ Canary ปลดล็อกและราคาฟื้นกลับมายืนเหนือ EMA200 พร้อมคะแนน Quant ดีดตัวขึ้น จึงจะเริ่มพิจารณากลับเข้าลงทุนครับ",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 12.0,
@@ -156,7 +158,7 @@
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-19T12:25:52+07:00"
+      "updated_at": "2026-11-20T12:16:15+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -176,23 +178,23 @@
       },
       "score": 4.0,
       "raw_score": 4.0,
-      "price": 341.19,
-      "chg_pct": -3.2,
-      "dist_ema50_pct": -8.92,
-      "dist_ema200_pct": -12.11,
+      "price": 335.18,
+      "chg_pct": -1.76,
+      "dist_ema50_pct": -10.16,
+      "dist_ema200_pct": -13.54,
       "bull_stack": false,
-      "rsi": 30.6,
-      "adx": 22.6,
-      "hv20": 29.8,
+      "rsi": 28.0,
+      "adx": 24.3,
+      "hv20": 29.1,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -12.1% below EMA200",
+      "breakdown_reason": "Price -13.5% below EMA200",
       "news": [
-        "Commodities Fall With A Thud",
-        "Gold's 14-Month Low Comes With a Bigger Rate Question",
-        "Gold Is at a 14-Month Low as Traders Bet on More Fed Hikes"
+        "Different Pages",
+        "Druckenmiller Bought 3 Gold Miners. History Shows How These Moves Usually Play Out.",
+        "Here's Why Long-Term Investors Shouldn't Overlook Gold ETFs"
       ],
-      "ai_analysis": "ปฏิบัติตามคำสั่ง **[CANARY CASH]** ล็อกเงินสด 100% ทันทีเพื่อรักษาเงินต้น เนื่องจาก",
+      "ai_analysis": "ระบบสั่งล็อกเงินสด 100% เพื่อรักษาเงินต้นทันทีตามสัญญาณ Macro Canary แม้มีข่าวเชิงบวกแต่โครงสร้างราคาพังชัดเจนจากการหลุด EMA200 ถึง -13.5% พร้อมแรงขายกดดันรุนแรง (-DI 50.5) ห้ามเข้าช้อนซื้อสวนแนวโน้มขาลงเด็ดขาด\n**เงื่อนไขจับตา:** รอสัญญาณ Canary ปลดล็อกความเสี่ยง และราคาต้องพลิกกลับมายืนเหนือเส้น EMA",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 0.0,
@@ -201,7 +203,7 @@
         "momentum_rsi": 0.0,
         "volatility": 4.0
       },
-      "updated_at": "2026-11-19T12:27:22+07:00"
+      "updated_at": "2026-11-20T12:16:24+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -221,23 +223,23 @@
       },
       "score": 12.0,
       "raw_score": 12.0,
-      "price": 459.54,
-      "chg_pct": -0.12,
-      "dist_ema50_pct": -14.06,
-      "dist_ema200_pct": -10.66,
+      "price": 447.48,
+      "chg_pct": -2.62,
+      "dist_ema50_pct": -15.78,
+      "dist_ema200_pct": -12.89,
       "bull_stack": false,
-      "rsi": 35.2,
-      "adx": 35.4,
-      "hv20": 68.3,
+      "rsi": 33.0,
+      "adx": 35.3,
+      "hv20": 65.8,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -10.7% below EMA200",
+      "breakdown_reason": "Price -12.9% below EMA200",
       "news": [
-        "Which Funds With Semiconductor Exposure Best Capture The China AI Chip Curbs?",
-        "Where Does Nvidia Stock Go After Earnings? What the Charts Tell Us.",
-        "Can NVIDIA's Q3 Beat and Solid View Offset China Curbs & Huang's Exit?"
+        "The Semiconductor ETF Is on Track to Beat the S&P 500 for a 4th Straight Year. It Has Never Done That Before.",
+        "S&P 500, Nasdaq, Dow End Lower As Anthropic Trading Debut Fails To Provide Adequate Confidence —  ANT, META, AAPL, GME In Focus",
+        "Nvidia’s earnings beat fails to lift chip sector as macro and policy risks weigh"
       ],
-      "ai_analysis": "ต้องล็อกเงินสด 100% ทันทีเพื่อรักษาเงินต้นตามสัญญาณ Canary เนื่องจากโครงสร้างราคาพังชัดเจน หลุดต่ำกว่า EMA200 ถึง -10.7% ประกอบกับ ADX ชี้โมเมนตัมขาลงรุนแรง ท่ามกลางแรงกดดันกีดกันชิปจีน เงื่อนไขสำคัญคือต้องรอ Canary ปลดล็อกและราคากลับมายืนเหนือ EMA200",
+      "ai_analysis": "ต้องถือเงินสด 100% ตามระบบ Canary เพื่อรักษาเงินต้น เนื่องจากโครงสร้างเทคนิคพังสมบูรณ์ ราคาหลุด EMA20",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 12.0,
@@ -246,7 +248,7 @@
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-19T12:34:10+07:00"
+      "updated_at": "2026-11-20T12:16:33+07:00"
     }
   }
 }
