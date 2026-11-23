@@ -1106,25 +1106,17 @@ RSI: {m.rsi:.1f} | ADX: {m.adx:.1f} (+DI {m.plus_di:.1f} / -DI {m.minus_di:.1f})
         return "_(AI explainer unavailable)_"
 
     model_cascade = get_dynamic_flash_models(client)
-    thinking_cfg = (
-        genai_types.ThinkingConfig(thinking_budget=0)
-        if hasattr(genai_types, "ThinkingConfig")
-        else None
-    )
 
     for model in model_cascade:
         try:
-            cfg_kwargs = {
-                "system_instruction": AI_SYSTEM_PROMPT,
-                "temperature": CFG.AI_TEMPERATURE,
-                "max_output_tokens": CFG.AI_MAX_OUTPUT_TOKENS,
-            }
-            if thinking_cfg is not None:
-                cfg_kwargs["thinking_config"] = thinking_cfg
             resp = client.models.generate_content(
                 model=model,
                 contents=prompt,
-                config=genai_types.GenerateContentConfig(**cfg_kwargs),
+                config=genai_types.GenerateContentConfig(
+                    system_instruction=AI_SYSTEM_PROMPT,
+                    temperature=CFG.AI_TEMPERATURE,
+                    max_output_tokens=CFG.AI_MAX_OUTPUT_TOKENS,
+                ),
             )
             text = (getattr(resp, "text", "") or "").strip()
             if text:
