@@ -1153,6 +1153,10 @@ def broadcast(message: str) -> None:
 # SECTION 12 -- RENDERING (SUMMARY AT TOP)
 # ------------------------------------------------------------------------------
 
+def _display_fund_name(fund: str) -> str:
+    return "SCBWORLD(E)" if fund == "SCBWORLDE" else fund
+
+
 def render_executive_summary(
     summary_rows: List[Tuple[str, float, str, str, str, str, int, str]],
     canary_ok: bool,
@@ -1162,18 +1166,18 @@ def render_executive_summary(
     futures_desc: str = ""
 ) -> str:
     lines = [
-        "──────── ⚡ **สรุปคำสั่งพอร์ต AlphaShield V8.1** ────────",
+        "⚡ สรุปคำสั่งพอร์ต AlphaShield V8.1",
     ]
     # Macro Canary status banner
     canary_icon = "🟢" if canary_ok else "🚨"
     canary_badge = "CANARY GREEN" if canary_ok else "CANARY RED (100% CASH DEFENSE)"
-    lines.append(f"{canary_icon} **HAA Regime Canary:** `{canary_badge}` (TIP 13612 Mom: `{tip_mom:+.2f}%`)")
+    lines.append(f"{canary_icon} Regime: {canary_badge} (TIP Mom: {tip_mom:+.2f}%)")
 
     # Pre-Market US Futures Guard banner
     if futures_triggered:
-        lines.append(f"⚠️ **Pre-Market Futures Alert:** `{futures_desc}`")
+        lines.append(f"⚠️ Futures: {futures_desc}")
     else:
-        lines.append(f"🌐 **Pre-Market US Futures:** `{futures_desc}`")
+        lines.append(f"🌐 Futures: {futures_desc}")
     lines.append("")
 
     total_equity_weight = 0.0
@@ -1181,48 +1185,52 @@ def render_executive_summary(
 
     for item in summary_rows:
         fund, score, signal, position, icon, detail, stage, tranche_lbl = item
+        disp_fund = _display_fund_name(fund)
         sleeve_weight = (stage / 3.0) * 20.0  # Sleeve 20% of total portfolio
         total_equity_weight += sleeve_weight
         if stage > 0:
-            active_allocations.append(f"{fund} ({sleeve_weight:.1f}%)")
-        lines.append(f"{icon} **{fund}** | `{score:4.1f}` | **{signal}** | ไม้: `{tranche_lbl}` ({sleeve_weight:.1f}%)")
-        lines.append(f"   ↳ _{detail}_")
+            active_allocations.append(f"{disp_fund} ({sleeve_weight:g}%)")
+        lines.append(f"{icon} {disp_fund} | {score:.1f} | {signal} ({sleeve_weight:g}%)")
 
     cash_weight = max(0.0, 100.0 - total_equity_weight)
     lines.append("")
     if active_allocations:
-        lines.append(f"💼 **สัดส่วนพอร์ตจริง:** หุ้น/ทอง `{total_equity_weight:.1f}%` ({', '.join(active_allocations)}) | เงินสด `{cash_weight:.1f}%` ({CFG.CASH_FUND})")
+        lines.append(f"💼 พอร์ตจริง: หุ้น/ทอง {total_equity_weight:g}% ({', '.join(active_allocations)}) | เงินสด {cash_weight:g}% ({CFG.CASH_FUND})")
     else:
-        lines.append(f"💼 **สัดส่วนพอร์ตจริง:** ⚪ เงินสด `100.0%` พักหลุมหลบภัยใน `{CFG.CASH_FUND}`")
-    lines.append("────────────────────────────────────────────────────")
+        lines.append(f"💼 พอร์ตจริง: เงินสด {cash_weight:g}% ({CFG.CASH_FUND})")
+    lines.append("────────────────────")
     return "\n".join(lines)
 
 
 def render_asset_block(asset: Asset, m: Metrics, sc: ScoreResult, dec: Decision, news: List[str], ai_text: str) -> str:
+    disp_fund = _display_fund_name(asset.fund)
     lines = [
-        f"{dec.icon} **{asset.fund}** — {asset.label} (`{asset.yahoo}`)",
-        f"**ไม้จัดสรร:** `{dec.tranche_label}` | **คำสั่ง:** `{dec.action}` | **สถานะ:** `{dec.prev_position} → {dec.position}`",
-        f"**ราคา:** {m.price:,.2f} ({m.chg_pct:+.2f}%) | **EMA Stack:** {'50>100>200 (สมบูรณ์)' if m.bull_stack else 'Broken'}",
-        f"**vs EMA50:** {m.dist_ema50_pct:+.1f}% | **vs EMA200:** {m.dist_ema200_pct:+.1f}% | **RSI:** {m.rsi:.1f} | **ADX:** {m.adx:.1f}",
-        f"**คะแนน Quant:** `{sc.score}/100` | **แหล่งข้อมูล:** `{m.data_source}`",
+        f"{dec.icon} {disp_fund} — {asset.label} ({asset.yahoo})",
+        f"ไม้: {dec.tranche_label} | คำสั่ง: [{dec.action}] | {dec.prev_position} → {dec.position}",
+        f"ราคา: {m.price:,.2f} ({m.chg_pct:+.2f}%) | คะแนน: {sc.score}/100",
+        f"EMA50: {m.dist_ema50_pct:+.1f}% | EMA200: {m.dist_ema200_pct:+.1f}% | RSI: {m.rsi:.1f} | ADX: {m.adx:.1f}",
     ]
     if sc.chop_capped:
-        lines.append("🌀 _สภาวะตลาดแกว่งตัว (ADX < 20) — ล็อกคะแนนห้ามเข้าซื้อ_")
+        lines.append("🌀 สภาวะตลาดแกว่งตัว (ADX < 20) — ล็อกคะแนนห้ามเข้าซื้อ")
     if sc.breakdown:
-        lines.append(f"🧨 _โครงสร้างหลุดแนวรับวิกฤต: {sc.breakdown_reason}_")
+        lines.append(f"🧨 โครงสร้างหลุดแนวรับวิกฤต: {sc.breakdown_reason}")
     if news:
-        lines.append("**พาดหัวข่าว:** " + " • ".join(news[:2]))
-    lines.append(f"**วิเคราะห์:**\n{ai_text}")
+        headline = news[0].replace("**", "").replace("`", "").strip()
+        if len(headline) > 80:
+            headline = headline[:80].rstrip() + "..."
+        if headline:
+            lines.append(f"📰 ข่าว: {headline}")
+    clean_ai = " ".join(ai_text.replace("**", "").replace("`", "").split())
+    lines.append(f"💬 วิเคราะห์: {clean_ai}")
     return "\n".join(lines)
 
 
 def render_header(now_th: datetime) -> str:
     return (
-        "═══════════════════════════════════════════════════════════════\n"
-        "🛡️ **บอทเฝ้าดอย V8.0 (Beta) — STAGED TRANCHE & HAA CANARY**\n"
-        f"🕛 {now_th.strftime('%Y-%m-%d %H:%M')} ICT | หลุมหลบภัย: `{CFG.CASH_FUND}`\n"
-        f"กติกา: HAA TIP Canary + 3-Tranche Scaling + Pre-Market Futures Guard\n"
-        "═══════════════════════════════════════════════════════════════"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "🛡️ บอทเฝ้าดอย V8.0 — HAA CANARY\n"
+        f"🕛 {now_th.strftime('%Y-%m-%d %H:%M')} | หลุมหลบภัย: {CFG.CASH_FUND}\n"
+        "━━━━━━━━━━━━━━━━━━━━"
     )
 
 
@@ -1638,7 +1646,7 @@ def main() -> int:
         except Exception as exc:
             failures += 1
             LOG.exception("Error on %s: %s", asset.fund, exc)
-            detail_blocks.append(f"⚠️ **{asset.fund}** — ระบบวิเคราะห์ขัดข้อง: `{exc}`")
+            detail_blocks.append(f"⚠️ {_display_fund_name(asset.fund)} — ระบบวิเคราะห์ขัดข้อง: {exc}")
 
         if idx < len(UNIVERSE) - 1:
             time.sleep(CFG.INTER_ASSET_SLEEP)
@@ -1779,16 +1787,15 @@ def main() -> int:
             futures_triggered=futures_triggered,
             futures_desc=futures_desc
         ),
-        "──────── 🔍 **รายละเอียดทางเทคนิครายสินทรัพย์** ────────\n",
-        "\n\n".join(detail_blocks),
-        "────────────────────────────────────────",
-        "🔐 **Dashboard เข้ารหัส AES-GCM เรียบร้อยแล้ว**",
-        "🔑 **เข้าดูด้วย Master Password ประจำตัว**",
-        f"🌐 **Web Dashboard:** {DASHBOARD_URL}",
-        f"_AlphaShield Engine v8.1 • HAA TIP Regime: {'GREEN' if canary_ok else 'RED'} • สมบูรณ์ {len(summary_rows)}/{len(UNIVERSE)} • ล้มเหลว {failures}_"
+        "🔍 รายละเอียดทางเทคนิค\n\n" + "\n\n".join(detail_blocks),
+        (
+            "────────────────────\n"
+            f"🔐 Dashboard (AES-GCM): {DASHBOARD_URL}\n"
+            f"AlphaShield v8.1 • Regime: {'GREEN' if canary_ok else 'RED'} • {len(summary_rows)}/{len(UNIVERSE)} • yahoo_v8"
+        ),
     ]
 
-    final_report = "\n\n".join(report_sections)
+    final_report = "\n".join(report_sections)
     broadcast(final_report)
 
     # Send separate critical approval alerts if any tickets are pending confirmation
