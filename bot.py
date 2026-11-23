@@ -113,7 +113,7 @@ class CFG:
         "gemini-2.5-flash",
     ]
     AI_TEMPERATURE = 0.0
-    AI_MAX_OUTPUT_TOKENS = 800
+    AI_MAX_OUTPUT_TOKENS = 2048
 
     # News
     NEWS_LOOKBACK_DAYS = 3
@@ -1097,7 +1097,7 @@ RSI: {m.rsi:.1f} | ADX: {m.adx:.1f} (+DI {m.plus_di:.1f} / -DI {m.minus_di:.1f})
 หัวข้อข่าวเด่น:
 {news_text}
 
-ช่วยสรุปสั้นๆ ว่าทำไมวันนี้ถึงต้องเลือกทำตามคำสั่งนี้ และเงื่อนไขสำคัญที่ต้องจับตาคืออะไร
+ช่วยสรุปสั้นๆ 1-2 ประโยคภาษาไทยให้จบสมบูรณ์ ว่าทำไมวันนี้ถึงต้องเลือกทำตามคำสั่งนี้ และเงื่อนไขสำคัญที่ต้องจับตาคืออะไร
 """.strip()
 
     try:
@@ -1106,17 +1106,25 @@ RSI: {m.rsi:.1f} | ADX: {m.adx:.1f} (+DI {m.plus_di:.1f} / -DI {m.minus_di:.1f})
         return "_(AI explainer unavailable)_"
 
     model_cascade = get_dynamic_flash_models(client)
+    thinking_cfg = (
+        genai_types.ThinkingConfig(thinking_budget=0)
+        if hasattr(genai_types, "ThinkingConfig")
+        else None
+    )
 
     for model in model_cascade:
         try:
+            cfg_kwargs = {
+                "system_instruction": AI_SYSTEM_PROMPT,
+                "temperature": CFG.AI_TEMPERATURE,
+                "max_output_tokens": CFG.AI_MAX_OUTPUT_TOKENS,
+            }
+            if thinking_cfg is not None:
+                cfg_kwargs["thinking_config"] = thinking_cfg
             resp = client.models.generate_content(
                 model=model,
                 contents=prompt,
-                config=genai_types.GenerateContentConfig(
-                    system_instruction=AI_SYSTEM_PROMPT,
-                    temperature=CFG.AI_TEMPERATURE,
-                    max_output_tokens=CFG.AI_MAX_OUTPUT_TOKENS,
-                ),
+                config=genai_types.GenerateContentConfig(**cfg_kwargs),
             )
             text = (getattr(resp, "text", "") or "").strip()
             if text:
@@ -1190,7 +1198,8 @@ def render_executive_summary(
         total_equity_weight += sleeve_weight
         if stage > 0:
             active_allocations.append(f"{disp_fund} ({sleeve_weight:g}%)")
-        lines.append(f"{icon} {disp_fund} | {score:.1f} | {signal} ({sleeve_weight:g}%)")
+        short_signal = "CASH" if signal == "CASH PARK" else signal
+        lines.append(f"{icon} {disp_fund} | {score:.1f} | {short_signal} {sleeve_weight:g}%")
 
     cash_weight = max(0.0, 100.0 - total_equity_weight)
     lines.append("")
@@ -1198,26 +1207,26 @@ def render_executive_summary(
         lines.append(f"💼 พอร์ตจริง: หุ้น/ทอง {total_equity_weight:g}% ({', '.join(active_allocations)}) | เงินสด {cash_weight:g}% ({CFG.CASH_FUND})")
     else:
         lines.append(f"💼 พอร์ตจริง: เงินสด {cash_weight:g}% ({CFG.CASH_FUND})")
-    lines.append("────────────────────")
+    lines.append("──────────────")
     return "\n".join(lines)
 
 
 def render_asset_block(asset: Asset, m: Metrics, sc: ScoreResult, dec: Decision, news: List[str], ai_text: str) -> str:
     disp_fund = _display_fund_name(asset.fund)
+    clean_action = dec.action.strip().lstrip("[").rstrip("]").strip()
     lines = [
-        f"{dec.icon} {disp_fund} — {asset.label} ({asset.yahoo})",
-        f"ไม้: {dec.tranche_label} | คำสั่ง: [{dec.action}] | {dec.prev_position} → {dec.position}",
-        f"ราคา: {m.price:,.2f} ({m.chg_pct:+.2f}%) | คะแนน: {sc.score}/100",
-        f"EMA50: {m.dist_ema50_pct:+.1f}% | EMA200: {m.dist_ema200_pct:+.1f}% | RSI: {m.rsi:.1f} | ADX: {m.adx:.1f}",
+        f"{dec.icon} {disp_fund} ({asset.yahoo})",
+        f"ไม้: {dec.tranche_label} | {clean_action} | {dec.prev_position}→{dec.position}",
+        f"ราคา: {m.price:.2f} ({m.chg_pct:+.2f}%) | {sc.score:.0f}/100",
+        f"E50: {m.dist_ema50_pct:+.1f}% | E200: {m.dist_ema200_pct:+.1f}%",
+        f"RSI: {m.rsi:.1f} | ADX: {m.adx:.1f}",
     ]
-    if sc.chop_capped:
-        lines.append("🌀 สภาวะตลาดแกว่งตัว (ADX < 20) — ล็อกคะแนนห้ามเข้าซื้อ")
     if sc.breakdown:
-        lines.append(f"🧨 โครงสร้างหลุดแนวรับวิกฤต: {sc.breakdown_reason}")
+        lines.append(f"🧨 หลุดแนวรับ: EMA200 ({m.dist_ema200_pct:+.1f}%)")
     if news:
         headline = news[0].replace("**", "").replace("`", "").strip()
-        if len(headline) > 80:
-            headline = headline[:80].rstrip() + "..."
+        if len(headline) > 60:
+            headline = headline[:60].rstrip() + "..."
         if headline:
             lines.append(f"📰 ข่าว: {headline}")
     clean_ai = " ".join(ai_text.replace("**", "").replace("`", "").split())
@@ -1227,10 +1236,10 @@ def render_asset_block(asset: Asset, m: Metrics, sc: ScoreResult, dec: Decision,
 
 def render_header(now_th: datetime) -> str:
     return (
-        "━━━━━━━━━━━━━━━━━━━━\n"
-        "🛡️ บอทเฝ้าดอย V8.0 — HAA CANARY\n"
-        f"🕛 {now_th.strftime('%Y-%m-%d %H:%M')} | หลุมหลบภัย: {CFG.CASH_FUND}\n"
-        "━━━━━━━━━━━━━━━━━━━━"
+        "━━━━━━━━━━━━━━\n"
+        "🛡️ บอทเฝ้าดอย V8.0 (HAA)\n"
+        f"🕛 {now_th.strftime('%Y-%m-%d %H:%M')} | {CFG.CASH_FUND}\n"
+        "━━━━━━━━━━━━━━"
     )
 
 
@@ -1789,7 +1798,7 @@ def main() -> int:
         ),
         "🔍 รายละเอียดทางเทคนิค\n\n" + "\n\n".join(detail_blocks),
         (
-            "────────────────────\n"
+            "──────────────\n"
             f"🔐 Dashboard (AES-GCM): {DASHBOARD_URL}\n"
             f"AlphaShield v8.1 • Regime: {'GREEN' if canary_ok else 'RED'} • {len(summary_rows)}/{len(UNIVERSE)} • yahoo_v8"
         ),
