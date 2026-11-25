@@ -1228,7 +1228,6 @@ def render_asset_block(asset: Asset, m: Metrics, sc: ScoreResult, dec: Decision,
 
 def render_header(now_th: datetime) -> str:
     return (
-        "━━━━━━━━━━━━━━\n"
         "🛡️ บอทเฝ้าดอย V8.0 (HAA)\n"
         f"🕛 {now_th.strftime('%Y-%m-%d %H:%M')} | {CFG.CASH_FUND}\n"
         "━━━━━━━━━━━━━━"
