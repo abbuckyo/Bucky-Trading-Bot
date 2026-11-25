@@ -1,23 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-11-24T05:17:54+00:00",
-  "last_run_ict": "2026-11-24T12:15:44+07:00",
+  "last_run_utc": "2026-11-25T05:17:43+00:00",
+  "last_run_ict": "2026-11-25T12:15:45+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -1.19,
+    "tip_mom_13612_pct": -1.36,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -1.19% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -1.36% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": 0.17,
-      "NQ=F": 0.06
+      "ES=F": -0.66,
+      "NQ=F": -1.16
     },
-    "description": "NORMAL: ES=F +0.17% | NQ=F +0.06% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F -0.66% | NQ=F -1.16% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -47,30 +47,30 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 27.0,
-      "raw_score": 27.0,
-      "price": 195.25,
-      "chg_pct": 4.17,
-      "dist_ema50_pct": -4.2,
-      "dist_ema200_pct": -1.82,
-      "bull_stack": true,
-      "rsi": 40.3,
-      "adx": 20.0,
-      "hv20": 29.6,
+      "score": 16.0,
+      "raw_score": 16.0,
+      "price": 194.56,
+      "chg_pct": -0.35,
+      "dist_ema50_pct": -4.37,
+      "dist_ema200_pct": -2.14,
+      "bull_stack": false,
+      "rsi": 39.5,
+      "adx": 21.5,
+      "hv20": 29.3,
       "chop_capped": false,
-      "breakdown": false,
-      "breakdown_reason": "",
+      "breakdown": true,
+      "breakdown_reason": "Price -2.1% below EMA200",
       "news": [],
-      "ai_analysis": "ต้องทำตามคำสั่ง [CANARY CASH] ถือเงินสด 100% เพื่อปกป้องเงินต้นอย่างเคร่งครัด หลังราคาหลุดต่ำกว่า EMA200 (-1.8%) ร่วมกับคะแนน Quant ต่ำวิกฤตที่ 27.0 และแรงขายครอบงำชัดเจน (-DI 40.5) \n\nเงื่อนไขสำคัญที่ต้องจับตาคือการรอให้ราคาดึงกลับขึ้นมายืนเหนือเส้น EMA200 และระบบ Quant พลิกกลับมาเป็นบวกก่อนเริ่มสะสมรอบใหม่",
+      "ai_analysis": "ต้องถือเงินสด 100% เพื่อปกป้องเงินต้นทันที หลังโครงสร้างราคาพังหลุด EMA200 ลงมา -2.1% ประกอบกับแรงขายครองตลาดอย่างสมบูรณ์ (-DI 39.4) \n\nเงื่อนไขสำคัญที่ต้องจับตาคือ การรอให้ราคากลับขึ้นมายืนเหนือ EMA200 และสัญญาณ HAA Canary เปลี่ยนเป็น Risk-On จึงจะพิจารณากลับเข้าซื้ออีกครั้ง",
       "data_source": "yahoo_v8",
       "components": {
-        "trend_structure": 20.0,
-        "trend_strength": 3.0,
+        "trend_structure": 12.0,
+        "trend_strength": 0.0,
         "momentum_macd": 4.0,
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-24T12:16:00+07:00"
+      "updated_at": "2026-11-25T12:16:38+07:00"
     },
     "SCBS&P500E": {
       "fund": "SCBS&P500E",
@@ -88,30 +88,30 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 20.0,
-      "raw_score": 20.0,
-      "price": 762.4,
-      "chg_pct": -3.39,
-      "dist_ema50_pct": -6.8,
-      "dist_ema200_pct": -3.91,
+      "score": 24.0,
+      "raw_score": 24.0,
+      "price": 783.61,
+      "chg_pct": 2.78,
+      "dist_ema50_pct": -4.05,
+      "dist_ema200_pct": -1.23,
       "bull_stack": true,
-      "rsi": 25.2,
-      "adx": 22.1,
-      "hv20": 20.7,
+      "rsi": 38.3,
+      "adx": 23.1,
+      "hv20": 23.4,
       "chop_capped": false,
-      "breakdown": true,
-      "breakdown_reason": "Price -3.9% below EMA200",
+      "breakdown": false,
+      "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "ต้องถือเงินสด 100% ตามคำสั่ง [CANARY CASH] เนื่องจากโครงสร้างราคาพังหลุด EMA200 ลงมา -3.9% ร่วมกับแรงส่งฝั่งขายที่ครองตลาดชัดเจน (-DI 37.1) การถือเงินสดจึงจำเป็นเพื่อรักษาเงินต้นตามหลัก Trend-Following \n\nเงื่อนไขสำคัญที่ต้องจับตาคือรอจนกว่าราคาจะสามารถเบรกกลับขึ้นไปยืนเหนือ EMA200 พร้อมเกิดสัญญาณฟื้นตัวของโมเมนตัมฝั่งซื้อ (+DI) ก่อนพิจารณากลับเข้าลงทุนอีกครั้ง",
+      "ai_analysis": "ต้องปฏิบัติตามคำสั่งล็อกเงินสด 100% ทันที เนื่องจากราคาหลุดเส้น EMA200 (-1.2%) ร่วมกับคะแนน Quant ต่ำเพียง 24.0 และโมเมนตัมฝั่งขายครองตลาดชัดเจน (-DI 32.6 ข่ม +DI 15.5) เพื่อรักษาเงินต้นตามวินัย Trend-Following \n\nเงื่อนไขสำคัญที่ต้องจับตาคือ การรอให้ราคาฟื้นตัวยืนเหนือ EMA200 ได้อย่างมั่นคง และเกิดสัญญาณตัดขึ้นของโมเมนตัม (+DI กลับมาชนะ -DI) ก่อนพิจารณากลับเข้าลงทุนอีกครั้ง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 20.0,
         "trend_strength": 0.0,
-        "momentum_macd": 0.0,
+        "momentum_macd": 4.0,
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-24T12:16:22+07:00"
+      "updated_at": "2026-11-25T12:16:55+07:00"
     },
     "SCBNDQ(E)": {
       "fund": "SCBNDQ(E)",
@@ -131,23 +131,23 @@
       },
       "score": 16.0,
       "raw_score": 16.0,
-      "price": 651.03,
-      "chg_pct": 7.0,
-      "dist_ema50_pct": -6.3,
-      "dist_ema200_pct": -4.43,
+      "price": 638.1,
+      "chg_pct": -1.99,
+      "dist_ema50_pct": -7.86,
+      "dist_ema200_pct": -6.27,
       "bull_stack": false,
-      "rsi": 42.2,
-      "adx": 31.5,
-      "hv20": 48.1,
+      "rsi": 39.5,
+      "adx": 31.6,
+      "hv20": 48.0,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -4.4% below EMA200",
+      "breakdown_reason": "Price -6.3% below EMA200",
       "news": [
-        "S&P 500, Nasdaq End Best Session Since April Last Year On Optimism Led By Jensen Huang’s Reinstatement — NVDA, NASA, TTWO, AMZN In Focus",
-        "Cumberland's Monday Memo",
-        "Retiring On $2 Million? Sell BND Before SCHD"
+        "Is Apple (AAPL) Above Fair Value As ETF Buying Returns?",
+        "Monday's Euphoria Ends With Tuesday's Hangover",
+        "Consumer Confidence Jumps To Highest Level In Almost 2 Years"
       ],
-      "ai_analysis": "ต้องทำตามคำสั่ง CANARY CASH เพื่อรักษาเงินต้นเต็มจำนวน เนื่องจากโครงสร้างราคาพังชัดเจนจากการหลุด EMA200 ถึง -4.4% และโมเมนตัมขาลงรุนแรง (-DI 35.2 ข่ม +DI) แม้มีข่าวบวกรีบาวด์สั้นก็เป็นเพียงความผันผวนชั่วคราว\nเงื่อนไขสำคัญคือต้องรอราคากลับมายืนเหนือ EMA200 และคะแนน Quant ฟื้นตัวพ้นเขตอันตรายเท่านั้น จึงจะพิจารณากลับเข้าลงทุนอีกครั้ง",
+      "ai_analysis": "ต้องถือเงินสด 100% ตามสัญญาณ [CANARY CASH] เพื่อรักษาเงินต้น เนื่องจากโครงสร้างราคาเสียทรงหนักโดยหลุด EMA200 ลงมา -6.3% และมีแรงส่งขาลงครองตลาดอย่างสมบูรณ์ (ADX 31.6, -DI 36.5) \n\nเงื่อนไขสำคัญที่ต้องจับตาคือ การรอให้ราคากลับขึ้นไปยืนเหนือ EMA200 พร้อม +DI ตัดขึ้นแซง -DI เพื่อยืนยันการกลับตัวของแนวโน้มใหญ่ก่อนพิจารณาเข้าลงทุนอีกครั้ง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 12.0,
@@ -156,7 +156,7 @@
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-24T12:16:31+07:00"
+      "updated_at": "2026-11-25T12:17:12+07:00"
     },
     "SCBGOLDE": {
       "fund": "SCBGOLDE",
@@ -174,34 +174,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 8.0,
-      "raw_score": 8.0,
-      "price": 333.02,
-      "chg_pct": 3.14,
-      "dist_ema50_pct": -9.9,
-      "dist_ema200_pct": -13.84,
+      "score": 4.0,
+      "raw_score": 4.0,
+      "price": 325.45,
+      "chg_pct": -2.27,
+      "dist_ema50_pct": -11.53,
+      "dist_ema200_pct": -15.66,
       "bull_stack": false,
-      "rsi": 32.9,
-      "adx": 27.5,
-      "hv20": 33.9,
+      "rsi": 30.0,
+      "adx": 28.7,
+      "hv20": 33.8,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -13.8% below EMA200",
+      "breakdown_reason": "Price -15.7% below EMA200",
       "news": [
-        "Own Gold As A Hedge? BND Rose More Often",
-        "Retiring On $2 Million? Sell BND Before SCHD",
-        "Don't Worry, Precious Metals Will Shine Again"
+        "When Sequence Risk Kicks The Door In",
+        "Gold's Role In An AI-Driven Economy: Direct And Indirect Effects",
+        "Is It Really All Clear In The Stock Market?"
       ],
-      "ai_analysis": "ต้องถือเงินสด 100% เพื่อรักษาเงินต้นอย่างเคร่งครัด เนื่องจากราคาทลายโครงสร้างเทรนด์ขาลงรุนแรงด้วยการหลุด EMA200 ถึง -13.8% พร้อมแรงขายกดดันมหาศาล (Quant Score เหลือเพียง 8.0) \n\nเงื่อนไขสำคัญที่ต้องจับตาคือ ต้องรอให้ราคากลับมายืนเหนือ EMA200 และระบบ Canary ยกเลิกสัญญาณเตือนภัยก่อน จึงจะพิจารณากลับเข้าลงทุนอีกครั้ง",
+      "ai_analysis": "ต้องถือเงินสด 100% ตามสั่งเพื่อรักษาเงินต้น เนื่องจากโครงสร้างราคาพังสมบูรณ์โดยหลุด EMA200 ถึง -15.7% และADXสะท้อนเทรนด์ลงรุนแรง (-DI 52.7) ซึ่งช่วยป้องกัน Sequence Risk จากความผันผวนตามข่าว \nเงื่อนไขสำคัญที่ต้องจับตาคือ ต้องรอให้ราคากลับมายืนเหนือ EMA200 และเกิดสัญญาณกลับตัวทางเทคนิคที่ชัดเจนก่อนพิจารณาเข้าลงทุนอีกครั้ง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 0.0,
         "trend_strength": 0.0,
-        "momentum_macd": 4.0,
+        "momentum_macd": 0.0,
         "momentum_rsi": 0.0,
         "volatility": 4.0
       },
-      "updated_at": "2026-11-24T12:17:01+07:00"
+      "updated_at": "2026-11-25T12:17:33+07:00"
     },
     "SCBSEMI(E)": {
       "fund": "SCBSEMI(E)",
@@ -219,34 +219,34 @@
         "corrupt_last_date": null,
         "corrupt_first_seen_ict": null
       },
-      "score": 16.0,
-      "raw_score": 16.0,
-      "price": 460.18,
-      "chg_pct": 15.03,
-      "dist_ema50_pct": -12.11,
-      "dist_ema200_pct": -10.13,
+      "score": 12.0,
+      "raw_score": 12.0,
+      "price": 426.75,
+      "chg_pct": -7.26,
+      "dist_ema50_pct": -17.9,
+      "dist_ema200_pct": -16.52,
       "bull_stack": false,
-      "rsi": 42.5,
-      "adx": 35.8,
-      "hv20": 92.1,
+      "rsi": 37.5,
+      "adx": 35.9,
+      "hv20": 93.9,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -10.1% below EMA200",
+      "breakdown_reason": "Price -16.5% below EMA200",
       "news": [
-        "S&P 500, Nasdaq End Best Session Since April Last Year On Optimism Led By Jensen Huang’s Reinstatement — NVDA, NASA, TTWO, AMZN In Focus",
-        "EEM Now Moves Like A Chip Fund",
-        "Indiscriminate Selling On Semiconductors Makes No Sense"
+        "Micron Jumped 19% Monday, Then Sank Double Digits. Here’s What That Swing Means for SMH Holders",
+        "Don't Be A Hero: The Wrong Way To Buy The Tech Dip",
+        "No Exposure? Think Again: How Anthropic's Fall Threatens Every Investor"
       ],
-      "ai_analysis": "ต้องถือเงินสด 100% ตามสัญญาณ [CANARY CASH] เพื่อรักษาเงินต้น เนื่องจากโครงสร้างราคาพังหลุด EMA200 ถึง -10.1% พร้อมแนวโน้มขาลงที่แข็งแกร่ง (ADX 35.8, -DI คุมตลาด) แม้มีข่าวบวกระยะสั้นแต่ไม่คุ้มเสี่ยง \n\n**เงื่อนไขสำคัญที่ต้องจับตา:** รอจนกว่าราคาจะกลับมายืนเหนือ EMA200 และระบบ HAA Canary พลิกกลับมาเป็น Risk-On เพื่อยืนยันการกลับตัวเชิงโครงสร้างก่อนเข้าสะสมอีกครั้ง",
+      "ai_analysis": "ต้องปฏิบัติตาม **CANARY CASH** ล็อกเงินสด 100% ทันทีเพื่อรักษาเงินต้น เนื่องจากโครงสร้างราคาพังสมบูรณ์ หลุด EMA200 ถึง -16.5% ผสานแรงขายกดดันมหาศาล (ADX 35.9, -DI 39.7) เงื่อนไขสำคัญคือห้ามช้อนซื้อ (Don't Buy the Dip) เด็ดขาด และต้องรอให้ราคากลับมายืนเหนือ EMA200 พร้อมเกิดสัญญาณซื้อใหม่จากระบบเท่านั้น",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 12.0,
         "trend_strength": 0.0,
-        "momentum_macd": 4.0,
+        "momentum_macd": 0.0,
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-24T12:17:54+07:00"
+      "updated_at": "2026-11-25T12:17:43+07:00"
     }
   }
 }
