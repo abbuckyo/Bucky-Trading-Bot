@@ -1057,10 +1057,10 @@ _GENAI_CLIENT = None
 _MODEL_CASCADE_CACHE = None
 
 
-def _get_adaptive_model_cascade(client) -> List[str]:
+def _get_adaptive_model_cascade(client, use_cache: bool = True) -> List[str]:
     """Query Google API once per run, rank free-tier models (hydrogen > flash > flash-lite), and cache."""
     global _MODEL_CASCADE_CACHE
-    if _MODEL_CASCADE_CACHE is not None:
+    if use_cache and _MODEL_CASCADE_CACHE is not None:
         return _MODEL_CASCADE_CACHE
 
     excluded_substrings = (
@@ -1104,12 +1104,20 @@ def _get_adaptive_model_cascade(client) -> List[str]:
             + [name for _, name in flash_lite_models]
             + list(CFG.MODEL_FALLBACK_LIST)
         )
-        _MODEL_CASCADE_CACHE = list(dict.fromkeys(ranked))
-        return _MODEL_CASCADE_CACHE
+        result = list(dict.fromkeys(ranked))
+        if use_cache:
+            _MODEL_CASCADE_CACHE = result
+        return result
     except Exception as exc:
         LOG.warning("Adaptive model discovery failed (%s) -> using fallback list", exc)
-        _MODEL_CASCADE_CACHE = list(CFG.MODEL_FALLBACK_LIST)
-        return _MODEL_CASCADE_CACHE
+        result = list(CFG.MODEL_FALLBACK_LIST)
+        if use_cache:
+            _MODEL_CASCADE_CACHE = result
+        return result
+
+
+def get_dynamic_flash_models(client) -> List[str]:
+    return _get_adaptive_model_cascade(client, use_cache=False)
 
 
 def ai_explain_batch(items: List[dict]) -> Dict[str, str]:

@@ -19,5 +19,12 @@ def test_get_dynamic_flash_models_deduplication():
     client.models.list.return_value = [m1, m2, m3]
 
     models = get_dynamic_flash_models(client)
-    # gemini-3.5-flash (version 3.5) should come before gemini-2.5-flash (version 2.5), and duplicates are removed preserving order
-    assert models == ["gemini-3.5-flash", "gemini-2.5-flash"]
+    # gemini-3.5-flash (version 3.5) should come before gemini-2.5-flash (version 2.5), duplicates removed, and fallback list appended
+    assert models == [
+        "gemini-3.5-flash",
+        "gemini-2.5-flash",
+        "gemini-4-hydrogen",
+        "gemini-3.8-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+    ]
