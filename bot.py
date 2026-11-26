@@ -1326,6 +1326,69 @@ def _display_fund_name(fund: str) -> str:
     return "SCBWORLD(E)" if fund == "SCBWORLDE" else fund
 
 
+def build_switch_ticket_lines(
+    decisions: Any,
+    sleeve_caps: Optional[Dict[str, float]],
+    prev_weights: Optional[Dict[str, float]],
+    cash_fund: str,
+    base_thb: float = 100_000.0,
+    min_delta_pct: float = 0.5,
+) -> List[str]:
+    """Build concise, zero-Markdown switch ticket lines per 100k THB (or Quiet Mode)."""
+    caps = sleeve_caps or {}
+    prev_w_map = prev_weights or {}
+
+    today_weights: Dict[str, float] = {}
+    if isinstance(decisions, dict):
+        for fund, val in decisions.items():
+            if isinstance(val, dict):
+                if val.get("weight") is not None:
+                    today_weights[fund] = float(val["weight"])
+                else:
+                    st = float(val.get("tranche_stage", 0))
+                    today_weights[fund] = (st / 3.0) * float(caps.get(fund, 0.20))
+            elif isinstance(val, (int, float)):
+                today_weights[fund] = float(val)
+    elif isinstance(decisions, (list, tuple)):
+        for item in decisions:
+            if isinstance(item, dict) and "fund" in item:
+                fund = item["fund"]
+                if item.get("weight") is not None:
+                    today_weights[fund] = float(item["weight"])
+                else:
+                    st = float(item.get("tranche_stage", 0))
+                    today_weights[fund] = (st / 3.0) * float(caps.get(fund, 0.20))
+            elif isinstance(item, (list, tuple)) and len(item) >= 7:
+                fund = item[0]
+                st = float(item[6])
+                today_weights[fund] = (st / 3.0) * float(caps.get(fund, 0.20))
+
+    actions: List[Tuple[int, float, str, str]] = []
+    all_funds = list(dict.fromkeys([*today_weights.keys(), *prev_w_map.keys()]))
+    for fund in all_funds:
+        today_w = float(today_weights.get(fund, 0.0))
+        prev_w = float(prev_w_map.get(fund, 0.0))
+        delta_w = today_w - prev_w
+        delta_pct = delta_w * 100.0
+        if abs(delta_pct) < min_delta_pct:
+            continue
+
+        disp_fund = _display_fund_name(fund)
+        amt_thb = abs(delta_w) * base_thb
+        if delta_w < 0:
+            line = f"🔴 สับ {disp_fund} → {cash_fund}: {delta_pct:+.1f}% ({amt_thb:,.0f} บ./แสน)"
+            actions.append((0, -abs(delta_w), disp_fund, line))
+        else:
+            line = f"🟢 สับ {cash_fund} → {disp_fund}: {delta_pct:+.1f}% ({amt_thb:,.0f} บ./แสน)"
+            actions.append((1, -abs(delta_w), disp_fund, line))
+
+    if not actions:
+        return ["✅ คำสั่งวันนี้: ไม่ต้องทำอะไร (ถือตามเดิม)"]
+
+    actions.sort(key=lambda x: (x[0], x[1], x[2]))
+    return ["🎯 คำสั่งวันนี้ (ต่อพอร์ต 1 แสน)", *[a[3] for a in actions]]
+
+
 def render_executive_summary(
     summary_rows: List[Tuple[str, float, str, str, str, str, int, str]],
     canary_ok: bool,
@@ -1334,6 +1397,7 @@ def render_executive_summary(
     futures_triggered: bool = False,
     futures_desc: str = "",
     sleeve_caps: Optional[Dict[str, float]] = None,
+    ticket_lines: Optional[List[str]] = None,
 ) -> str:
     lines = [
         "⚡ สรุปคำสั่งพอร์ต AlphaShield V8.1",
@@ -1371,6 +1435,9 @@ def render_executive_summary(
         lines.append(f"💼 พอร์ตจริง: หุ้น/ทอง {total_equity_weight:g}% ({', '.join(active_allocations)}) | เงินสด {cash_weight:g}% ({CFG.CASH_FUND})")
     else:
         lines.append(f"💼 พอร์ตจริง: เงินสด {cash_weight:g}% ({CFG.CASH_FUND})")
+    if ticket_lines:
+        lines.append("")
+        lines.extend(ticket_lines)
     lines.append("──────────────")
     return "\n".join(lines)
 
@@ -1761,6 +1828,17 @@ def main() -> int:
         ", ".join(f"{a.yahoo}({a.fund})={sleeve_caps.get(a.fund, 0.20) * 100:.2f}%" for a in UNIVERSE),
     )
 
+    prev_assets_map = state.get("assets", {})
+    prev_weights: Dict[str, float] = {}
+    for a in UNIVERSE:
+        prev_entry = prev_assets_map.get(a.fund, {})
+        prev_st_val = prev_entry.get("tranche_stage", 0)
+        raw_prev_w = prev_entry.get("weight")
+        if raw_prev_w is not None:
+            prev_weights[a.fund] = float(raw_prev_w)
+        else:
+            prev_weights[a.fund] = (prev_st_val / 3.0) * sleeve_caps.get(a.fund, 0.20)
+
     # Phase B (Batch AI): Single 1-shot JSON batch call for all assets
     ai_explanations = ai_explain_batch(batch_items)
 
@@ -1902,6 +1980,8 @@ def main() -> int:
         st = assets_state.get(a.fund, {}).get("tranche_stage", 0)
         w = (st / 3.0) * sleeve_caps.get(a.fund, 0.20)
         portfolio_weights[a.fund] = w
+        if a.fund in assets_state:
+            assets_state[a.fund]["weight"] = round(w, 6)
         if st > 0:
             lbl = TRANCHE_LABEL_MAP.get(st, f"Stage {st}")
             invested_funds.append(f"{a.fund} ({lbl} = {w * 100:.1f}%)")
@@ -1946,11 +2026,14 @@ def main() -> int:
     save_state(new_state)
 
     # 5. Payload และเขียนไฟล์ data.enc (Master Password)
+    allocator_mode = "Inv-Vol 60d [8%-35%]" if CFG.ENABLE_INV_VOL_ALLOCATOR else "Equal 20%"
     dashboard_data = {
         "version": 3.1,
         "engine": "AlphaShield V8.1",
         "last_run_ict": now_th.isoformat(timespec="seconds"),
         "safe_haven": CFG.CASH_FUND,
+        "allocator_mode": allocator_mode,
+        "sleeve_caps": {k: round(v, 4) for k, v in sleeve_caps.items()},
         "macro_canary": {
             "model": "Richman HAA (13612 Momentum)",
             "ticker": CFG.CANARY_TIP_TICKER,
@@ -2020,6 +2103,12 @@ def main() -> int:
         LOG.error("Failed to log divergence comparison: %s", exc)
 
     # 6. ข้อความแจ้งเตือน Discord / LINE
+    ticket_lines = build_switch_ticket_lines(
+        decisions=portfolio_weights,
+        sleeve_caps=sleeve_caps,
+        prev_weights=prev_weights,
+        cash_fund=CFG.CASH_FUND,
+    )
     report_sections = [
         render_header(now_th),
         render_executive_summary(
@@ -2030,6 +2119,7 @@ def main() -> int:
             futures_triggered=futures_triggered,
             futures_desc=futures_desc,
             sleeve_caps=sleeve_caps,
+            ticket_lines=ticket_lines,
         ),
         "🔍 รายละเอียดทางเทคนิค\n\n" + "\n\n".join(detail_blocks),
         (
