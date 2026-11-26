@@ -23,7 +23,7 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
           pip install --upgrade yfinance curl_cffi scipy statsmodels tabulate
-          pip install pyarrow
+          pip install fastparquet
       - name: Run research script
         env:
           PYTHONPATH: .
