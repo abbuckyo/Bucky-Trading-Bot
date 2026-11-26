@@ -136,6 +136,7 @@ class CFG:
     # SCB Order & Execution Limits
     SCB_MIN_SWITCH_THB = 1000.0       # Minimum order size required by SCB fund platform
     DEFAULT_CAPITAL_THB = 100_000.0   # Default capital for order sizing if not provided
+    ENABLE_INV_VOL_ALLOCATOR = os.getenv("ENABLE_INV_VOL_ALLOCATOR", "true").lower() == "true"
 
 
 def is_nan(val: Any) -> bool:
@@ -147,6 +148,73 @@ def is_nan(val: Any) -> bool:
         return math.isnan(f) or math.isinf(f)
     except (ValueError, TypeError):
         return True
+
+
+def compute_inv_vol_caps(
+    closes_by_fund: Dict[str, pd.Series],
+    lookback: int = 60,
+    min_cap: float = 0.08,
+    max_cap: float = 0.35,
+    vol_floor: float = 0.05,
+) -> Dict[str, float]:
+    """Compute monthly-anchored inverse-volatility sleeve caps for the 5 Core ETFs."""
+    funds = list(closes_by_fund.keys())
+    if not funds:
+        return {}
+    equal_w = 1.0 / len(funds)
+    if not CFG.ENABLE_INV_VOL_ALLOCATOR:
+        return {f: equal_w for f in funds}
+
+    vols: Dict[str, float] = {}
+    for fund, series in closes_by_fund.items():
+        if series is None or len(series) < 21:
+            return {f: equal_w for f in funds}
+        s = series.dropna().astype(float)
+        if len(s) < 21:
+            return {f: equal_w for f in funds}
+
+        # Monthly stability: anchor at last trading day before current calendar month
+        anchored = s
+        if hasattr(s.index, "to_period"):
+            try:
+                last_dt = pd.Timestamp(s.index[-1])
+                month_start = last_dt.replace(day=1)
+                pre_month = s[s.index < month_start]
+                if len(pre_month.pct_change().dropna()) >= 20:
+                    anchored = pre_month
+            except Exception:
+                anchored = s
+
+        rets = anchored.pct_change().dropna().tail(lookback)
+        if len(rets) < 20:
+            return {f: equal_w for f in funds}
+
+        ann_vol = float(rets.std(ddof=1) * math.sqrt(252.0))
+        if is_nan(ann_vol):
+            return {f: equal_w for f in funds}
+        vols[fund] = max(ann_vol, vol_floor)
+
+    inv_vols = {f: 1.0 / vols[f] for f in funds}
+    total_inv = sum(inv_vols.values())
+    if total_inv <= 0.0:
+        return {f: equal_w for f in funds}
+
+    weights = {f: inv_vols[f] / total_inv for f in funds}
+    for _ in range(50):
+        weights = {f: min(max_cap, max(min_cap, w)) for f, w in weights.items()}
+        s_w = sum(weights.values())
+        if s_w <= 0.0:
+            return {f: equal_w for f in funds}
+        if abs(s_w - 1.0) <= 1e-9 and all(min_cap - 1e-9 <= w <= max_cap + 1e-9 for w in weights.values()):
+            break
+        weights = {f: w / s_w for f, w in weights.items()}
+
+    # Final exact normalization check
+    weights = {f: min(max_cap, max(min_cap, w)) for f, w in weights.items()}
+    s_w = sum(weights.values())
+    if abs(s_w - 1.0) > 1e-9:
+        weights = {f: w / s_w for f, w in weights.items()}
+    return weights
 
 
 def validate_sizing_for_scb(
@@ -1264,7 +1332,8 @@ def render_executive_summary(
     tip_mom: float,
     canary_desc: str,
     futures_triggered: bool = False,
-    futures_desc: str = ""
+    futures_desc: str = "",
+    sleeve_caps: Optional[Dict[str, float]] = None,
 ) -> str:
     lines = [
         "⚡ สรุปคำสั่งพอร์ต AlphaShield V8.1",
@@ -1287,14 +1356,16 @@ def render_executive_summary(
     for item in summary_rows:
         fund, score, signal, position, icon, detail, stage, tranche_lbl = item
         disp_fund = _display_fund_name(fund)
-        sleeve_weight = (stage / 3.0) * 20.0  # Sleeve 20% of total portfolio
+        cap = (sleeve_caps or {}).get(fund, 0.20)
+        sleeve_weight = round((stage / 3.0) * cap * 100.0, 1)
         total_equity_weight += sleeve_weight
         if stage > 0:
             active_allocations.append(f"{disp_fund} ({sleeve_weight:g}%)")
         short_signal = "CASH" if signal == "CASH PARK" else signal
         lines.append(f"{icon} {disp_fund} | {score:.1f} | {short_signal} {sleeve_weight:g}%")
 
-    cash_weight = max(0.0, 100.0 - total_equity_weight)
+    total_equity_weight = round(total_equity_weight, 1)
+    cash_weight = round(max(0.0, 100.0 - total_equity_weight), 1)
     lines.append("")
     if active_allocations:
         lines.append(f"💼 พอร์ตจริง: หุ้น/ทอง {total_equity_weight:g}% ({', '.join(active_allocations)}) | เงินสด {cash_weight:g}% ({CFG.CASH_FUND})")
@@ -1614,6 +1685,7 @@ def process_asset(
         "score_result": sc,
         "decision": dec,
         "news": news,
+        "close_series": df["close"],
     }
     return "", entry, summary_tuple, batch_context
 
@@ -1674,18 +1746,35 @@ def main() -> int:
         if idx < len(UNIVERSE) - 1:
             time.sleep(CFG.INTER_ASSET_SLEEP)
 
+    # Compute monthly Inv-Vol 60d sleeve caps from Phase A close series (zero extra API calls)
+    closes_by_fund = {
+        ctx["fund"]: ctx["close_series"]
+        for ctx in batch_items
+        if ctx.get("close_series") is not None
+    }
+    if len(closes_by_fund) == len(UNIVERSE):
+        sleeve_caps = compute_inv_vol_caps(closes_by_fund)
+    else:
+        sleeve_caps = {a.fund: 0.20 for a in UNIVERSE}
+    LOG.info(
+        "Inv-Vol 60d sleeve caps: %s",
+        ", ".join(f"{a.yahoo}({a.fund})={sleeve_caps.get(a.fund, 0.20) * 100:.2f}%" for a in UNIVERSE),
+    )
+
     # Phase B (Batch AI): Single 1-shot JSON batch call for all assets
     ai_explanations = ai_explain_batch(batch_items)
 
     # Phase C (Render & State): Render blocks, run Execution Approval Gate, and update state
     for asset, prev_st, block, entry, s_tuple, batch_ctx in computed_assets:
         try:
+            asset_cap = sleeve_caps.get(asset.fund, 0.20)
             if batch_ctx is not None:
                 ai_text = ai_explanations.get(
                     asset.fund,
                     "ไม่สามารถสร้างคำอธิบาย AI ได้ชั่วคราว (ยึดตามสัญญาณ Quant ด้านบน)",
                 )
                 entry["ai_analysis"] = ai_text
+                entry["target_exposure"] = (entry.get("tranche_stage", 0) / 3.0) * asset_cap
                 block = render_asset_block(
                     batch_ctx["asset"],
                     batch_ctx["metrics"],
@@ -1698,6 +1787,21 @@ def main() -> int:
             # ── Execution Approval Gate (Phase 1 & 2) ──────────────────────────
             prop_stage = entry.get("tranche_stage", 0)
             sig = entry.get("signal", "")
+
+            # Check SCB Minimum Switch Guard using dynamic sleeve cap
+            if prop_stage != prev_st and prop_stage > 0:
+                sz_ok, allowed_st, sz_reason = validate_sizing_for_scb(
+                    fund=asset.fund,
+                    prev_stage=prev_stage if "prev_stage" in locals() else prev_st,
+                    target_stage=prop_stage,
+                    portfolio_total_thb=capital_thb,
+                    sleeve_pct=asset_cap,
+                )
+                if not sz_ok:
+                    entry["tranche_stage"] = allowed_st
+                    entry["target_exposure"] = (allowed_st / 3.0) * asset_cap
+                    entry["action_detail"] = sz_reason
+                    prop_stage = allowed_st
 
             # Check if approval gate is required (first SWITCH IN: prev_stage == 0 -> target_stage == 1)
             is_first_switch_in = (prev_st == 0 and prop_stage == 1 and sig == "SWITCH IN")
@@ -1718,7 +1822,7 @@ def main() -> int:
                 if verdict.outcome == GateOutcome.APPROVED:
                     LOG.info("Execution Gate: APPROVED for %s with token (committed_stage=%d)", asset.fund, verdict.committed_stage)
                     entry["tranche_stage"] = verdict.committed_stage
-                    entry["target_exposure"] = (verdict.committed_stage / 3.0) * 0.20
+                    entry["target_exposure"] = (verdict.committed_stage / 3.0) * asset_cap
                     pending_approvals.pop(asset.fund, None)
                     if verdict.unlock_auto:
                         require_manual_confirm = False
@@ -1790,13 +1894,13 @@ def main() -> int:
             LOG.exception("Error on %s: %s", asset.fund, exc)
             detail_blocks.append(f"⚠️ {_display_fund_name(asset.fund)} — ระบบวิเคราะห์ขัดข้อง: {exc}")
 
-    # 3. Compute Net Portfolio Weights & Assertion (Sleeve 20% each)
-    # Net Portfolio Weight = (tranche_stage / 3.0) * 0.20
+    # 3. Compute Net Portfolio Weights & Assertion (Monthly Inv-Vol 60d sleeve caps)
+    # Net Portfolio Weight = (tranche_stage / 3.0) * sleeve_caps[fund]
     portfolio_weights: Dict[str, float] = {}
     invested_funds = []
     for a in UNIVERSE:
         st = assets_state.get(a.fund, {}).get("tranche_stage", 0)
-        w = (st / 3.0) * 0.20
+        w = (st / 3.0) * sleeve_caps.get(a.fund, 0.20)
         portfolio_weights[a.fund] = w
         if st > 0:
             lbl = TRANCHE_LABEL_MAP.get(st, f"Stage {st}")
@@ -1924,7 +2028,8 @@ def main() -> int:
             tip_mom=tip_mom,
             canary_desc=canary_desc,
             futures_triggered=futures_triggered,
-            futures_desc=futures_desc
+            futures_desc=futures_desc,
+            sleeve_caps=sleeve_caps,
         ),
         "🔍 รายละเอียดทางเทคนิค\n\n" + "\n\n".join(detail_blocks),
         (
