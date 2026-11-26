@@ -1,0 +1,28 @@
+name: Research Backtest
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: "Research script path to execute"
+        required: true
+        default: "research/exp_inv_vol_allocator.py"
+        type: string
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Install research dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt scipy statsmodels tabulate pyarrow
+      - name: Run research script
+        env:
+          PYTHONPATH: .
+        run: python "${{ inputs.script }}"
