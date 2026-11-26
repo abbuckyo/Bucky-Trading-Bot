@@ -21,7 +21,8 @@ jobs:
       - name: Install research dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt scipy statsmodels tabulate pyarrow
+          pip install -r requirements.txt
+          pip install --upgrade yfinance curl_cffi scipy statsmodels tabulate pyarrow
       - name: Run research script
         env:
           PYTHONPATH: .

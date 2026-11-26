@@ -238,24 +238,74 @@ def main() -> None:
 
     v8_cache_file = Path(ss_cfg.cache_dir) / "v8_etf_ohlc.parquet"
     v8_tickers = list(CORE_UNIVERSE) + [CANARY_TICKER]
+    def _download_ohlc_with_fallback(sym: str, start: str, end: str) -> pd.DataFrame:
+        for attempt in range(2):
+            try:
+                raw = yf.download(
+                    sym,
+                    start=start,
+                    end=end,
+                    auto_adjust=True,
+                    actions=False,
+                    progress=False,
+                    threads=False,
+                    timeout=30,
+                )
+                if raw is not None and not raw.empty:
+                    return raw
+            except Exception:
+                pass
+            time.sleep(0.8 * (attempt + 1))
+
+        # Fallback: direct Yahoo v8 Chart API via curl_cffi Chrome impersonation
+        from curl_cffi import requests as cffi_requests
+        p1 = int(pd.Timestamp(start, tz="UTC").timestamp())
+        p2 = int(pd.Timestamp(end, tz="UTC").timestamp()) + 86400
+        session = cffi_requests.Session(impersonate="chrome")
+        for host in ("query1.finance.yahoo.com", "query2.finance.yahoo.com"):
+            url = (
+                f"https://{host}/v8/finance/chart/{sym}"
+                f"?period1={p1}&period2={p2}&interval=1d&includeAdjustedClose=true"
+            )
+            try:
+                resp = session.get(url, timeout=20)
+                if resp.status_code != 200:
+                    continue
+                res = resp.json().get("chart", {}).get("result", [])
+                if not res:
+                    continue
+                ts = res[0].get("timestamp", [])
+                quote = res[0].get("indicators", {}).get("quote", [{}])[0]
+                adj = res[0].get("indicators", {}).get("adjclose", [{}])[0].get("adjclose")
+                if not ts or not quote:
+                    continue
+                idx = pd.to_datetime(ts, unit="s", utc=True).tz_localize(None).normalize()
+                df = pd.DataFrame(
+                    {
+                        "Open": quote.get("open"),
+                        "High": quote.get("high"),
+                        "Low": quote.get("low"),
+                        "Close": quote.get("close"),
+                        "Adj Close": adj if adj is not None else quote.get("close"),
+                        "Volume": quote.get("volume"),
+                    },
+                    index=idx,
+                ).dropna(subset=["Close"])
+                if not df.empty:
+                    return df
+            except Exception:
+                continue
+        return pd.DataFrame()
+
     if v8_cache_file.exists():
         snap = pd.read_parquet(v8_cache_file)
     else:
         frames: dict[str, pd.DataFrame] = {}
         end_dt = str(pd.Timestamp.now(tz="America/New_York").date())
         for sym in v8_tickers:
-            raw = yf.download(
-                sym,
-                start=ss_cfg.data_start,
-                end=end_dt,
-                auto_adjust=True,
-                actions=False,
-                progress=False,
-                threads=False,
-                timeout=30,
-            )
+            raw = _download_ohlc_with_fallback(sym, ss_cfg.data_start, end_dt)
             frames[sym] = DataLoader.validate_raw_ohlc(sym, raw)
-            time.sleep(0.10)
+            time.sleep(0.8)
         snap = pd.concat(frames, names=("Ticker", "Field")).sort_index()
         v8_cache_file.parent.mkdir(parents=True, exist_ok=True)
         snap.to_parquet(v8_cache_file)
