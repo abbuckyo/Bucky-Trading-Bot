@@ -26,13 +26,37 @@ def test_quiet_mode_when_delta_below_threshold():
         cash_fund=CFG.CASH_FUND,
     )
 
-    assert lines == ["✅ คำสั่งวันนี้: ไม่ต้องทำอะไร (ถือตามเดิม)"]
+    assert lines == ["✅ วันนี้ไม่ต้องทำอะไร (ถือตามเดิม)"]
     for line in lines:
         assert "**" not in line
         assert "`" not in line
 
 
-def test_sells_before_buys_and_display_name_and_formatting():
+def test_buy_only_headline():
+    lines = build_switch_ticket_lines(
+        decisions={"SCBWORLDE": 0.08, "SCBGOLDH": 0.00},
+        sleeve_caps={"SCBWORLDE": 0.24, "SCBGOLDH": 0.18},
+        prev_weights={"SCBWORLDE": 0.00, "SCBGOLDH": 0.00},
+        cash_fund=CFG.CASH_FUND,
+    )
+
+    assert lines[0] == "🟢 วันนี้ต้องซื้อ (ก่อน 15:00 น.)"
+    assert lines[1] == f"🟢 สับ {CFG.CASH_FUND} → SCBWORLD(E): +8.0% (8,000 บ./แสน)"
+
+
+def test_sell_only_headline():
+    lines = build_switch_ticket_lines(
+        decisions={"SCBGOLDH": 0.06},
+        sleeve_caps={"SCBGOLDH": 0.18},
+        prev_weights={"SCBGOLDH": 0.18},
+        cash_fund=CFG.CASH_FUND,
+    )
+
+    assert lines[0] == "🔴 วันนี้ต้องขาย (ก่อน 15:00 น.)"
+    assert lines[1] == f"🔴 สับ SCBGOLDH → {CFG.CASH_FUND}: -12.0% (12,000 บ./แสน)"
+
+
+def test_sells_before_buys_and_rebalance_headline():
     sleeve_caps = {
         "SCBWORLDE": 0.24,
         "SCBGOLDH": 0.18,
@@ -58,7 +82,7 @@ def test_sells_before_buys_and_display_name_and_formatting():
         cash_fund=CFG.CASH_FUND,
     )
 
-    assert lines[0] == "🎯 คำสั่งวันนี้ (ต่อพอร์ต 1 แสน)"
+    assert lines[0] == "🔄 วันนี้ต้องขาย+ซื้อ (ก่อน 15:00 น.)"
     assert len(lines) == 3
 
     sell_line = lines[1]
@@ -72,7 +96,7 @@ def test_sells_before_buys_and_display_name_and_formatting():
         assert "`" not in line
 
 
-def test_render_executive_summary_includes_ticket_zero_markdown():
+def test_render_executive_summary_places_headline_on_line_1():
     summary_rows = [
         ("SCBWORLDE", 80.0, "INVESTED", "T1", "🟢", "detail", 1, "33%"),
         ("SCBGOLDH", 45.0, "CASH PARK", "OUT", "⚪", "detail", 0, "0%"),
@@ -95,9 +119,12 @@ def test_render_executive_summary_includes_ticket_zero_markdown():
         ticket_lines=ticket_lines,
     )
 
-    assert "🎯 คำสั่งวันนี้ (ต่อพอร์ต 1 แสน)" in summary
+    out_lines = summary.splitlines()
+    assert out_lines[0] == "🔄 วันนี้ต้องขาย+ซื้อ (ก่อน 15:00 น.)"
+    assert "━━━━━━━━━━━━━━" in out_lines
+    assert out_lines.index("━━━━━━━━━━━━━━") < out_lines.index("⚡ สรุปคำสั่งพอร์ต AlphaShield V8.1")
+    assert summary.count("🔄 วันนี้ต้องขาย+ซื้อ (ก่อน 15:00 น.)") == 1
     assert "SCBWORLD(E)" in summary
     assert "บ./แสน" in summary
     assert "**" not in summary
     assert "`" not in summary
-    assert summary.index("💼 พอร์ตจริง:") < summary.index("🎯 คำสั่งวันนี้ (ต่อพอร์ต 1 แสน)")

@@ -1383,10 +1383,19 @@ def build_switch_ticket_lines(
             actions.append((1, -abs(delta_w), disp_fund, line))
 
     if not actions:
-        return ["✅ คำสั่งวันนี้: ไม่ต้องทำอะไร (ถือตามเดิม)"]
+        return ["✅ วันนี้ไม่ต้องทำอะไร (ถือตามเดิม)"]
+
+    has_sell = any(a[0] == 0 for a in actions)
+    has_buy = any(a[0] == 1 for a in actions)
+    if has_sell and has_buy:
+        header = "🔄 วันนี้ต้องขาย+ซื้อ (ก่อน 15:00 น.)"
+    elif has_sell:
+        header = "🔴 วันนี้ต้องขาย (ก่อน 15:00 น.)"
+    else:
+        header = "🟢 วันนี้ต้องซื้อ (ก่อน 15:00 น.)"
 
     actions.sort(key=lambda x: (x[0], x[1], x[2]))
-    return ["🎯 คำสั่งวันนี้ (ต่อพอร์ต 1 แสน)", *[a[3] for a in actions]]
+    return [header, *[a[3] for a in actions]]
 
 
 def render_executive_summary(
@@ -1399,9 +1408,11 @@ def render_executive_summary(
     sleeve_caps: Optional[Dict[str, float]] = None,
     ticket_lines: Optional[List[str]] = None,
 ) -> str:
-    lines = [
-        "⚡ สรุปคำสั่งพอร์ต AlphaShield V8.1",
-    ]
+    lines: List[str] = []
+    if ticket_lines:
+        lines.extend(ticket_lines)
+        lines.append("━━━━━━━━━━━━━━")
+    lines.append("⚡ สรุปคำสั่งพอร์ต AlphaShield V8.1")
     # Macro Canary status banner
     canary_icon = "🟢" if canary_ok else "🚨"
     canary_badge = "CANARY GREEN" if canary_ok else "CANARY RED (100% CASH DEFENSE)"
@@ -1435,9 +1446,6 @@ def render_executive_summary(
         lines.append(f"💼 พอร์ตจริง: หุ้น/ทอง {total_equity_weight:g}% ({', '.join(active_allocations)}) | เงินสด {cash_weight:g}% ({CFG.CASH_FUND})")
     else:
         lines.append(f"💼 พอร์ตจริง: เงินสด {cash_weight:g}% ({CFG.CASH_FUND})")
-    if ticket_lines:
-        lines.append("")
-        lines.extend(ticket_lines)
     lines.append("──────────────")
     return "\n".join(lines)
 
