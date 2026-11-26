@@ -308,7 +308,10 @@ def main() -> None:
             time.sleep(0.8)
         snap = pd.concat(frames, names=("Ticker", "Field")).sort_index()
         v8_cache_file.parent.mkdir(parents=True, exist_ok=True)
-        snap.to_parquet(v8_cache_file)
+        try:
+            snap.to_parquet(v8_cache_file)
+        except ImportError:
+            pass
 
     closes_all = pd.DataFrame(
         {t: snap.xs(t, level="Ticker")["Close"] for t in v8_tickers}
