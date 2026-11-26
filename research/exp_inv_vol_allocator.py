@@ -110,6 +110,9 @@ def _apply_deadband(target_weights: pd.DataFrame, threshold: float = 0.02) -> pd
                 out[t, j] = pw
             else:
                 out[t, j] = tw
+        row_sum = out[t].sum()
+        if row_sum > 1.0:
+            out[t] = out[t] / row_sum
     return pd.DataFrame(out, index=target_weights.index, columns=target_weights.columns)
 
 
