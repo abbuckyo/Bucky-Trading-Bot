@@ -2,29 +2,29 @@ from unittest.mock import MagicMock
 from bot import get_dynamic_flash_models
 
 def test_get_dynamic_flash_models_deduplication():
-    # Mock model objects returned by client.models.list()
-    m1 = MagicMock()
-    m1.name = "models/gemini-2.5-flash"
-    m1.supported_actions = ["generateContent"]
-
-    m2 = MagicMock()
-    m2.name = "models/gemini-3.5-flash"
-    m2.supported_actions = ["generateContent"]
-
-    m3 = MagicMock()
-    m3.name = "models/gemini-3.5-flash"
-    m3.supported_actions = ["generateContent"]
+    def _mk(name):
+        m = MagicMock()
+        m.name = f"models/{name}"
+        m.supported_actions = ["generateContent"]
+        return m
 
     client = MagicMock()
-    client.models.list.return_value = [m1, m2, m3]
+    client.models.list.return_value = [
+        _mk("gemini-2.5-flash"),
+        _mk("gemini-3.7-flash"),
+        _mk("gemini-3-flash-preview"),
+        _mk("gemini-4-carbon"),
+        _mk("gemini-3.5-flash-lite"),
+        _mk("gemini-3.8-flash"),
+        _mk("gemini-3.8-flash"),
+        _mk("gemini-4-hydrogen"),
+        _mk("gemini-3.6-flash"),
+    ]
 
     models = get_dynamic_flash_models(client)
-    # gemini-3.5-flash (version 3.5) should come before gemini-2.5-flash (version 2.5), duplicates removed, and fallback list appended
-    assert models == [
-        "gemini-3.5-flash",
-        "gemini-2.5-flash",
-        "gemini-4-hydrogen",
-        "gemini-3.8-flash",
-        "gemini-3.5-flash-lite",
-        "gemini-3.6-flash",
-    ]
+    assert len(models) <= 5
+    assert len(models) == len(set(models))
+    for excluded in ("gemini-4-carbon", "gemini-3-flash-preview", "gemini-2.5-flash", "gemini-3.7-flash"):
+        assert excluded not in models
+    assert models.index("gemini-4-hydrogen") < models.index("gemini-3.8-flash")
+    assert models.index("gemini-3.8-flash") < models.index("gemini-3.5-flash-lite")

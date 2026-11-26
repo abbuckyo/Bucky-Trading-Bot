@@ -1066,6 +1066,7 @@ def _get_adaptive_model_cascade(client, use_cache: bool = True) -> List[str]:
     excluded_substrings = (
         "pro", "carbon", "argon", "neon", "tts",
         "image", "live", "embedding", "audio", "veo",
+        "preview", "exp", "2.0", "2.5", "3.7",
     )
     version_pattern = re.compile(r"gemini-(\d+(?:\.\d+)?)", re.IGNORECASE)
 
@@ -1091,7 +1092,7 @@ def _get_adaptive_model_cascade(client, use_cache: bool = True) -> List[str]:
                 hydrogen_models.append((version, name))
             elif "flash-lite" in low_name:
                 flash_lite_models.append((version, name))
-            elif "flash" in low_name:
+            elif "flash" in low_name and version >= 3.6:
                 flash_models.append((version, name))
 
         hydrogen_models.sort(key=lambda x: x[0], reverse=True)
@@ -1104,13 +1105,13 @@ def _get_adaptive_model_cascade(client, use_cache: bool = True) -> List[str]:
             + [name for _, name in flash_lite_models]
             + list(CFG.MODEL_FALLBACK_LIST)
         )
-        result = list(dict.fromkeys(ranked))
+        result = list(dict.fromkeys(ranked))[:5]
         if use_cache:
             _MODEL_CASCADE_CACHE = result
         return result
     except Exception as exc:
         LOG.warning("Adaptive model discovery failed (%s) -> using fallback list", exc)
-        result = list(CFG.MODEL_FALLBACK_LIST)
+        result = list(CFG.MODEL_FALLBACK_LIST)[:5]
         if use_cache:
             _MODEL_CASCADE_CACHE = result
         return result
@@ -1139,7 +1140,10 @@ def ai_explain_batch(items: List[dict]) -> Dict[str, str]:
 
         global _GENAI_CLIENT
         if _GENAI_CLIENT is None:
-            _GENAI_CLIENT = genai.Client(api_key=key)
+            try:
+                _GENAI_CLIENT = genai.Client(api_key=key, http_options={"timeout": 25000})
+            except Exception:
+                _GENAI_CLIENT = genai.Client(api_key=key)
         client = _GENAI_CLIENT
 
         asset_blocks = []
@@ -1175,8 +1179,9 @@ def ai_explain_batch(items: List[dict]) -> Dict[str, str]:
                 }
                 if hasattr(genai_types, "ThinkingConfig"):
                     try:
+                        thinking_lvl = "minimal" if "lite" in model.lower() else "low"
                         cfg_kwargs["thinking_config"] = genai_types.ThinkingConfig(
-                            thinking_level=CFG.MODEL_THINKING_LEVEL.get(model, "low")
+                            thinking_level=thinking_lvl
                         )
                     except Exception:
                         pass
@@ -1194,7 +1199,14 @@ def ai_explain_batch(items: List[dict]) -> Dict[str, str]:
                     raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text, flags=re.IGNORECASE)
                     raw_text = re.sub(r"\s*```$", "", raw_text)
 
-                parsed = json.loads(raw_text)
+                try:
+                    parsed = json.loads(raw_text)
+                except json.JSONDecodeError:
+                    m_json = re.search(r"\{.*\}", raw_text, re.DOTALL)
+                    if not m_json:
+                        raise
+                    parsed = json.loads(m_json.group(0))
+
                 if isinstance(parsed, dict):
                     LOG.info("Batch AI generated successfully with model: %s", model)
                     return {
