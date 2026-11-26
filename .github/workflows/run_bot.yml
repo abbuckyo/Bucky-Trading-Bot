@@ -154,3 +154,20 @@ jobs:
           RUN="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           curl -sS -H "Content-Type: application/json" -X POST "$DISCORD_WEBHOOK_URL" \
             -d "{\"content\":\"🚨 **ALPHASHIELD RUN FAILED**\nBranch: \`${GITHUB_REF_NAME}\`\n$RUN\n⚠️ ไม่มีสัญญาณออก — สถานะพอร์ตคงเดิม\"}"
+
+      - name: Notify Discord on Failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL not set; skipping failure alert."
+            exit 0
+          fi
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          MSG="🚨 **AlphaShield CI FAILED** (${GITHUB_EVENT_NAME})
+          • Commit: \`${GITHUB_SHA::7}\`
+          • ตรวจสอบด่วนก่อน SCB Cut-off 15:00 ICT
+          • Log: ${RUN_URL}"
+          PAYLOAD=$(jq -n --arg content "$MSG" '{content: $content}')
+          curl -fsS --max-time 15 -H "Content-Type: application/json" -d "$PAYLOAD" "$DISCORD_WEBHOOK_URL" || true
