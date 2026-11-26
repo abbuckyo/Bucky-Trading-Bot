@@ -323,7 +323,7 @@ def main() -> None:
 
     data = V82MarketData(closes=closes_all, opens=opens_all, risk_assets=CORE_UNIVERSE)
     sig_frame = V82SignalEngine(data, sig_cfg).compute()
-    engine = FlexibleCapPortfolioEngine(data, sig_frame, port_cfg)
+    engine = FlexibleCapPortfolioEngine(opens_all, closes_all[CORE_UNIVERSE], port_cfg)
 
     variants = build_variant_weights(data.closes, sig_frame.tranche_states)
 
