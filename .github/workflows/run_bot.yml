@@ -21,6 +21,11 @@ on:
         description: "เงินต้นปัจจุบัน (บาท) สำหรับคำนวณขนาดไม้"
         required: false
         default: "0"
+      test_line:
+        description: "Also send LINE notification during shadow_mode test (uses monthly LINE quota)"
+        required: false
+        default: false
+        type: boolean
 
 # ⭐ กัน cron ชน manual dispatch — คิวรอ ไม่ kill run ที่กำลังเขียน state
 concurrency:
@@ -104,6 +109,7 @@ jobs:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID:              ${{ secrets.LINE_USER_ID }}
           SHADOW_MODE:               ${{ inputs.shadow_mode }}
+          SKIP_LINE:                 ${{ github.event_name == 'workflow_dispatch' && inputs.shadow_mode == true && inputs.test_line != true }}
           APPROVE_TOKEN:             ${{ inputs.approve_token }}
           CAPITAL_THB:               ${{ vars.CAPITAL_THB || inputs.capital_thb || 100000 }}
           PYTHONUNBUFFERED:          "1"
@@ -121,7 +127,7 @@ jobs:
           git push
 
       - name: Save state cache
-        if: always() && hashFiles('state.json') != ''
+        if: always() && hashFiles('state.json') != '' && inputs.shadow_mode != true
         uses: actions/cache/save@v4
         with:
           path: state.json

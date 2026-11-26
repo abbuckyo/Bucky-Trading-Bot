@@ -105,15 +105,19 @@ class CFG:
 
     # AI Explainer (Static fallback if dynamic discovery fails)
     MODEL_FALLBACK_LIST = [
+        "gemini-4-hydrogen",
         "gemini-3.8-flash",
-        "gemini-3.7-flash",
-        "gemini-3.6-flash",
-        "gemini-3.5-flash",
         "gemini-3.5-flash-lite",
-        "gemini-2.5-flash",
+        "gemini-3.6-flash",
     ]
+    MODEL_THINKING_LEVEL = {
+        "gemini-4-hydrogen": "low",
+        "gemini-3.8-flash": "low",
+        "gemini-3.5-flash-lite": "minimal",
+        "gemini-3.6-flash": "minimal",
+    }
     AI_TEMPERATURE = 0.0
-    AI_MAX_OUTPUT_TOKENS = 2048
+    AI_MAX_OUTPUT_TOKENS = 4096
 
     # News
     NEWS_LOOKBACK_DAYS = 3
@@ -1049,11 +1053,26 @@ AI_SYSTEM_PROMPT = (
 )
 
 
-def get_dynamic_flash_models(client) -> List[str]:
-    """Query Google API for available models and return Flash models sorted descending by version."""
+_GENAI_CLIENT = None
+_MODEL_CASCADE_CACHE = None
+
+
+def _get_adaptive_model_cascade(client) -> List[str]:
+    """Query Google API once per run, rank free-tier models (hydrogen > flash > flash-lite), and cache."""
+    global _MODEL_CASCADE_CACHE
+    if _MODEL_CASCADE_CACHE is not None:
+        return _MODEL_CASCADE_CACHE
+
+    excluded_substrings = (
+        "pro", "carbon", "argon", "neon", "tts",
+        "image", "live", "embedding", "audio", "veo",
+    )
+    version_pattern = re.compile(r"gemini-(\d+(?:\.\d+)?)", re.IGNORECASE)
+
     try:
-        discovered = []
-        flash_pattern = re.compile(r"gemini-(\d+(?:\.\d+)?)-flash(?:-latest|-preview)?$", re.IGNORECASE)
+        hydrogen_models = []
+        flash_models = []
+        flash_lite_models = []
 
         for m in client.models.list():
             supported = getattr(m, "supported_actions", []) or []
@@ -1061,72 +1080,127 @@ def get_dynamic_flash_models(client) -> List[str]:
                 continue
 
             name = m.name.replace("models/", "")
-            match = flash_pattern.search(name)
-            if match:
-                version = float(match.group(1))
-                discovered.append((version, name))
+            low_name = name.lower()
+            if any(ex in low_name for ex in excluded_substrings):
+                continue
 
-        if not discovered:
-            return CFG.MODEL_FALLBACK_LIST
+            ver_match = version_pattern.search(low_name)
+            version = float(ver_match.group(1)) if ver_match else 0.0
 
-        discovered.sort(key=lambda x: x[0], reverse=True)
-        return list(dict.fromkeys(name for _, name in discovered))
+            if "hydrogen" in low_name:
+                hydrogen_models.append((version, name))
+            elif "flash-lite" in low_name:
+                flash_lite_models.append((version, name))
+            elif "flash" in low_name:
+                flash_models.append((version, name))
+
+        hydrogen_models.sort(key=lambda x: x[0], reverse=True)
+        flash_models.sort(key=lambda x: x[0], reverse=True)
+        flash_lite_models.sort(key=lambda x: x[0], reverse=True)
+
+        ranked = (
+            [name for _, name in hydrogen_models]
+            + [name for _, name in flash_models]
+            + [name for _, name in flash_lite_models]
+            + list(CFG.MODEL_FALLBACK_LIST)
+        )
+        _MODEL_CASCADE_CACHE = list(dict.fromkeys(ranked))
+        return _MODEL_CASCADE_CACHE
     except Exception as exc:
-        LOG.warning("Dynamic model discovery failed (%s) -> using fallback list", exc)
-        return CFG.MODEL_FALLBACK_LIST
+        LOG.warning("Adaptive model discovery failed (%s) -> using fallback list", exc)
+        _MODEL_CASCADE_CACHE = list(CFG.MODEL_FALLBACK_LIST)
+        return _MODEL_CASCADE_CACHE
 
 
-def ai_explain(asset: Asset, m: Metrics, sc: ScoreResult, dec: Decision, news: List[str]) -> str:
-    key = SECRETS["GEMINI_API_KEY"]
-    if not key:
-        return "_(AI explainer disabled: No API key)_"
-
-    try:
-        from google import genai
-        from google.genai import types as genai_types
-    except ImportError:
-        return "_(AI explainer unavailable: google-genai missing)_"
-
-    news_text = "\n".join(f"- {h}" for h in news) if news else "ไม่มีข่าวสำคัญใน 3 วันนี้"
-    prompt = f"""
-สินทรัพย์: {asset.fund} ({asset.label})
-คำสั่งของระบบ: {dec.action} ({dec.action_detail})
-คะแนน Quant: {sc.score}/100 | ทรงตัวหรือหลุด EMA200: {m.dist_ema200_pct:+.1f}%
-RSI: {m.rsi:.1f} | ADX: {m.adx:.1f} (+DI {m.plus_di:.1f} / -DI {m.minus_di:.1f})
-ภาวะตลาดแกว่งตัว: {sc.chop_capped} | โครงสร้างพัง: {sc.breakdown} ({sc.breakdown_reason})
-หัวข้อข่าวเด่น:
-{news_text}
-
-ช่วยสรุปสั้นๆ 1-2 ประโยคภาษาไทยให้จบสมบูรณ์ ว่าทำไมวันนี้ถึงต้องเลือกทำตามคำสั่งนี้ และเงื่อนไขสำคัญที่ต้องจับตาคืออะไร
-""".strip()
+def ai_explain_batch(items: List[dict]) -> Dict[str, str]:
+    """Generate 1-2 sentence Thai explanations for all assets in a single 1-shot JSON batch call."""
+    FALLBACK_MSG = "ไม่สามารถสร้างคำอธิบาย AI ได้ชั่วคราว (ยึดตามสัญญาณ Quant ด้านบน)"
+    if not items:
+        return {}
 
     try:
-        client = genai.Client(api_key=key)
-    except Exception:
-        return "_(AI explainer unavailable)_"
+        key = SECRETS["GEMINI_API_KEY"]
+        if not key:
+            return {item["fund"]: FALLBACK_MSG for item in items}
 
-    model_cascade = get_dynamic_flash_models(client)
-
-    for model in model_cascade:
         try:
-            resp = client.models.generate_content(
-                model=model,
-                contents=prompt,
-                config=genai_types.GenerateContentConfig(
-                    system_instruction=AI_SYSTEM_PROMPT,
-                    temperature=CFG.AI_TEMPERATURE,
-                    max_output_tokens=CFG.AI_MAX_OUTPUT_TOKENS,
-                ),
-            )
-            text = (getattr(resp, "text", "") or "").strip()
-            if text:
-                LOG.info("[%s] AI generated successfully with model: %s", asset.fund, model)
-                return text
-        except Exception as err:
-            LOG.warning("[%s] Model %s failed (%s) -> cascading down", asset.fund, model, err)
-            continue
+            from google import genai
+            from google.genai import types as genai_types
+        except ImportError:
+            return {item["fund"]: FALLBACK_MSG for item in items}
 
-    return "_(AI explainer unavailable: fallback cascade failed)_"
+        global _GENAI_CLIENT
+        if _GENAI_CLIENT is None:
+            _GENAI_CLIENT = genai.Client(api_key=key)
+        client = _GENAI_CLIENT
+
+        asset_blocks = []
+        for item in items:
+            m = item["metrics"]
+            sc = item["score_result"]
+            dec = item["decision"]
+            news = item["news"]
+            news_text = "; ".join(news) if news else "ไม่มีข่าวสำคัญใน 3 วันนี้"
+            asset_blocks.append(
+                f"- fund: {item['fund']} ({item['label']})\n"
+                f"  คำสั่ง: {dec.action} ({dec.action_detail})\n"
+                f"  คะแนน: {sc.score}/100 | EMA200: {m.dist_ema200_pct:+.1f}% | RSI: {m.rsi:.1f} | ADX: {m.adx:.1f}\n"
+                f"  แกว่งตัว: {sc.chop_capped} | โครงสร้างพัง: {sc.breakdown} ({sc.breakdown_reason})\n"
+                f"  ข่าว: {news_text}"
+            )
+
+        prompt = (
+            "วิเคราะห์สินทรัพย์ทั้งหมดด้านล่าง และตอบกลับเป็น JSON object เท่านั้น "
+            "โดยใช้ key เป็นชื่อ `fund` ตามที่ระบุเป๊ะๆ และ value เป็นคำอธิบายภาษาไทยสั้นๆ 1-2 ประโยคที่จบสมบูรณ์ "
+            "(ข้อความธรรมดา ห้ามใช้ ** หรือ backticks) ว่าทำไมวันนี้จึงเลือกทำตามคำสั่งนี้ และเงื่อนไขสำคัญที่ต้องจับตา:\n\n"
+            + "\n".join(asset_blocks)
+        )
+
+        model_cascade = _get_adaptive_model_cascade(client)
+        for model in model_cascade:
+            try:
+                cfg_kwargs = {
+                    "system_instruction": AI_SYSTEM_PROMPT,
+                    "temperature": CFG.AI_TEMPERATURE,
+                    "max_output_tokens": CFG.AI_MAX_OUTPUT_TOKENS,
+                    "response_mime_type": "application/json",
+                }
+                if hasattr(genai_types, "ThinkingConfig"):
+                    try:
+                        cfg_kwargs["thinking_config"] = genai_types.ThinkingConfig(
+                            thinking_level=CFG.MODEL_THINKING_LEVEL.get(model, "low")
+                        )
+                    except Exception:
+                        pass
+
+                resp = client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=genai_types.GenerateContentConfig(**cfg_kwargs),
+                )
+                raw_text = (getattr(resp, "text", "") or "").strip()
+                if not raw_text:
+                    continue
+
+                if raw_text.startswith("```"):
+                    raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text, flags=re.IGNORECASE)
+                    raw_text = re.sub(r"\s*```$", "", raw_text)
+
+                parsed = json.loads(raw_text)
+                if isinstance(parsed, dict):
+                    LOG.info("Batch AI generated successfully with model: %s", model)
+                    return {
+                        item["fund"]: str(parsed.get(item["fund"], FALLBACK_MSG)).strip() or FALLBACK_MSG
+                        for item in items
+                    }
+            except Exception as err:
+                LOG.warning("Batch AI model %s failed (%s) -> cascading down", model, err)
+                continue
+
+        return {item["fund"]: FALLBACK_MSG for item in items}
+    except Exception as exc:
+        LOG.warning("ai_explain_batch failed (%s) -> returning fallback messages", exc)
+        return {item["fund"]: FALLBACK_MSG for item in items}
 
 
 # ------------------------------------------------------------------------------
@@ -1142,10 +1216,17 @@ def send_to_discord(message: str) -> bool:
 
 
 def send_to_line(message: str) -> bool:
+    if os.getenv("SKIP_LINE", "").strip().lower() in ("1", "true", "yes"):
+        LOG.info("SKIP_LINE enabled -> skipping LINE push (Discord only)")
+        return True
     return NOTIFICATION_GATEWAY.send_line(message)
 
 
 def broadcast(message: str) -> None:
+    if os.getenv("SKIP_LINE", "").strip().lower() in ("1", "true", "yes"):
+        LOG.info("SKIP_LINE enabled -> skipping LINE push (Discord only)")
+        send_to_discord(message)
+        return
     NOTIFICATION_GATEWAY.dispatch(title="", message=message)
 
 
@@ -1459,10 +1540,9 @@ def process_asset(
             dec.tranche_stage,
             dec.tranche_label,
         )
-        return block, entry, summary_tuple
+        return block, entry, summary_tuple, None
 
     news = fetch_news(asset.yahoo)
-    ai_text = ai_explain(asset, m, sc, dec, news)
 
     entry = {
         "fund": asset.fund,
@@ -1490,13 +1570,12 @@ def process_asset(
         "breakdown": sc.breakdown,
         "breakdown_reason": sc.breakdown_reason,
         "news": news[:3],
-        "ai_analysis": ai_text,
+        "ai_analysis": "",
         "data_source": source,
         "components": sc.components,
         "updated_at": datetime.now(CFG.TZ_BANGKOK).isoformat(timespec="seconds"),
     }
 
-    block = render_asset_block(asset, m, sc, dec, news, ai_text)
     summary_tuple = (
         asset.fund,
         sc.score,
@@ -1507,7 +1586,16 @@ def process_asset(
         dec.tranche_stage,
         dec.tranche_label
     )
-    return block, entry, summary_tuple
+    batch_context = {
+        "fund": asset.fund,
+        "label": asset.label,
+        "asset": asset,
+        "metrics": m,
+        "score_result": sc,
+        "decision": dec,
+        "news": news,
+    }
+    return "", entry, summary_tuple, batch_context
 
 
 def main() -> int:
@@ -1541,10 +1629,13 @@ def main() -> int:
     run_date = now_th.date()
     now_iso = now_th.isoformat(timespec="seconds")
 
+    # Phase A (Compute): Fetch data, compute Metrics, ScoreResult, Decision, and news
+    computed_assets = []
+    batch_items = []
     for idx, asset in enumerate(UNIVERSE):
         try:
             prev_st = assets_state.get(asset.fund, {}).get("tranche_stage", 0)
-            block, entry, s_tuple = process_asset(
+            block, entry, s_tuple, batch_ctx = process_asset(
                 asset,
                 {"assets": assets_state},
                 canary_ok=canary_ok,
@@ -1552,6 +1643,37 @@ def main() -> int:
                 run_date=run_date,
                 now_iso=now_iso,
             )
+            computed_assets.append((asset, prev_st, block, entry, s_tuple, batch_ctx))
+            if batch_ctx is not None:
+                batch_items.append(batch_ctx)
+        except Exception as exc:
+            failures += 1
+            LOG.exception("Error on %s: %s", asset.fund, exc)
+            detail_blocks.append(f"⚠️ {_display_fund_name(asset.fund)} — ระบบวิเคราะห์ขัดข้อง: {exc}")
+
+        if idx < len(UNIVERSE) - 1:
+            time.sleep(CFG.INTER_ASSET_SLEEP)
+
+    # Phase B (Batch AI): Single 1-shot JSON batch call for all assets
+    ai_explanations = ai_explain_batch(batch_items)
+
+    # Phase C (Render & State): Render blocks, run Execution Approval Gate, and update state
+    for asset, prev_st, block, entry, s_tuple, batch_ctx in computed_assets:
+        try:
+            if batch_ctx is not None:
+                ai_text = ai_explanations.get(
+                    asset.fund,
+                    "ไม่สามารถสร้างคำอธิบาย AI ได้ชั่วคราว (ยึดตามสัญญาณ Quant ด้านบน)",
+                )
+                entry["ai_analysis"] = ai_text
+                block = render_asset_block(
+                    batch_ctx["asset"],
+                    batch_ctx["metrics"],
+                    batch_ctx["score_result"],
+                    batch_ctx["decision"],
+                    batch_ctx["news"],
+                    ai_text,
+                )
 
             # ── Execution Approval Gate (Phase 1 & 2) ──────────────────────────
             prop_stage = entry.get("tranche_stage", 0)
@@ -1647,9 +1769,6 @@ def main() -> int:
             failures += 1
             LOG.exception("Error on %s: %s", asset.fund, exc)
             detail_blocks.append(f"⚠️ {_display_fund_name(asset.fund)} — ระบบวิเคราะห์ขัดข้อง: {exc}")
-
-        if idx < len(UNIVERSE) - 1:
-            time.sleep(CFG.INTER_ASSET_SLEEP)
 
     # 3. Compute Net Portfolio Weights & Assertion (Sleeve 20% each)
     # Net Portfolio Weight = (tranche_stage / 3.0) * 0.20
