@@ -22,7 +22,8 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install --upgrade yfinance curl_cffi scipy statsmodels tabulate pyarrow
+          pip install --upgrade yfinance curl_cffi scipy statsmodels tabulate
+          pip install pyarrow
       - name: Run research script
         env:
           PYTHONPATH: .
