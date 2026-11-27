@@ -20,6 +20,7 @@ import json
 import logging
 import math
 import os
+import re
 import sys
 import time
 from dataclasses import dataclass
@@ -1069,6 +1070,41 @@ def decide(
 # SECTION 9 -- NEWS DIGEST (Finnhub)
 # ------------------------------------------------------------------------------
 
+NEWS_SYMBOL_MAP: Dict[str, str] = {
+    "CSPX.L": "SPY",
+    "URTH": "VT",
+}
+
+_LOW_SIGNAL_HEADLINE_PATTERNS = (
+    "sequence risk",
+    "retire",
+    "why i",
+    "should you buy",
+    "millionaire",
+    "is it really",
+    "3 stocks",
+    "5 etfs",
+    "opinion:",
+    "podcast",
+)
+_LOW_SIGNAL_HEADLINE_RE = re.compile(
+    r"\b\d+\s+(?:stocks|etfs|funds)\b",
+    re.IGNORECASE,
+)
+
+
+def is_low_signal_headline(headline: str) -> bool:
+    text = (headline or "").strip()
+    if not text:
+        return True
+    lower = text.lower()
+    if any(pat in lower for pat in _LOW_SIGNAL_HEADLINE_PATTERNS):
+        return True
+    if _LOW_SIGNAL_HEADLINE_RE.search(text):
+        return True
+    return False
+
+
 def fetch_news(symbol: str) -> List[str]:
     key = SECRETS["FINNHUB_API_KEY"]
     if not key:
@@ -1076,7 +1112,9 @@ def fetch_news(symbol: str) -> List[str]:
 
     today = datetime.utcnow().date()
     start = today - timedelta(days=CFG.NEWS_LOOKBACK_DAYS)
-    clean = symbol.split(".")[0].upper()
+    mapped = NEWS_SYMBOL_MAP.get(symbol.upper(), symbol)
+    clean = mapped.split(".")[0].upper()
+    cutoff_ts = int((datetime.now(timezone.utc) - timedelta(hours=48)).timestamp())
 
     try:
         resp = requests.get(
@@ -1094,14 +1132,76 @@ def fetch_news(symbol: str) -> List[str]:
         items = resp.json()
         if not isinstance(items, list):
             return []
+
+        sorted_items = sorted(
+            (it for it in items if isinstance(it, dict)),
+            key=lambda x: int(x.get("datetime") or 0),
+            reverse=True,
+        )
+
         heads: List[str] = []
         seen: set[str] = set()
-        for it in items[: CFG.NEWS_MAX_HEADLINES * 3]:
+        for it in sorted_items:
+            raw_dt = it.get("datetime")
+            if raw_dt is not None:
+                try:
+                    dt_val = int(raw_dt)
+                    if dt_val > 0 and dt_val < cutoff_ts:
+                        continue
+                except (TypeError, ValueError):
+                    pass
+
             h = str(it.get("headline", "")).strip()
-            if h and h not in seen:
-                seen.add(h)
+            if not h or is_low_signal_headline(h):
+                continue
+            h_key = h.lower()
+            if h_key not in seen:
+                seen.add(h_key)
                 heads.append(h[:140])
             if len(heads) >= CFG.NEWS_MAX_HEADLINES:
+                break
+        return heads
+    except Exception:
+        return []
+
+
+def fetch_macro_news(max_items: int = 5) -> List[str]:
+    key = SECRETS["FINNHUB_API_KEY"]
+    if not key:
+        return []
+
+    try:
+        resp = requests.get(
+            "https://finnhub.io/api/v1/news",
+            params={
+                "category": "general",
+                "token": key,
+            },
+            timeout=CFG.HTTP_TIMEOUT,
+        )
+        if resp.status_code != 200:
+            return []
+        items = resp.json()
+        if not isinstance(items, list):
+            return []
+
+        sorted_items = sorted(
+            (it for it in items if isinstance(it, dict)),
+            key=lambda x: int(x.get("datetime") or 0),
+            reverse=True,
+        )
+
+        heads: List[str] = []
+        seen: set[str] = set()
+        for it in sorted_items:
+            h = str(it.get("headline", "")).strip()
+            if not h or is_low_signal_headline(h):
+                continue
+            h_key = h.lower()
+            if h_key not in seen:
+                seen.add(h_key)
+                heads.append(h[:140])
+            if len(heads) >= max_items:
                 break
         return heads
     except Exception:
@@ -1112,12 +1212,10 @@ def fetch_news(symbol: str) -> List[str]:
 # SECTION 10 -- AI EXPLAINER (Dynamic Cascade)
 # ------------------------------------------------------------------------------
 
-import re
-
 AI_SYSTEM_PROMPT = (
     "คุณคือนักวิเคราะห์เชิงปริมาณสาย Trend-Following ที่เน้นการรักษาเงินต้นของพอร์ตกองทุนรวม SCB "
     "อธิบายเหตุผลของคะแนนและคำสั่งอย่างกระชับ มั่นใจ ตรงประเด็น ไม่ใช้คำพูดคลุมเครือ "
-    "ตอบเป็นภาษาไทย 2-3 บรรทัดสั้นๆ สรุปภาพรวมทางเทคนิคและข่าว ไม่เกิน 90 คำ"
+    "ตอบเป็นภาษาไทยแบบข้อความธรรมดา ห้ามใช้ Markdown (** หรือ backticks)"
 )
 
 
@@ -1189,22 +1287,25 @@ def get_dynamic_flash_models(client) -> List[str]:
     return _get_adaptive_model_cascade(client, use_cache=False)
 
 
-def ai_explain_batch(items: List[dict]) -> Dict[str, str]:
-    """Generate 1-2 sentence Thai explanations for all assets in a single 1-shot JSON batch call."""
+def ai_explain_batch(items: List[dict], macro_news: Optional[List[str]] = None) -> Dict[str, str]:
+    """Generate macro_brief and 1-sentence Thai explanations for all assets in a single 1-shot JSON batch call."""
     FALLBACK_MSG = "ไม่สามารถสร้างคำอธิบาย AI ได้ชั่วคราว (ยึดตามสัญญาณ Quant ด้านบน)"
     if not items:
         return {}
 
+    fallback_res: Dict[str, str] = {item["fund"]: FALLBACK_MSG for item in items}
+    fallback_res["macro_brief"] = ""
+
     try:
         key = SECRETS["GEMINI_API_KEY"]
         if not key:
-            return {item["fund"]: FALLBACK_MSG for item in items}
+            return fallback_res
 
         try:
             from google import genai
             from google.genai import types as genai_types
         except ImportError:
-            return {item["fund"]: FALLBACK_MSG for item in items}
+            return fallback_res
 
         global _GENAI_CLIENT
         if _GENAI_CLIENT is None:
@@ -1220,7 +1321,7 @@ def ai_explain_batch(items: List[dict]) -> Dict[str, str]:
             sc = item["score_result"]
             dec = item["decision"]
             news = item["news"]
-            news_text = "; ".join(news) if news else "ไม่มีข่าวสำคัญใน 3 วันนี้"
+            news_text = "; ".join(news) if news else "ไม่มีข่าวสำคัญใน 48 ชม."
             asset_blocks.append(
                 f"- fund: {item['fund']} ({item['label']})\n"
                 f"  คำสั่ง: {dec.action} ({dec.action_detail})\n"
@@ -1229,10 +1330,24 @@ def ai_explain_batch(items: List[dict]) -> Dict[str, str]:
                 f"  ข่าว: {news_text}"
             )
 
+        macro_list = macro_news or []
+        macro_text = (
+            "\n".join(f"- {h}" for h in macro_list)
+            if macro_list
+            else "- ไม่มีข่าวเศรษฐกิจมหภาคสำคัญใน 48 ชม."
+        )
+
         prompt = (
-            "วิเคราะห์สินทรัพย์ทั้งหมดด้านล่าง และตอบกลับเป็น JSON object เท่านั้น "
-            "โดยใช้ key เป็นชื่อ `fund` ตามที่ระบุเป๊ะๆ และ value เป็นคำอธิบายภาษาไทยสั้นๆ 1-2 ประโยคที่จบสมบูรณ์ "
-            "(ข้อความธรรมดา ห้ามใช้ ** หรือ backticks) ว่าทำไมวันนี้จึงเลือกทำตามคำสั่งนี้ และเงื่อนไขสำคัญที่ต้องจับตา:\n\n"
+            "วิเคราะห์ภาพรวมตลาดโลกและสินทรัพย์ทั้งหมดด้านล่าง แล้วตอบกลับเป็น JSON object เท่านั้น "
+            "(ข้อความธรรมดา ห้ามใช้ ** หรือ backticks):\n"
+            "1) key ชื่อ `macro_brief`: สรุปข่าวตลาดโลก/เศรษฐกิจ/Fed วันนี้เป็นภาษาไทย 2 บรรทัดสั้นๆ กระชับ "
+            "(ไม่เกิน 45 คำ) เพื่อบอกว่าทำไมตลาดโลกถึงเคลื่อนไหวแบบนี้ "
+            "(ถ้าไม่มีข่าวสำคัญให้ตอบ \"ไม่มีข่าวเศรษฐกิจมหภาคสำคัญใน 48 ชม.\")\n"
+            "2) key เป็นชื่อ `fund` ตามที่ระบุเป๊ะๆ สำหรับแต่ละสินทรัพย์: คำอธิบายภาษาไทย 1 ประโยคสั้นๆ จบสมบูรณ์ "
+            "(ไม่เกิน 35 คำ) บอกเหตุผลทางเทคนิค + เงื่อนไขกลับตัวสำคัญ "
+            "(ห้ามแถโยงข่าวถ้าไม่มีข่าวที่เกี่ยวข้องโดยตรงกับกองทุนนั้น)\n\n"
+            f"ข่าวตลาดโลก (Macro):\n{macro_text}\n\n"
+            "สินทรัพย์ในพอร์ต:\n"
             + "\n".join(asset_blocks)
         )
 
@@ -1277,18 +1392,20 @@ def ai_explain_batch(items: List[dict]) -> Dict[str, str]:
 
                 if isinstance(parsed, dict):
                     LOG.info("Batch AI generated successfully with model: %s", model)
-                    return {
+                    res: Dict[str, str] = {
                         item["fund"]: str(parsed.get(item["fund"], FALLBACK_MSG)).strip() or FALLBACK_MSG
                         for item in items
                     }
+                    res["macro_brief"] = str(parsed.get("macro_brief", "") or "").strip()
+                    return res
             except Exception as err:
                 LOG.warning("Batch AI model %s failed (%s) -> cascading down", model, err)
                 continue
 
-        return {item["fund"]: FALLBACK_MSG for item in items}
+        return fallback_res
     except Exception as exc:
         LOG.warning("ai_explain_batch failed (%s) -> returning fallback messages", exc)
-        return {item["fund"]: FALLBACK_MSG for item in items}
+        return fallback_res
 
 
 # ------------------------------------------------------------------------------
@@ -1407,6 +1524,7 @@ def render_executive_summary(
     futures_desc: str = "",
     sleeve_caps: Optional[Dict[str, float]] = None,
     ticket_lines: Optional[List[str]] = None,
+    macro_brief: str = "",
 ) -> str:
     lines: List[str] = []
     if ticket_lines:
@@ -1446,6 +1564,14 @@ def render_executive_summary(
         lines.append(f"💼 พอร์ตจริง: หุ้น/ทอง {total_equity_weight:g}% ({', '.join(active_allocations)}) | เงินสด {cash_weight:g}% ({CFG.CASH_FUND})")
     else:
         lines.append(f"💼 พอร์ตจริง: เงินสด {cash_weight:g}% ({CFG.CASH_FUND})")
+    if macro_brief:
+        clean_macro_lines = [
+            " ".join(ln.replace("**", "").replace("`", "").split())
+            for ln in macro_brief.splitlines()
+        ]
+        clean_macro = "\n".join(ln for ln in clean_macro_lines if ln)
+        if clean_macro:
+            lines.append(f"🌍 ตลาดโลก: {clean_macro}")
     lines.append("──────────────")
     return "\n".join(lines)
 
@@ -1462,12 +1588,6 @@ def render_asset_block(asset: Asset, m: Metrics, sc: ScoreResult, dec: Decision,
     ]
     if sc.breakdown:
         lines.append(f"🧨 หลุดแนวรับ: EMA200 ({m.dist_ema200_pct:+.1f}%)")
-    if news:
-        headline = news[0].replace("**", "").replace("`", "").strip()
-        if len(headline) > 60:
-            headline = headline[:60].rstrip() + "..."
-        if headline:
-            lines.append(f"📰 ข่าว: {headline}")
     clean_ai = " ".join(ai_text.replace("**", "").replace("`", "").split())
     lines.append(f"💬 วิเคราะห์: {clean_ai}")
     return "\n".join(lines)
@@ -1847,8 +1967,10 @@ def main() -> int:
         else:
             prev_weights[a.fund] = (prev_st_val / 3.0) * sleeve_caps.get(a.fund, 0.20)
 
-    # Phase B (Batch AI): Single 1-shot JSON batch call for all assets
-    ai_explanations = ai_explain_batch(batch_items)
+    # Phase B (Batch AI): Single 1-shot JSON batch call for all assets + macro brief
+    macro_news = fetch_macro_news()
+    ai_explanations = ai_explain_batch(batch_items, macro_news=macro_news)
+    macro_brief = ai_explanations.get("macro_brief", "")
 
     # Phase C (Render & State): Render blocks, run Execution Approval Gate, and update state
     for asset, prev_st, block, entry, s_tuple, batch_ctx in computed_assets:
@@ -2128,6 +2250,7 @@ def main() -> int:
             futures_desc=futures_desc,
             sleeve_caps=sleeve_caps,
             ticket_lines=ticket_lines,
+            macro_brief=macro_brief,
         ),
         "🔍 รายละเอียดทางเทคนิค\n\n" + "\n\n".join(detail_blocks),
         (
