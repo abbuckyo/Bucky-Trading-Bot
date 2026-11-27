@@ -1,23 +1,23 @@
 {
   "version": 3.1,
-  "last_run_utc": "2026-11-26T15:06:41+00:00",
-  "last_run_ict": "2026-11-26T22:06:29+07:00",
+  "last_run_utc": "2026-11-27T14:59:21+00:00",
+  "last_run_ict": "2026-11-27T21:58:52+07:00",
   "require_manual_confirm": true,
   "pending_approvals": {},
   "canary": {
     "ticker": "TIP",
-    "tip_mom_13612_pct": -1.06,
+    "tip_mom_13612_pct": -1.04,
     "canary_ok": false,
-    "description": "TIP 13612 Mom: -1.06% (RED: 100% Cash Park Enforced)"
+    "description": "TIP 13612 Mom: -1.04% (RED: 100% Cash Park Enforced)"
   },
   "futures_guard": {
     "triggered": false,
     "guard_status": "ok",
     "data": {
-      "ES=F": 0.46,
-      "NQ=F": 0.08
+      "ES=F": 0.67,
+      "NQ=F": 0.69
     },
-    "description": "NORMAL: ES=F +0.46% | NQ=F +0.08% (สภาวะตลาดล่วงหน้าปกติ)"
+    "description": "NORMAL: ES=F +0.67% | NQ=F +0.69% (สภาวะตลาดล่วงหน้าปกติ)"
   },
   "portfolio": {
     "equity_weight": 0.0,
@@ -49,19 +49,19 @@
       },
       "score": 16.0,
       "raw_score": 16.0,
-      "price": 194.55,
-      "chg_pct": -0.01,
-      "dist_ema50_pct": -4.21,
-      "dist_ema200_pct": -2.13,
+      "price": 195.73,
+      "chg_pct": 0.61,
+      "dist_ema50_pct": -3.49,
+      "dist_ema200_pct": -1.52,
       "bull_stack": false,
-      "rsi": 39.5,
-      "adx": 23.5,
-      "hv20": 29.3,
+      "rsi": 41.8,
+      "adx": 24.6,
+      "hv20": 29.5,
       "chop_capped": false,
-      "breakdown": true,
-      "breakdown_reason": "Price -2.1% below EMA200",
+      "breakdown": false,
+      "breakdown_reason": "",
       "news": [],
-      "ai_analysis": "สัญญาณ HAA TIP Canary สั่งล็อกหลบภัย 100% ประกอบกับราคาหลุดเส้น EMA200 (-2.1%) และโมเมนตัมอ่อนแอ (RSI 39.5) จึงต้องถือเงินสดเพื่อรักษาเงินต้น จับตาการกลับมายืนเหนือ EMA200 และสัญญาณ Canary ที่ฟื้นตัวก่อนกลับเข้าลงทุน",
+      "ai_analysis": "สัญญาณ Canary สั่งถือเงินสด 100% ขณะที่ราคาต่ำกว่า EMA200 1.5% และ RSI อยู่ที่ 41.8 ต้องรอให้ราคากลับมายืนเหนือ EMA200 และสัญญาณมหภาคฟื้นตัว",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 12.0,
@@ -70,7 +70,7 @@
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-26T22:06:29+07:00",
+      "updated_at": "2026-11-27T21:58:53+07:00",
       "weight": 0.0
     },
     "SCBS&P500E": {
@@ -91,19 +91,23 @@
       },
       "score": 16.0,
       "raw_score": 16.0,
-      "price": 781.46,
-      "chg_pct": 3.33,
-      "dist_ema50_pct": -3.7,
-      "dist_ema200_pct": -1.41,
+      "price": 781.85,
+      "chg_pct": 0.07,
+      "dist_ema50_pct": -3.51,
+      "dist_ema200_pct": -1.35,
       "bull_stack": false,
-      "rsi": 42.4,
-      "adx": 26.2,
-      "hv20": 27.7,
+      "rsi": 42.6,
+      "adx": 26.0,
+      "hv20": 27.3,
       "chop_capped": false,
       "breakdown": true,
       "breakdown_reason": "Strong downward impulse below EMA200",
-      "news": [],
-      "ai_analysis": "ระบบ Canary สั่งถือเงินสด 100% และราคามีแรงเทขายกดตัวต่ำกว่า EMA200 (-1.4%) อย่างชัดเจน จึงควรถือเงินสดเพื่อลดความเสี่ยง รอจนกว่าราคาจะเบรกกลับขึ้นมายืนเหนือ EMA200 ได้อย่างมั่นคง",
+      "news": [
+        "Exchange-Traded Funds, Equity Futures Higher Pre-Bell Friday Amid Technology Stock Rebound",
+        "JEPI Gets the Attention. JPMorgan’s 0.12% Quality ETF Has Quietly Grown Past $9 Billion",
+        "Down 26% This Year, Is It Time to Buy Salesforce Stock Before Earnings?"
+      ],
+      "ai_analysis": "โครงสร้างขาลงชัดเจนและต่ำกว่า EMA200 1.4% พร้อมแรงส่งขาลง ADX 26.0 จึงต้องถือเงินสดจนกว่าราคาจะทะลุกลับไปยืนเหนือ EMA200 ได้",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 12.0,
@@ -112,7 +116,7 @@
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-26T22:06:30+07:00",
+      "updated_at": "2026-11-27T21:58:54+07:00",
       "weight": 0.0
     },
     "SCBNDQ(E)": {
@@ -133,23 +137,23 @@
       },
       "score": 16.0,
       "raw_score": 16.0,
-      "price": 633.93,
-      "chg_pct": -0.65,
-      "dist_ema50_pct": -8.16,
-      "dist_ema200_pct": -6.82,
+      "price": 638.59,
+      "chg_pct": 0.74,
+      "dist_ema50_pct": -7.21,
+      "dist_ema200_pct": -6.07,
       "bull_stack": false,
-      "rsi": 38.6,
-      "adx": 32.5,
-      "hv20": 47.8,
+      "rsi": 40.2,
+      "adx": 32.6,
+      "hv20": 47.9,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -6.8% below EMA200",
+      "breakdown_reason": "Price -6.1% below EMA200",
       "news": [
-        "Stock Market Today: Nasdaq (QQQ) Plunges 4.5%, Then Claws Back Most of It as Hot PCE Data Meets an AI Scare",
-        "Anthropic And SpaceX Slink Below Their IPO Prices",
-        "Thanksgiving Talks: How To Answer 7 Dinner-Table Questions"
+        "Investors Buy the November Dip: VOO, QQQ Head for Record Monthly Inflows",
+        "Stock Market Today: Dow, S&P 500, Nasdaq 100 Futures Rise as Wall Street Returns to Wrap Up Holiday-Shortened Week — SPCX, PANW, HPQ In Focu",
+        "What To Expect From November 2026's Job Report"
       ],
-      "ai_analysis": "สัญญาณ Canary สั่งหลบภัย 100% สอดคล้องกับโครงสร้างราคาที่หลุด EMA200 (-6.8%) และแรงกดดันจากตัวเลข PCE ที่ร้อนแรงรวมถึงความกังวลกลุ่ม AI จับตาการฟื้นตัวกลับขึ้นเหนือ EMA200 และความผันผวนที่ลดลง",
+      "ai_analysis": "โครงสร้างพังรุนแรงโดยราคาต่ำกว่า EMA200 ถึง 6.1% และ ADX 32.6 ยืนยันเทรนด์ขาลง ต้องรอราคากลับมายืนเหนือ EMA200 และ RSI ฟื้นตัวเกิน 50",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 12.0,
@@ -158,7 +162,7 @@
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-26T22:06:32+07:00",
+      "updated_at": "2026-11-27T21:58:55+07:00",
       "weight": 0.0
     },
     "SCBGOLDE": {
@@ -179,23 +183,23 @@
       },
       "score": 8.0,
       "raw_score": 8.0,
-      "price": 327.45,
-      "chg_pct": 0.61,
-      "dist_ema50_pct": -10.6,
-      "dist_ema200_pct": -15.01,
+      "price": 333.1,
+      "chg_pct": 1.73,
+      "dist_ema50_pct": -8.74,
+      "dist_ema200_pct": -13.43,
       "bull_stack": false,
-      "rsi": 31.7,
-      "adx": 30.3,
-      "hv20": 34.0,
+      "rsi": 36.5,
+      "adx": 31.1,
+      "hv20": 34.9,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -15.0% below EMA200",
+      "breakdown_reason": "Price -13.4% below EMA200",
       "news": [
-        "Commodities: Oil Extends Rally As Copper Rebounds",
-        "Comex Update: November Delivery Volumes Are Modestly Higher",
-        "Gold Is Having Its Worst November Since at Least 2000"
+        "KGLD Pays, While I Wait For Gold And The Leading Signals Of Its Comeback",
+        "Commodities: Copper And Gold Rebound While Oil Extends Gains",
+        "Pawn Shops Are Booming, But Gold, Not Desperation, Is Doing The Heavy Lifting"
       ],
-      "ai_analysis": "สัญญาณ Canary สั่งถือเงินสด 100% ประกอบกับทองคำเผชิญเดือนพฤศจิกายนที่แย่ที่สุดนับตั้งแต่ปี 2000 และราคาดิ่งต่ำกว่า EMA200 ถึง -15.0% จึงต้องเน้นรักษาเงินต้น รอการสร้างฐานราคาใหม่และสัญญาณกลับตัวเหนือ EMA200",
+      "ai_analysis": "ราคาดิ่งลึกต่ำกว่า EMA200 ถึง 13.4% พร้อม RSI อ่อนแรงที่ 36.5 จึงต้องหลบภัยในเงินสดจนกว่าราคาจะกลับมายืนเหนือ EMA200 ได้อย่างมั่นคง",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 0.0,
@@ -204,7 +208,7 @@
         "momentum_rsi": 0.0,
         "volatility": 4.0
       },
-      "updated_at": "2026-11-26T22:06:33+07:00",
+      "updated_at": "2026-11-27T21:58:56+07:00",
       "weight": 0.0
     },
     "SCBSEMI(E)": {
@@ -225,23 +229,23 @@
       },
       "score": 16.0,
       "raw_score": 16.0,
-      "price": 422.46,
-      "chg_pct": -1.01,
-      "dist_ema50_pct": -18.12,
-      "dist_ema200_pct": -17.22,
+      "price": 426.04,
+      "chg_pct": 0.85,
+      "dist_ema50_pct": -16.86,
+      "dist_ema200_pct": -16.38,
       "bull_stack": false,
-      "rsi": 36.9,
-      "adx": 36.5,
-      "hv20": 93.2,
+      "rsi": 37.8,
+      "adx": 36.6,
+      "hv20": 93.5,
       "chop_capped": false,
       "breakdown": true,
-      "breakdown_reason": "Price -17.2% below EMA200",
+      "breakdown_reason": "Price -16.4% below EMA200",
       "news": [
-        "Nvidia: Upgrade To Hold, Too Early To Buy",
-        "Tech Stocks Stall Into Thanksgiving: Will the AI Rebound Return?",
-        "Michael Burry Says His Portfolio Was Discussed 'About the Time the Market Reversed Off Its Lows': He Is 'Temporarily Almost Entirely Long'"
+        "What Is Going on With Taiwan Semiconductor Stock on Friday?",
+        "3 Tech Stocks To Buy And 2 To Avoid Amid AI Uncertainty",
+        "'Nvidia Blackwell Chips Turn Up at China Site Tied to Alice Huang' - Bloomberg Exclusive"
       ],
-      "ai_analysis": "ระบบ Canary สั่งหลบภัย 100% และกลุ่มเซมิคอนดักเตอร์ยังอยู่ในแนวโน้มขาลงที่แข็งแกร่ง (ต่ำกว่า EMA200 ถึง -17.2%, ADX 36.5) สอดคล้องกับมุมมองข่าวที่ยังเร็วเกินไปในการเข้าซื้อ จับตาการหยุดไหลลงและกลับมายืนเหนือ EMA200 ก่อนพิจารณาลงทุนใหม่",
+      "ai_analysis": "โครงสร้างเสียหายหนักด้วยราคาต่ำกว่า EMA200 ถึง 16.4% และ ADX 36.6 ต้องถือเงินสด 100% จนกว่าราคาจะกลับตัวมายืนเหนือ EMA200 และสัญญาณ Canary ปลดล็อก",
       "data_source": "yahoo_v8",
       "components": {
         "trend_structure": 12.0,
@@ -250,7 +254,7 @@
         "momentum_rsi": 0.0,
         "volatility": 0.0
       },
-      "updated_at": "2026-11-26T22:06:34+07:00",
+      "updated_at": "2026-11-27T21:58:57+07:00",
       "weight": 0.0
     }
   }
