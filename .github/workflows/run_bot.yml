@@ -1,8 +1,6 @@
 name: AlphaShield Live Runner
 
 on:
-  schedule:
-    - cron: "15 5 * * 1-5"          # 12:15 ICT
   workflow_dispatch:
     inputs:
       force_run:
